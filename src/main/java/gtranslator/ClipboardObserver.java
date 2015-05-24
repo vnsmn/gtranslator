@@ -51,10 +51,8 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 						clipboard.setContents(st, this);
 						GuiOutput.createAndShowGUI().setSourceText(
 								text.toString());
-						String dirtyTranslate = TranslationReceiver.INSTANCE
-								.execute(text.toString(), false);
 						String translate = TranslationReceiver.INSTANCE
-								.format(dirtyTranslate);
+								.translateAndFormat(text.toString(), false);
 						GuiOutput.createAndShowGUI().setTargetText(translate);
 						GuiOutput.createAndShowGUI().selectTranslatePanel();
 						// System.out.println(text.toString());

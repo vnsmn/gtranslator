@@ -3,6 +3,7 @@ package gtranslator;
 import gtranslator.ClipboardObserver;
 import gtranslator.GuiOutput;
 import gtranslator.TranslationReceiver;
+import gtranslator.GuiOutput.ACTION_TYPE;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,6 +36,7 @@ public class App {
 				logger.info("----- cookie -----");
 				logger.info(cookie);
 				TranslationReceiver.INSTANCE.setCookie(cookie);
+				GuiOutput.createAndShowGUI().init(ACTION_TYPE.COOKIE, cookie);
 			}			
 			logger.info("********************");
 		} catch (Exception ex) {
@@ -42,7 +44,7 @@ public class App {
 			System.exit(-1);
 		}
 		
-		//if (1==1) return ;
+		readHistory();
 
 		final ClipboardObserver clipboardObserver = new ClipboardObserver();
 		final Thread th = new Thread(clipboardObserver);
@@ -54,11 +56,8 @@ public class App {
 						new GuiOutput.ActionListener() {
 							public void execute(GuiOutput source) {
 								try {
-									String dirtyTranslate = TranslationReceiver.INSTANCE
-											.execute(source.getSourceText(),
-													false);
 									String translate = TranslationReceiver.INSTANCE
-											.format(dirtyTranslate);
+											.translateAndFormat(source.getSourceText(), false);
 									source.setTargetText(translate);
 								} catch (IOException e) {
 									logger.error(e.getMessage(), e);
@@ -94,7 +93,22 @@ public class App {
 						new GuiOutput.ActionListener() {
 							@Override
 							public void execute(String s) {
-								// TranslationReceiver.INSTANCE.setCookie(s);
+								//TranslationReceiver.INSTANCE.setCookie(s);
+							}
+						});
+				GuiOutput.createAndShowGUI().putActionListener(
+						GuiOutput.ACTION_TYPE.REWRITE_HISTORY,
+						new GuiOutput.ActionListener() {
+							@Override
+							public void execute(boolean b) {
+								TranslationReceiver.INSTANCE.setRewrite(b);
+							}
+						});
+				GuiOutput.createAndShowGUI().putActionListener(
+						GuiOutput.ACTION_TYPE.CLEAN_HISTORY,
+						new GuiOutput.ActionListener() {
+							@Override
+							public void execute(GuiOutput source) {								
 							}
 						});
 				GuiOutput.createAndShowGUI().putActionListener(
@@ -105,6 +119,7 @@ public class App {
 								try {
 									th.interrupt();
 									th.join(10000);
+									saveHistory();									
 									logger.info("goodbay");
 								} catch (InterruptedException e) {
 									logger.error(e.getMessage(), e);
@@ -141,5 +156,27 @@ public class App {
 		}
 		
 		return props;
+	}
+	
+	private static void saveHistory() {
+		String dir = System.getProperty("user.home");
+		File rawHisFile = new File(dir, "gtranslator-raw.his");
+		File wordHisFile = new File(dir, "gtranslator-word.his");
+		try {
+			HistoryHelper.INSTANCE.save(rawHisFile, wordHisFile);
+		} catch (Exception ex) {
+			logger.error(ex.getMessage(), ex);
+		}
+	}
+	
+	private static void readHistory() {
+		String dir = System.getProperty("user.home");
+		File rawHisFile = new File(dir, "gtranslator-raw.his");
+		File wordHisFile = new File(dir, "gtranslator-word.his");
+		try {
+			HistoryHelper.INSTANCE.load(rawHisFile, wordHisFile);
+		} catch (Exception ex) {
+			logger.error(ex.getMessage(), ex);
+		}
 	}
 }

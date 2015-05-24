@@ -32,6 +32,7 @@ public class TranslationReceiver {
 
 	private String cookie;
 	private boolean isAddition;
+	private boolean isRewrite;
 	public final static TranslationReceiver INSTANCE = new TranslationReceiver();
 
 	private TranslationReceiver() {
@@ -44,17 +45,12 @@ public class TranslationReceiver {
 	public void setAddition(boolean isAddition) {
 		this.isAddition = isAddition;
 	}
-
-	public String execute(String sentense, String cookie, boolean isGetMethod)
-			throws IOException {
-		if (isGetMethod) {
-			return getExecute(sentense, cookie);
-		} else {
-			return postExecute(sentense, cookie);
-		}
+	
+	public void setRewrite(boolean isRewrite) {
+		this.isRewrite = isRewrite;
 	}
 
-	public synchronized String execute(String sentense, boolean isGetMethod)
+	protected String execute(String sentense, String cookie, boolean isGetMethod)
 			throws IOException {
 		if (isGetMethod) {
 			return getExecute(sentense, cookie);
@@ -168,12 +164,21 @@ public class TranslationReceiver {
 				return "" + index;
 		}
 	}
-
-	public String format(String translate) {
-		return format(translate, isAddition);
+	
+	public String translateAndFormat(String sentense, boolean isGetMethod) throws IOException {		
+		String rawTranslate = HistoryHelper.INSTANCE.readRaw(sentense.trim());
+		if (isRewrite || StringUtils.isBlank(rawTranslate)) {
+			rawTranslate = execute(sentense.trim(), cookie, false);
+			HistoryHelper.INSTANCE.writeRaw(sentense.trim(), rawTranslate);
+		}		
+		String translate = format(rawTranslate, isAddition);
+		if (sentense.trim().indexOf(" ") == -1) {
+			HistoryHelper.INSTANCE.writeWord(sentense.trim(), translate);
+		}
+		return translate;
 	}
 
-	public String format(String translate, boolean isAll) {
+	protected String format(String translate, boolean isAll) {
 		Map<String, Result> results = parseTranslate(translate);
 		StringBuilder sb = new StringBuilder();
 		Result res = results.get("0.1.1");
@@ -195,7 +200,7 @@ public class TranslationReceiver {
 			}
 			sb.append(s.startsWith(" ") ? s.substring(1) : s);
 		}
-		ts = sb.toString();
+		ts = sb.toString();			
 
 		if (!isAll) {
 			return ts;

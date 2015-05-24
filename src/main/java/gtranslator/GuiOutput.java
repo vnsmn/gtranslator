@@ -31,15 +31,17 @@ public class GuiOutput {
 	private JFrame frame;
 	private JTextArea sourceArea;
 	private JTextArea targetArea;
-	private JPopupMenu targetPopupMenu;
+	private JPopupMenu sourcePopupMenu;
 	private JSplitPane splitPane;
 	private JTabbedPane tabbedPane;
 	private JPanel setupPanel;
+	JTextField cookieField;
 	private Map<ACTION_TYPE, ActionListener> actionListeners = new HashMap<>();
 	private static GuiOutput INSTANCE;
 
 	public enum ACTION_TYPE {
-		FIXED, START_STOP, MODE_SELECT, ADDITION_INFO, COOKIE, DISPOSE
+		FIXED, START_STOP, MODE_SELECT, ADDITION_INFO, COOKIE, DISPOSE, 
+		REWRITE_HISTORY, CLEAN_HISTORY 
 	}
 
 	public abstract static class ActionListener {
@@ -70,25 +72,29 @@ public class GuiOutput {
 
 		targetArea = new JTextArea();
 		targetArea.setLineWrap(true);
-		targetPopupMenu = new JPopupMenu("Translate");
-		JMenuItem it = new JMenuItem("rewrite");
-		it.addActionListener(new java.awt.event.ActionListener() {			
-			@Override
-			public void actionPerformed(ActionEvent e) {				
-			}
-		});
-		targetPopupMenu.add(it);
-		targetArea.setComponentPopupMenu(targetPopupMenu);
-		
 		JScrollPane targetScrollPane = new JScrollPane();
 		targetScrollPane.add(targetArea);
-		targetScrollPane.setViewportView(targetArea);		
+		targetScrollPane.setViewportView(targetArea);
 		
 		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, sourceScrollPane,
 				targetScrollPane);
 		splitPane.setOneTouchExpandable(true);
 		splitPane.setResizeWeight(0.5);
 		tabbedPane.add(splitPane, "translate");
+
+		sourcePopupMenu = new JPopupMenu("Translate");
+		JMenuItem it = new JMenuItem("rewrite history");
+		it.addActionListener(new java.awt.event.ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ActionListener actionListener = actionListeners
+						.get(ACTION_TYPE.CLEAN_HISTORY);
+				if (actionListener != null) {
+					actionListener.execute(INSTANCE);
+				}				
+			}
+		});		
+		sourceArea.setComponentPopupMenu(sourcePopupMenu);		
 
 		setupPanel = new JPanel();
 		setupPanel.setLayout(new BorderLayout());
@@ -100,15 +106,16 @@ public class GuiOutput {
 		Box box = Box.createVerticalBox();
 		setupPanel.add(box, BorderLayout.NORTH);
 
-		JCheckBox checkBox = new JCheckBox("stop/start");
+		JCheckBox checkBox = new JCheckBox("No");
 		checkBox.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				final JCheckBox check = (JCheckBox)e.getSource();
+				check.setText(check.isSelected() ? "Yes" : "No");
 				ActionListener actionListener = actionListeners
 						.get(ACTION_TYPE.START_STOP);
 				if (actionListener != null) {
-					actionListener.execute(((JCheckBox) e.getSource())
-							.isSelected());
+					actionListener.execute(check.isSelected());
 				}
 			}
 		});
@@ -120,44 +127,66 @@ public class GuiOutput {
 		panel.add(checkBox, BorderLayout.WEST);
 		box.add(panel);
 
-		checkBox = new JCheckBox("select");
+		checkBox = new JCheckBox("No");
 		checkBox.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				final JCheckBox check = (JCheckBox)e.getSource();
+				check.setText(check.isSelected() ? "Yes" : "No");
 				ActionListener actionListener = actionListeners
 						.get(ACTION_TYPE.MODE_SELECT);
 				if (actionListener != null) {
-					actionListener.execute(((JCheckBox) e.getSource())
-							.isSelected());
+					actionListener.execute(check.isSelected());
 				}
 			}
 		});
 		panel = new JPanel();
 		panel.setLayout(new BorderLayout());
-		panel.setBorder(BorderFactory.createTitledBorder(lineBorder, "Select"));
+		panel.setBorder(BorderFactory.createTitledBorder(lineBorder, "Mode select"));
 		panel.add(checkBox, BorderLayout.WEST);
 		box.add(panel);
 
-		checkBox = new JCheckBox("addition info");
+		checkBox = new JCheckBox("No");
 		checkBox.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				final JCheckBox check = (JCheckBox)e.getSource();
+				check.setText(check.isSelected() ? "Yes" : "No");
 				ActionListener actionListener = actionListeners
 						.get(ACTION_TYPE.ADDITION_INFO);
 				if (actionListener != null) {
-					actionListener.execute(((JCheckBox) e.getSource())
-							.isSelected());
+					actionListener.execute(check.isSelected());
 				}
 			}
 		});
 		panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
-				"addition info"));
+				"Addition info"));
 		panel.add(checkBox, BorderLayout.WEST);
-		box.add(panel);
+		box.add(panel);		
+		
+		checkBox = new JCheckBox("No");
+		checkBox.addActionListener(new java.awt.event.ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				final JCheckBox check = (JCheckBox)e.getSource();
+				check.setText(check.isSelected() ? "Yes" : "No");
+				ActionListener actionListener = actionListeners
+						.get(ACTION_TYPE.REWRITE_HISTORY);
+				if (actionListener != null) {
+					actionListener.execute(check.isSelected());
+				}
+			}
+		});
+		panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
+				"Rewrite history"));
+		panel.add(checkBox, BorderLayout.WEST);
+		box.add(panel);		
 
-		final JTextField cookieField = new JTextField();
+		cookieField = new JTextField();
 		panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 		panel.setBorder(BorderFactory.createTitledBorder(lineBorder, "Cookie"));
@@ -179,6 +208,16 @@ public class GuiOutput {
 		// frame.pack(); если размер устанавливается внутренними компонентами
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setVisible(true);
+	}
+	
+	public void init(ACTION_TYPE type, Object value) {
+		switch (type) {
+			case COOKIE:
+				cookieField.setText((String) value);	
+			break;
+		default:
+			break;
+		}
 	}
 
 	public void show() {
