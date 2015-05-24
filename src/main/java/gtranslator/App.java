@@ -93,7 +93,7 @@ public class App {
 						new GuiOutput.ActionListener() {
 							@Override
 							public void execute(String s) {
-								//TranslationReceiver.INSTANCE.setCookie(s);
+								TranslationReceiver.INSTANCE.setCookie(s);
 							}
 						});
 				GuiOutput.createAndShowGUI().putActionListener(
@@ -108,7 +108,15 @@ public class App {
 						GuiOutput.ACTION_TYPE.CLEAN_HISTORY,
 						new GuiOutput.ActionListener() {
 							@Override
-							public void execute(GuiOutput source) {								
+							public void execute(GuiOutput source) {
+								HistoryHelper.INSTANCE.delete(source.getSourceText());
+								try {
+									String translate = TranslationReceiver.INSTANCE
+											.translateAndFormat(source.getSourceText(), false);
+									source.setTargetText(translate);
+								} catch (IOException e) {
+									logger.error(e.getMessage(), e);
+								}
 							}
 						});
 				GuiOutput.createAndShowGUI().putActionListener(
@@ -158,10 +166,15 @@ public class App {
 		return props;
 	}
 	
-	private static void saveHistory() {
+	private static File rawHisFile;
+	private static File wordHisFile;
+	static {
 		String dir = System.getProperty("user.home");
-		File rawHisFile = new File(dir, "gtranslator-raw.his");
-		File wordHisFile = new File(dir, "gtranslator-word.his");
+		rawHisFile = new File(dir, "gtranslator-raw-his.xml");
+		wordHisFile = new File(dir, "gtranslator-word-his.xml");
+	}
+	
+	private static void saveHistory() {
 		try {
 			HistoryHelper.INSTANCE.save(rawHisFile, wordHisFile);
 		} catch (Exception ex) {
@@ -170,9 +183,6 @@ public class App {
 	}
 	
 	private static void readHistory() {
-		String dir = System.getProperty("user.home");
-		File rawHisFile = new File(dir, "gtranslator-raw.his");
-		File wordHisFile = new File(dir, "gtranslator-word.his");
 		try {
 			HistoryHelper.INSTANCE.load(rawHisFile, wordHisFile);
 		} catch (Exception ex) {

@@ -18,6 +18,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicStampedReference;
 
 import javax.json.Json;
 import javax.json.stream.JsonParser;
@@ -30,33 +33,24 @@ public class TranslationReceiver {
 		GET, POST
 	}
 
-	private String cookie;
-	private boolean isAddition;
-	private boolean isRewrite;
+	private AtomicReference<String> cookie = new AtomicReference<String>("");
+	private AtomicBoolean isAddition = new AtomicBoolean(false);
+	private AtomicBoolean isRewrite = new AtomicBoolean(false);
 	public final static TranslationReceiver INSTANCE = new TranslationReceiver();
 
 	private TranslationReceiver() {
 	}
 
 	public void setCookie(String cookie) {
-		this.cookie = cookie;
+		this.cookie.set(StringUtils.isBlank(cookie) ? "" : cookie);
 	}
 
 	public void setAddition(boolean isAddition) {
-		this.isAddition = isAddition;
+		this.isAddition.set(isAddition);
 	}
 	
 	public void setRewrite(boolean isRewrite) {
-		this.isRewrite = isRewrite;
-	}
-
-	protected String execute(String sentense, String cookie, boolean isGetMethod)
-			throws IOException {
-		if (isGetMethod) {
-			return getExecute(sentense, cookie);
-		} else {
-			return postExecute(sentense, cookie);
-		}
+		this.isRewrite.set(isRewrite);
 	}
 
 	private String getExecute(String sentense, String cookie)
@@ -165,15 +159,15 @@ public class TranslationReceiver {
 		}
 	}
 	
-	public String translateAndFormat(String sentense, boolean isGetMethod) throws IOException {		
-		String rawTranslate = HistoryHelper.INSTANCE.readRaw(sentense.trim());
-		if (isRewrite || StringUtils.isBlank(rawTranslate)) {
-			rawTranslate = execute(sentense.trim(), cookie, false);
-			HistoryHelper.INSTANCE.writeRaw(sentense.trim(), rawTranslate);
+	public synchronized String translateAndFormat(String sentense, boolean isGetMethod) throws IOException {
+		String rawTranslate = HistoryHelper.INSTANCE.readRaw(sentense);
+		if (isRewrite.get() || StringUtils.isBlank(rawTranslate)) {
+			rawTranslate = isGetMethod ? getExecute(sentense, cookie.get()) : postExecute(sentense, cookie.get());
+			HistoryHelper.INSTANCE.writeRaw(sentense, rawTranslate);
 		}		
-		String translate = format(rawTranslate, isAddition);
+		String translate = format(rawTranslate, isAddition.get());
 		if (sentense.trim().indexOf(" ") == -1) {
-			HistoryHelper.INSTANCE.writeWord(sentense.trim(), translate);
+			HistoryHelper.INSTANCE.writeWord(sentense, translate.trim().toLowerCase());
 		}
 		return translate;
 	}
@@ -276,8 +270,7 @@ public class TranslationReceiver {
 	public static void main1(String[] args) throws IOException {
 		String sentence = s2;
 		String cookie = "PREF=ID=eb1b92938bb56d0a:U=fe67bf9c92332070:FF=0:LD=ru:NW=1:TM=1419582403:LM=1432111202:GM=1:SG=2:S=L0BJCcJgRJ-97cSl; NID=67=KotPOyK2nrutho0P-sHb-Ubbv5vam6QinJn4rCRQbJJNgsph9-z6vCTUvjzkmItrtCIw1cP9FvtdkurKyt-gVs8MExJSQiQe7bpro4xiAb8jDHnCP1HNBxv1hp2lZz-qIuI5Pk859QHlh_FwnWsytRRfP4cErl7g7ErcuIZBuvQdwyL-kq45dbrSWFnOQt4ciMh7ozu4HsCFqgmowhkQIsee3SPNQGzYUpcaqIZjThfrPntaH42tKQcbLMBkesdCW6t1; SID=DQAAAP0AAAC2ePkxVGlZmOxwv9WccRtJhzzmmuZ2v6satIx_qOHgaEqRn_lqMGQ-hrnlO-xzdR-zG5WvJN9YcYRk3ENogNhkmaUz3MnIal1LjE-1drJsTATuyfTMYl_fIBAuA14EW0pCG42Abt4479higkk83ICgb8FnQojIA6xM1g51WOKNohf9hLaskBcUCLfBzuxF2ZDN8-xrZxzmP75TDbob3WNRhwtMdMKLYp4LU--wFeZ3vFlox_b7Xs90X8x1RCPzpjoNTrr5e0Iug9B_hAA0jIRTZ6-7axoqCEGJ-lO0ZSufKqZr1t2vnBE_a701ac45aWsiCsN4y6yucaubb7nkiglU; HSID=AWeTGGuwEMKQgf-J7; APISID=dIRfBsR7yg9PF55k/AH_lGYc85_jVtnOHq; OGPC=4061155-4:; _ga=GA1.3.911712002.1432041668; GOOGLE_ABUSE_EXEMPTION=ID=264a1d4b203382c8:TM=1432115998:C=c:IP=176.104.37.229-:S=APGng0v4qyjwi1fshUcKAOt91zojWBCufA";
-		String translate = new TranslationReceiver().execute(sentence, cookie,
-				false);
+		//String translate = new TranslationReceiver().execute(sentence, cookie, false);
 		// System.out.println(format(translate, true));
 	}
 

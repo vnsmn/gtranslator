@@ -94,6 +94,7 @@ public class GuiOutput {
 				}				
 			}
 		});		
+		sourcePopupMenu.add(it);
 		sourceArea.setComponentPopupMenu(sourcePopupMenu);		
 
 		setupPanel = new JPanel();
@@ -221,11 +222,14 @@ public class GuiOutput {
 	}
 
 	public void show() {
-		INSTANCE.frame.setVisible(true);
+		if (frame.getState() != JFrame.NORMAL) {
+			frame.setState(JFrame.NORMAL);
+		}
+		frame.setVisible(true);
 	}
 
 	public void hide() {
-		INSTANCE.frame.setVisible(false);
+		frame.setVisible(false);
 	}
 
 	public void putActionListener(ACTION_TYPE key, ActionListener actionListener) {

@@ -27,15 +27,21 @@ public class HistoryHelper {
 	}
 	
 	public void writeRaw(String key, String value) {
-		rawHis.put(key, value);
+		rawHis.put(toNormal(key), value);
 	}
 	
-	public void writeWord(String key, String value) {
-		wordHis.put(key, value);
+	public   void writeWord(String key, String value) {
+		wordHis.put(toNormal(key), value);
 	}
 	
 	public String readRaw(String key) {
-		return rawHis.getProperty(key, null);
+		return rawHis.getProperty(toNormal(key), null);
+	}
+	
+	public void delete(String key) {
+		String n = toNormal(key);
+		rawHis.remove(n);
+		wordHis.remove(n);
 	}
 	
 	public void save(File rawHisFile, File wordHisFile) throws FileNotFoundException, IOException {
@@ -51,5 +57,13 @@ public class HistoryHelper {
 		try (FileOutputStream out = new FileOutputStream(wordHisFile)) {
 			wordHis.storeToXML(out, new Date().toString(), "UTF-8");
 		}
+	}
+	
+	private String toNormal(String key) {
+		String normal = key.trim();
+		while (normal.indexOf("  ") != -1) {
+			normal = normal.replaceAll("  ", " ");
+		}
+		return normal.toLowerCase();
 	}
 }
