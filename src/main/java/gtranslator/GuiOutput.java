@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -16,7 +17,9 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -28,6 +31,7 @@ public class GuiOutput {
 	private JFrame frame;
 	private JTextArea sourceArea;
 	private JTextArea targetArea;
+	private JPopupMenu targetPopupMenu;
 	private JSplitPane splitPane;
 	private JTabbedPane tabbedPane;
 	private JPanel setupPanel;
@@ -66,9 +70,20 @@ public class GuiOutput {
 
 		targetArea = new JTextArea();
 		targetArea.setLineWrap(true);
+		targetPopupMenu = new JPopupMenu("Translate");
+		JMenuItem it = new JMenuItem("rewrite");
+		it.addActionListener(new java.awt.event.ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent e) {				
+			}
+		});
+		targetPopupMenu.add(it);
+		targetArea.setComponentPopupMenu(targetPopupMenu);
+		
 		JScrollPane targetScrollPane = new JScrollPane();
 		targetScrollPane.add(targetArea);
-		targetScrollPane.setViewportView(targetArea);
+		targetScrollPane.setViewportView(targetArea);		
+		
 		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, sourceScrollPane,
 				targetScrollPane);
 		splitPane.setOneTouchExpandable(true);
@@ -77,7 +92,10 @@ public class GuiOutput {
 
 		setupPanel = new JPanel();
 		setupPanel.setLayout(new BorderLayout());
-		tabbedPane.add(setupPanel, "setup");
+		JScrollPane setupScrollPane = new JScrollPane();
+		setupScrollPane.add(setupPanel);
+		setupScrollPane.setViewportView(setupPanel);		
+		tabbedPane.add(setupScrollPane, "setup");
 
 		Box box = Box.createVerticalBox();
 		setupPanel.add(box, BorderLayout.NORTH);

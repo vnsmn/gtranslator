@@ -1,8 +1,22 @@
 package gtranslator;
 
+import gtranslator.ClipboardObserver;
+import gtranslator.GuiOutput;
+import gtranslator.TranslationReceiver;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Properties;
 import java.util.Scanner;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 public class App {
@@ -10,6 +24,25 @@ public class App {
 
 	public static void main(String[] args) throws InterruptedException {
 		logger.info("hi");
+
+		final Properties props;
+		try {
+			//String[] args2 = {"--prop-path=\"/home/vns/workspace/gtranslator/settings.xml\""};
+			props = loadProperties(args);			
+			logger.info("********** properties **********");
+			String cookie = props.getProperty("cookie", "").replaceAll("\n", "");			
+			if (!StringUtils.isBlank(cookie)) {
+				logger.info("----- cookie -----");
+				logger.info(cookie);
+				TranslationReceiver.INSTANCE.setCookie(cookie);
+			}			
+			logger.info("********************");
+		} catch (Exception ex) {
+			logger.error(ex.getMessage(), ex);
+			System.exit(-1);
+		}
+		
+		//if (1==1) return ;
 
 		final ClipboardObserver clipboardObserver = new ClipboardObserver();
 		final Thread th = new Thread(clipboardObserver);
@@ -80,5 +113,33 @@ public class App {
 						});
 			}
 		});
+	}
+
+	private static Properties loadProperties(String... args)
+			throws FileNotFoundException, IOException, ParseException {
+		Options options = new Options();
+		options.addOption("p", "prop-path", true, "");
+
+		CommandLineParser parser = new DefaultParser();
+		CommandLine line = parser.parse(options, args);
+		String path = line.getOptionValue("prop-path", "");
+		if (path.trim().startsWith("\"")) {
+			path = path.substring(1, path.length() - 1);
+		}
+		Properties props = new Properties();
+		if (StringUtils.isBlank(path)) {
+			path = System.getProperty("user.dir");			
+		}
+		if (!StringUtils.isBlank(path)) {
+			File f = new File(path);
+			if (f.isDirectory()) {
+				f = new File(f, "settings.xml");
+			}
+			try (FileInputStream fis = new FileInputStream(f)) {
+				props.loadFromXML(fis);
+			}
+		}
+		
+		return props;
 	}
 }
