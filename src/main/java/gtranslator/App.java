@@ -2,8 +2,8 @@ package gtranslator;
 
 import gtranslator.ClipboardObserver;
 import gtranslator.GuiOutput;
-import gtranslator.TranslationReceiver;
 import gtranslator.GuiOutput.ACTION_TYPE;
+import gtranslator.TranslationReceiver;
 
 import java.io.File;
 import java.io.FileInputStream;
