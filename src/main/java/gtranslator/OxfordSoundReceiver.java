@@ -77,9 +77,11 @@ public class OxfordSoundReceiver {
 		Map<String, String> refs = new HashMap<>();
 		Document doc = Jsoup.connect(request).timeout(3000).get();		
 		Elements elements = doc.select("div#entryContent span[geo=br].pron-g div[data-src-mp3].audio_play_button");
-		refs.put("br", elements.first().attr("data-src-mp3"));
-		elements = doc.select("div#entryContent span[geo=n_am].pron-g div[data-src-mp3].audio_play_button");
-		refs.put("am", elements.first().attr("data-src-mp3"));				
+		if (elements.size() > 0) {
+			refs.put("br", elements.first().attr("data-src-mp3"));
+			elements = doc.select("div#entryContent span[geo=n_am].pron-g div[data-src-mp3].audio_play_button");
+			refs.put("am", elements.first().attr("data-src-mp3"));
+		}
 		return refs;
 	}
 	

@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
@@ -124,6 +125,7 @@ public class App {
 							@Override
 							public void execute(String s) {
 								try {
+									saveHistory();
 									DictionaryHelper.INSTANCE.createDictionary(
 											HistoryHelper.INSTANCE.getWords(), GuiOutput.createAndShowGUI().getDictionaryDirPath());
 								} catch (IOException ex) {

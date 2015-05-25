@@ -94,7 +94,7 @@ public class DictionaryHelper {
 				if (soundReceiver.writeSound(dirFile, ent.getKey())) {
 					loaded.add(ent.getKey());
 				}
-			} catch (HttpStatusException ex) {
+			} catch (HttpStatusException | MalformedURLException ex) {
 				logger.error(ex.getMessage());
 			}
 		}

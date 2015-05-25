@@ -166,22 +166,23 @@ public class TranslationReceiver {
 
 	public synchronized String translateAndFormat(String sentense,
 			boolean isGetMethod) throws IOException {
+		String normal = toNormal(sentense);
 		if (isHistory.get()) {
-			String rawTranslate = HistoryHelper.INSTANCE.readRaw(sentense);
+			String rawTranslate = HistoryHelper.INSTANCE.readRaw(normal);
 			if (isRewrite.get() || StringUtils.isBlank(rawTranslate)) {
 				rawTranslate = isGetMethod ? getExecute(sentense, cookie.get())
-						: postExecute(sentense, cookie.get());
-				HistoryHelper.INSTANCE.writeRaw(sentense, rawTranslate);
+						: postExecute(normal, cookie.get());
+				HistoryHelper.INSTANCE.writeRaw(normal, rawTranslate);
 			}
 			String translate = format(rawTranslate, isAddition.get());
-			if (sentense.trim().indexOf(" ") == -1) {				
+			if (normal.trim().matches("[a-zA-Z]+")) {				
 				String translateWords = formatWord(rawTranslate);
-				HistoryHelper.INSTANCE.writeWord(sentense, translateWords.trim());
+				HistoryHelper.INSTANCE.writeWord(normal, translateWords.trim());
 			}
 			return translate;
 		} else {
-			String rawTranslate = isGetMethod ? getExecute(sentense,
-					cookie.get()) : postExecute(sentense, cookie.get());
+			String rawTranslate = isGetMethod ? getExecute(normal,
+					cookie.get()) : postExecute(normal, cookie.get());
 			return format(rawTranslate, isAddition.get());
 		}
 	}
@@ -304,6 +305,22 @@ public class TranslationReceiver {
 		}
 
 		return resMap;
+	}
+	
+	private String toNormal(String s) {
+		int i = 0;
+		int j = s.length() - 1;
+		for (; i < s.length(); i++) {
+			if (Character.isLetter(s.charAt(i))) {
+				break;				
+			}
+		}
+		for (; j > 0; j--) {
+			if (Character.isLetter(s.charAt(j))) {
+				break;				
+			}
+		}
+		return s.substring(i, j + 1);
 	}
 
 	public static void main1(String[] args) throws IOException {

@@ -3,3 +3,5 @@ System.getProperties()(java.util.Properties) {java.runtime.name=Java(TM) SE Runt
 	
 	
 	"Y".toLowerCase().matches("(y|yes|true|on|n|no|false|off)")
+
+	"test".trim().matches("[a-zA-Z]+")(boolean) true
