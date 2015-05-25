@@ -9,9 +9,14 @@ import java.util.Date;
 import java.util.Properties;
 
 public class HistoryHelper {
+	public interface StatisticListener {
+		void execute(String message);
+	}
+	
 	public final static HistoryHelper INSTANCE = new HistoryHelper();
 	private Properties rawHis = new Properties();
 	private Properties wordHis = new Properties();
+	private StatisticListener statisticListener;
 
 	private HistoryHelper() {}
 	
@@ -28,10 +33,16 @@ public class HistoryHelper {
 	
 	public void writeRaw(String key, String value) {
 		rawHis.put(toNormal(key), value);
+		if (statisticListener != null) {
+			statisticListener.execute(getStatistic());
+		}
 	}
 	
-	public   void writeWord(String key, String value) {
+	public   void writeWord(String key, String value) {		
 		wordHis.put(toNormal(key), value);
+		if (statisticListener != null) {
+			statisticListener.execute(getStatistic());
+		}
 	}
 	
 	public String readRaw(String key) {
@@ -57,6 +68,14 @@ public class HistoryHelper {
 		try (FileOutputStream out = new FileOutputStream(wordHisFile)) {
 			wordHis.storeToXML(out, new Date().toString(), "UTF-8");
 		}
+	}
+	
+	public String getStatistic() {		
+		return "" + wordHis.size() + "/" + rawHis.size();
+	}
+	
+	public void setStatisticListener(StatisticListener listener) {
+		statisticListener = listener;
 	}
 	
 	private String toNormal(String key) {

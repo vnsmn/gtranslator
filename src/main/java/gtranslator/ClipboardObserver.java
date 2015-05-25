@@ -21,6 +21,7 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 	private boolean isLostData = true;
 	private AtomicBoolean isPause = new AtomicBoolean(false);
 	private AtomicBoolean isSelected = new AtomicBoolean(false);
+	private AtomicBoolean isUsingHistory = new AtomicBoolean(false);
 
 	static final Logger logger = Logger.getLogger(ClipboardObserver.class);
 

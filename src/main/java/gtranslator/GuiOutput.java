@@ -17,6 +17,7 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -38,10 +39,13 @@ public class GuiOutput {
 	JTextField cookieField;
 	private Map<ACTION_TYPE, ActionListener> actionListeners = new HashMap<>();
 	private static GuiOutput INSTANCE;
+	
+	private JCheckBox usingHistoryCheckBox;
+	private JLabel statisticLabel;
 
 	public enum ACTION_TYPE {
 		FIXED, START_STOP, MODE_SELECT, ADDITION_INFO, COOKIE, DISPOSE, 
-		REWRITE_HISTORY, CLEAN_HISTORY, USE_HISTORY 
+		REWRITE_HISTORY, CLEAN_HISTORY, USE_HISTORY, STATISTIC 
 	}
 
 	public abstract static class ActionListener {
@@ -109,6 +113,13 @@ public class GuiOutput {
 		setupPanel.add(box, BorderLayout.NORTH);
 		Border lineBorder = BorderFactory.createLineBorder(Color.GRAY);
 		//----------------------------------------------------------------------------------------//
+		statisticLabel = new JLabel();
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.setBorder(BorderFactory.createTitledBorder(lineBorder, "Statistic"));
+		panel.add(statisticLabel, BorderLayout.NORTH);
+		box.add(panel);		
+		//----------------------------------------------------------------------------------------//
 		addCheckBox("Stop-Yes/Start-No", ACTION_TYPE.START_STOP, box, lineBorder);
 		//----------------------------------------------------------------------------------------//
 		addCheckBox("Is selecting mode", ACTION_TYPE.MODE_SELECT, box, lineBorder);
@@ -117,10 +128,10 @@ public class GuiOutput {
 		//----------------------------------------------------------------------------------------//
 		addCheckBox("Is rewriting history", ACTION_TYPE.REWRITE_HISTORY, box, lineBorder);
 		//----------------------------------------------------------------------------------------//
-		addCheckBox("Is using history", ACTION_TYPE.USE_HISTORY, box, lineBorder);
+		usingHistoryCheckBox = addCheckBox("Is using history", ACTION_TYPE.USE_HISTORY, box, lineBorder);
 		//----------------------------------------------------------------------------------------//
 		cookieField = new JTextField();
-		JPanel panel = new JPanel();
+		panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 		panel.setBorder(BorderFactory.createTitledBorder(lineBorder, "Cookie"));
 		panel.add(cookieField, BorderLayout.NORTH);
@@ -147,6 +158,13 @@ public class GuiOutput {
 		switch (type) {
 			case COOKIE:
 				cookieField.setText((String) value);	
+			break;
+			case USE_HISTORY:
+				usingHistoryCheckBox.setSelected((Boolean) value);
+				usingHistoryCheckBox.setText(usingHistoryCheckBox.isSelected() ? "Yes" : "No");
+			break;
+			case STATISTIC:
+				statisticLabel.setText("Count words/phrases: " + value.toString());
 			break;
 		default:
 			break;
@@ -199,7 +217,7 @@ public class GuiOutput {
 		INSTANCE = null;
 	}
 	
-	private void addCheckBox(String title, final ACTION_TYPE type, Box box, Border lineBorder) {
+	private JCheckBox addCheckBox(String title, final ACTION_TYPE type, Box box, Border lineBorder) {
 		JCheckBox checkBox = new JCheckBox("No");
 		checkBox.addActionListener(new java.awt.event.ActionListener() {
 			@Override
@@ -217,6 +235,7 @@ public class GuiOutput {
 		panel.setBorder(BorderFactory.createTitledBorder(lineBorder, title));
 		panel.add(checkBox, BorderLayout.WEST);
 		box.add(panel);
+		return checkBox;
 	}
 
 	private class WindowAdapterExt extends WindowAdapter {
