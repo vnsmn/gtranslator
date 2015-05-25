@@ -41,7 +41,7 @@ public class GuiOutput {
 
 	public enum ACTION_TYPE {
 		FIXED, START_STOP, MODE_SELECT, ADDITION_INFO, COOKIE, DISPOSE, 
-		REWRITE_HISTORY, CLEAN_HISTORY 
+		REWRITE_HISTORY, CLEAN_HISTORY, USE_HISTORY 
 	}
 
 	public abstract static class ActionListener {
@@ -104,91 +104,23 @@ public class GuiOutput {
 		setupScrollPane.setViewportView(setupPanel);		
 		tabbedPane.add(setupScrollPane, "setup");
 
+		//----------------------------------------------------------------------------------------//
 		Box box = Box.createVerticalBox();
 		setupPanel.add(box, BorderLayout.NORTH);
-
-		JCheckBox checkBox = new JCheckBox("No");
-		checkBox.addActionListener(new java.awt.event.ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				final JCheckBox check = (JCheckBox)e.getSource();
-				check.setText(check.isSelected() ? "Yes" : "No");
-				ActionListener actionListener = actionListeners
-						.get(ACTION_TYPE.START_STOP);
-				if (actionListener != null) {
-					actionListener.execute(check.isSelected());
-				}
-			}
-		});
 		Border lineBorder = BorderFactory.createLineBorder(Color.GRAY);
-		JPanel panel = new JPanel();
-		panel.setLayout(new BorderLayout());
-		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
-				"Stop/Start"));
-		panel.add(checkBox, BorderLayout.WEST);
-		box.add(panel);
-
-		checkBox = new JCheckBox("No");
-		checkBox.addActionListener(new java.awt.event.ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				final JCheckBox check = (JCheckBox)e.getSource();
-				check.setText(check.isSelected() ? "Yes" : "No");
-				ActionListener actionListener = actionListeners
-						.get(ACTION_TYPE.MODE_SELECT);
-				if (actionListener != null) {
-					actionListener.execute(check.isSelected());
-				}
-			}
-		});
-		panel = new JPanel();
-		panel.setLayout(new BorderLayout());
-		panel.setBorder(BorderFactory.createTitledBorder(lineBorder, "Mode select"));
-		panel.add(checkBox, BorderLayout.WEST);
-		box.add(panel);
-
-		checkBox = new JCheckBox("No");
-		checkBox.addActionListener(new java.awt.event.ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				final JCheckBox check = (JCheckBox)e.getSource();
-				check.setText(check.isSelected() ? "Yes" : "No");
-				ActionListener actionListener = actionListeners
-						.get(ACTION_TYPE.ADDITION_INFO);
-				if (actionListener != null) {
-					actionListener.execute(check.isSelected());
-				}
-			}
-		});
-		panel = new JPanel();
-		panel.setLayout(new BorderLayout());
-		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
-				"Addition info"));
-		panel.add(checkBox, BorderLayout.WEST);
-		box.add(panel);		
-		
-		checkBox = new JCheckBox("No");
-		checkBox.addActionListener(new java.awt.event.ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				final JCheckBox check = (JCheckBox)e.getSource();
-				check.setText(check.isSelected() ? "Yes" : "No");
-				ActionListener actionListener = actionListeners
-						.get(ACTION_TYPE.REWRITE_HISTORY);
-				if (actionListener != null) {
-					actionListener.execute(check.isSelected());
-				}
-			}
-		});
-		panel = new JPanel();
-		panel.setLayout(new BorderLayout());
-		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
-				"Rewrite history"));
-		panel.add(checkBox, BorderLayout.WEST);
-		box.add(panel);		
-
+		//----------------------------------------------------------------------------------------//
+		addCheckBox("Stop-Yes/Start-No", ACTION_TYPE.START_STOP, box, lineBorder);
+		//----------------------------------------------------------------------------------------//
+		addCheckBox("Is selecting mode", ACTION_TYPE.MODE_SELECT, box, lineBorder);
+		//----------------------------------------------------------------------------------------//
+		addCheckBox("Is addition translate", ACTION_TYPE.ADDITION_INFO, box, lineBorder);
+		//----------------------------------------------------------------------------------------//
+		addCheckBox("Is rewriting history", ACTION_TYPE.REWRITE_HISTORY, box, lineBorder);
+		//----------------------------------------------------------------------------------------//
+		addCheckBox("Is using history", ACTION_TYPE.USE_HISTORY, box, lineBorder);
+		//----------------------------------------------------------------------------------------//
 		cookieField = new JTextField();
-		panel = new JPanel();
+		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 		panel.setBorder(BorderFactory.createTitledBorder(lineBorder, "Cookie"));
 		panel.add(cookieField, BorderLayout.NORTH);
@@ -205,7 +137,7 @@ public class GuiOutput {
 		});
 		panel.add(button, BorderLayout.SOUTH);
 		box.add(panel);
-
+		//----------------------------------------------------------------------------------------//
 		// frame.pack(); если размер устанавливается внутренними компонентами
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setVisible(true);
@@ -266,6 +198,26 @@ public class GuiOutput {
 		INSTANCE.frame.dispose();
 		INSTANCE = null;
 	}
+	
+	private void addCheckBox(String title, final ACTION_TYPE type, Box box, Border lineBorder) {
+		JCheckBox checkBox = new JCheckBox("No");
+		checkBox.addActionListener(new java.awt.event.ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				final JCheckBox check = (JCheckBox)e.getSource();
+				check.setText(check.isSelected() ? "Yes" : "No");
+				ActionListener actionListener = actionListeners.get(type);
+				if (actionListener != null) {
+					actionListener.execute(check.isSelected());
+				}
+			}
+		});
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.setBorder(BorderFactory.createTitledBorder(lineBorder, title));
+		panel.add(checkBox, BorderLayout.WEST);
+		box.add(panel);
+	}
 
 	private class WindowAdapterExt extends WindowAdapter {
 		public void windowClosing(WindowEvent e) {
@@ -285,5 +237,5 @@ public class GuiOutput {
 				actionListener.execute(INSTANCE);
 			}
 		}
-	}
+	}	
 }
