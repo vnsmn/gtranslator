@@ -37,6 +37,7 @@ public class GuiOutput {
 	private JTabbedPane tabbedPane;
 	private JPanel setupPanel;
 	JTextField cookieField;
+	JTextField dictionaryField;
 	private Map<ACTION_TYPE, ActionListener> actionListeners = new HashMap<>();
 	private static GuiOutput INSTANCE;
 	
@@ -45,7 +46,7 @@ public class GuiOutput {
 
 	public enum ACTION_TYPE {
 		FIXED, START_STOP, MODE_SELECT, ADDITION_INFO, COOKIE, DISPOSE, 
-		REWRITE_HISTORY, CLEAN_HISTORY, USE_HISTORY, STATISTIC 
+		REWRITE_HISTORY, CLEAN_HISTORY, USE_HISTORY, STATISTIC, DICTIONARY 
 	}
 
 	public abstract static class ActionListener {
@@ -130,25 +131,10 @@ public class GuiOutput {
 		//----------------------------------------------------------------------------------------//
 		usingHistoryCheckBox = addCheckBox("Is using history", ACTION_TYPE.USE_HISTORY, box, lineBorder);
 		//----------------------------------------------------------------------------------------//
-		cookieField = new JTextField();
-		panel = new JPanel();
-		panel.setLayout(new BorderLayout());
-		panel.setBorder(BorderFactory.createTitledBorder(lineBorder, "Cookie"));
-		panel.add(cookieField, BorderLayout.NORTH);
-		JButton button = new JButton("apply");
-		button.addActionListener(new java.awt.event.ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				ActionListener actionListener = actionListeners
-						.get(ACTION_TYPE.COOKIE);
-				if (actionListener != null) {
-					actionListener.execute(cookieField.getText());
-				}
-			}
-		});
-		panel.add(button, BorderLayout.SOUTH);
-		box.add(panel);
+		cookieField = addTextField("Cookie", "apply", ACTION_TYPE.COOKIE, box, lineBorder);		
 		//----------------------------------------------------------------------------------------//
+		dictionaryField = addTextField("Dictionary", "run", ACTION_TYPE.DICTIONARY, box, lineBorder);
+		//----------------------------------------------------------------------------------------//		
 		// frame.pack(); если размер устанавливается внутренними компонентами
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setVisible(true);
@@ -165,6 +151,9 @@ public class GuiOutput {
 			break;
 			case STATISTIC:
 				statisticLabel.setText("Count words/phrases: " + value.toString());
+			break;
+			case DICTIONARY:
+				dictionaryField.setText((String) value);
 			break;
 		default:
 			break;
@@ -201,6 +190,10 @@ public class GuiOutput {
 	public void selectTranslatePanel() {
 		tabbedPane.setSelectedIndex(0);
 	}
+	
+	public String getDictionaryDirPath() {
+		return dictionaryField.getText();
+	}
 
 	public static GuiOutput createAndShowGUI() {
 		synchronized (GuiOutput.class) {
@@ -236,6 +229,28 @@ public class GuiOutput {
 		panel.add(checkBox, BorderLayout.WEST);
 		box.add(panel);
 		return checkBox;
+	}
+	
+	private JTextField addTextField(String title, String buttonText, final ACTION_TYPE type, Box box, Border lineBorder) {
+		JTextField field = new JTextField();
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.setBorder(BorderFactory.createTitledBorder(lineBorder, title));
+		panel.add(field, BorderLayout.NORTH);
+		JButton button = new JButton(buttonText);
+		button.addActionListener(new java.awt.event.ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ActionListener actionListener = actionListeners
+						.get(type);
+				if (actionListener != null) {
+					actionListener.execute(field.getText());
+				}
+			}
+		});
+		panel.add(button, BorderLayout.WEST);
+		box.add(panel);
+		return field;
 	}
 
 	private class WindowAdapterExt extends WindowAdapter {

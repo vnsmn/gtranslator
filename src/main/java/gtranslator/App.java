@@ -119,6 +119,19 @@ public class App {
 							}
 						});
 				GuiOutput.createAndShowGUI().putActionListener(
+						GuiOutput.ACTION_TYPE.DICTIONARY,
+						new GuiOutput.ActionListener() {
+							@Override
+							public void execute(String s) {
+								try {
+									DictionaryHelper.INSTANCE.createDictionary(
+											HistoryHelper.INSTANCE.getWords(), GuiOutput.createAndShowGUI().getDictionaryDirPath());
+								} catch (IOException ex) {
+									logger.error(ex.getMessage(), ex);
+								}
+							}
+						});
+				GuiOutput.createAndShowGUI().putActionListener(
 						GuiOutput.ACTION_TYPE.DISPOSE,
 						new GuiOutput.ActionListener() {
 							@Override
@@ -227,6 +240,15 @@ public class App {
 		TranslationReceiver.INSTANCE.setHistory(isHistory);
 		GuiOutput.createAndShowGUI().init(ACTION_TYPE.USE_HISTORY, isHistory);
 		logger.info(isHistory);
+		
+		logger.info("----- dictionary -----");
+		String dirPath = props.getProperty("dictionary", "")
+				.replaceAll("\n", "");
+		if (StringUtils.isBlank(dirPath)) {
+			dirPath = System.getProperty("user.home") + "/gtranslator-dictionary";
+		}
+		GuiOutput.createAndShowGUI().init(ACTION_TYPE.DICTIONARY, dirPath);
+		logger.info(dirPath);
 
 		logger.info("********************");		
 		return props;

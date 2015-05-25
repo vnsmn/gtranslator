@@ -174,9 +174,9 @@ public class TranslationReceiver {
 				HistoryHelper.INSTANCE.writeRaw(sentense, rawTranslate);
 			}
 			String translate = format(rawTranslate, isAddition.get());
-			if (sentense.trim().indexOf(" ") == -1) {
-				HistoryHelper.INSTANCE.writeWord(sentense, translate.trim()
-						.toLowerCase());
+			if (sentense.trim().indexOf(" ") == -1) {				
+				String translateWords = formatWord(rawTranslate);
+				HistoryHelper.INSTANCE.writeWord(sentense, translateWords.trim());
 			}
 			return translate;
 		} else {
@@ -250,6 +250,31 @@ public class TranslationReceiver {
 			index++;
 		}
 
+		return sb.toString();
+	}
+	
+	protected String formatWord(String translate) {
+		Map<String, Result> results = parseTranslate(translate);
+		Set<String> words = new HashSet<>();		
+		words.add(format(translate, false));
+		Result res = results.get("0.1.5");
+		int index = 1;
+		for (Result ch : res.childs) {
+			Result target = results.get("0.1.5." + index + ".1");
+			for (Result ch2 : target.childs) {
+				for (String s : ch2.datas) {
+					words.add(s);
+				}
+			}
+			index++;
+		}
+		StringBuilder sb = new StringBuilder();
+		for (String s : words) {
+			if (sb.length() > 0) {
+				sb.append(",");
+			}
+			sb.append(s.trim().toLowerCase());
+		}
 		return sb.toString();
 	}
 

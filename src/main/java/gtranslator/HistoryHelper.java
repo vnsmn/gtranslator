@@ -5,8 +5,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Map.Entry;
 
 public class HistoryHelper {
 	public interface StatisticListener {
@@ -72,6 +76,14 @@ public class HistoryHelper {
 	
 	public String getStatistic() {		
 		return "" + wordHis.size() + "/" + rawHis.size();
+	}
+	
+	public Map<String, String> getWords() {
+		Map<String, String> words = new HashMap<>();
+		for (Entry<Object, Object> ent : wordHis.entrySet()) {
+			words.put(ent.getKey().toString(), ent.getValue().toString());
+		}
+		return Collections.unmodifiableMap(words);
 	}
 	
 	public void setStatisticListener(StatisticListener listener) {
