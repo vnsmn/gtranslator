@@ -91,10 +91,6 @@ public class HistoryHelper {
 	}
 	
 	private String toNormal(String key) {
-		String normal = key.trim();
-		while (normal.indexOf("  ") != -1) {
-			normal = normal.replaceAll("  ", " ");
-		}
-		return normal.toLowerCase();
+		return key.trim().replaceAll("[ ]+", " ").toLowerCase();
 	}
 }

@@ -128,8 +128,8 @@ public class App {
 									saveHistory();
 									DictionaryHelper.INSTANCE.createDictionary(
 											HistoryHelper.INSTANCE.getWords(), GuiOutput.createAndShowGUI().getDictionaryDirPath());
-								} catch (IOException ex) {
-									logger.error(ex.getMessage(), ex);
+								} catch (Exception ex) {
+									logger.error(ex.getMessage());
 								}
 							}
 						});

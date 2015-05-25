@@ -17,11 +17,14 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
-public class OxfordSoundReceiver {
+public class OxfordSoundReceiver implements SoundReceiver {
 	static final Logger logger = Logger.getLogger(DictionaryHelper.class);
-	
-	public boolean writeSound(File dirFile, String word) throws IOException {
-		String request = String.format("http://www.oxfordlearnersdictionaries.com/definition/english/%s_1?q=%s", word, word);
+
+	public boolean createSound(File dirFile, String word)
+			throws SoundReceiverException {
+		String request = String
+				.format("http://www.oxfordlearnersdictionaries.com/definition/english/%s_1?q=%s",
+						word, word);
 		File dirBr = new File(dirFile, "br");
 		File dirAm = new File(dirFile, "am");
 		if (!dirBr.exists()) {
@@ -34,21 +37,26 @@ public class OxfordSoundReceiver {
 		File fAm = new File(dirAm, word + ".mp3");
 		boolean isloaded;
 		if (!fBr.exists() || !fAm.exists()) {
-			Map<String, String> refs = getDataSrcList(request);
-			String refBr = refs.get("br");
-			String refAm = refs.get("am");
-			logger.info(refBr);
-			logger.info(refAm);
-			isloaded = !fBr.exists() ? writeSound(fBr, word, refBr) : true;
-			isloaded |= !fAm.exists() ? writeSound(fAm, word, refAm) : true;			
+			try {
+				Map<String, String> refs = getDataSrcList(request);
+				String refBr = refs.get("br");
+				String refAm = refs.get("am");
+				logger.info(refBr);
+				logger.info(refAm);
+				isloaded = !fBr.exists() ? writeSound(fBr, word, refBr) : true;
+				isloaded |= !fAm.exists() ? writeSound(fAm, word, refAm) : true;
+			} catch (IOException ex) {
+				throw new SoundReceiverException(ex.getMessage() + ". url: " + request, ex);
+			}
 		} else {
 			isloaded = true;
 		}
-		
+
 		return isloaded;
 	}
-	
-	private boolean writeSound(File file, String word, String request) throws IOException {
+
+	private boolean writeSound(File file, String word, String request)
+			throws IOException {
 		try {
 			Thread.sleep(1000);
 		} catch (InterruptedException ex) {
@@ -65,27 +73,30 @@ public class OxfordSoundReceiver {
 		long size = 0;
 		try {
 			InputStream in = conn.getInputStream();
-			size = Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);		
-			in.close();		
-		} catch (FileNotFoundException ex) {
-			logger.error(ex.getMessage());
+			size = Files.copy(in, Paths.get(file.toURI()),
+					StandardCopyOption.REPLACE_EXISTING);
+			in.close();
+		} catch (Exception ex) {
+			logger.error(ex.getMessage() + ". URL: " + request);
 		}
 		return size > 0;
-	}	
-	
-	private Map<String, String> getDataSrcList(String request) throws IOException {
+	}
+
+	private Map<String, String> getDataSrcList(String request)
+			throws IOException {
 		Map<String, String> refs = new HashMap<>();
-		Document doc = Jsoup.connect(request).timeout(3000).get();		
-		Elements elements = doc.select("div#entryContent span[geo=br].pron-g div[data-src-mp3].audio_play_button");
+		Document doc = Jsoup.connect(request).timeout(3000).get();
+		Elements elements = doc
+				.select("div#entryContent span[geo=br].pron-g div[data-src-mp3].audio_play_button");
 		if (elements.size() > 0) {
 			refs.put("br", elements.first().attr("data-src-mp3"));
-			elements = doc.select("div#entryContent span[geo=n_am].pron-g div[data-src-mp3].audio_play_button");
+			elements = doc
+					.select("div#entryContent span[geo=n_am].pron-g div[data-src-mp3].audio_play_button");
 			refs.put("am", elements.first().attr("data-src-mp3"));
 		}
 		return refs;
 	}
-	
-	public static void main(String ... args) throws IOException {		
-		System.out.println(new OxfordSoundReceiver().writeSound(new File("/tmp/sounds"), "test"));
+
+	public static void main(String... args) throws IOException {
 	}
 }
