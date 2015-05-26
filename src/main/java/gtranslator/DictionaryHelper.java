@@ -44,6 +44,11 @@ public class DictionaryHelper {
 		}
 	}
 	
+	public File findFile(boolean isBr, String targetDirPath, String word) {
+		File soundDir = new File(targetDirPath, "sounds");
+		return soundReceiver.findFile(isBr, soundDir, word);		
+	}
+	
 	private String wordsToString(Map<String, String> words, Set<String> loadedSoundWords, boolean isAll) {
 		TreeMap<String, String> sortMap = new TreeMap<>(new Comparator<String>() {
 			@Override

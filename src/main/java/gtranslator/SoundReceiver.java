@@ -13,4 +13,6 @@ public interface SoundReceiver {
 		}
 	}
 	boolean createSound(File dirFile, String word) throws SoundReceiverException;
+	
+	File findFile(boolean isBr, File soundDir, String word);
 }

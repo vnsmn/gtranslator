@@ -54,6 +54,11 @@ public class OxfordSoundReceiver implements SoundReceiver {
 
 		return isloaded;
 	}
+	
+	public File findFile(boolean isBr, File soundDir, String word) {
+		File wordsDir = new File(soundDir, isBr ? "br" : "am");
+		return new File (wordsDir, word + ".mp3");
+	}
 
 	private boolean writeSound(File file, String word, String request)
 			throws IOException {

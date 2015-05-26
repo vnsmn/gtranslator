@@ -53,4 +53,9 @@ public class GstaticSoundReceiver implements SoundReceiver {
 		}
 		return size > 0;
 	}
+
+	@Override
+	public File findFile(boolean isBr, File soundDir, String word) {
+		return null;
+	}
 }

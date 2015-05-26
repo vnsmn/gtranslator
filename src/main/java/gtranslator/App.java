@@ -1,5 +1,6 @@
 package gtranslator;
 
+import gtranslator.ClipboardObserver.ActionListener;
 import gtranslator.GuiOutput.ACTION_TYPE;
 
 import java.io.File;
@@ -34,6 +35,19 @@ public class App {
 		readHistory();	
 
 		final ClipboardObserver clipboardObserver = new ClipboardObserver();
+		clipboardObserver.setActionListener(new ActionListener() {			
+			@Override
+			public void execute(String text) {
+				String normal = TranslationReceiver.INSTANCE.toNormal(text);
+				File f = DictionaryHelper.INSTANCE.findFile(true,
+						GuiOutput.createAndShowGUI().getDictionaryDirPath(), normal);						
+				try {
+					SoundHelper.play(f);
+				} catch (Exception ex) {
+					logger.error(ex.getMessage());
+				}				
+			}
+		});
 		final Thread th = new Thread(clipboardObserver);
 		th.start();
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
@@ -133,6 +147,21 @@ public class App {
 								}
 							}
 						});
+				GuiOutput.createAndShowGUI().putActionListener(
+						GuiOutput.ACTION_TYPE.SOUND,
+						new GuiOutput.ActionListener() {
+							@Override
+							public void execute(String text) {
+								String normal = TranslationReceiver.INSTANCE.toNormal(text);
+								File f = DictionaryHelper.INSTANCE.findFile(true,
+										GuiOutput.createAndShowGUI().getDictionaryDirPath(), normal);						
+								try {
+									SoundHelper.play(f);
+								} catch (Exception ex) {
+									logger.error(ex.getMessage());
+								}
+							}
+						});				
 				GuiOutput.createAndShowGUI().putActionListener(
 						GuiOutput.ACTION_TYPE.DISPOSE,
 						new GuiOutput.ActionListener() {

@@ -2,6 +2,7 @@ package gtranslator;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -58,7 +59,7 @@ public class TranslationReceiver {
 		this.isHistory.set(isHistory);
 	}
 
-	private String getExecute(String sentense, String cookie)
+	private String executeGet(String sentense, String cookie)
 			throws IOException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("client", "t");
@@ -92,7 +93,7 @@ public class TranslationReceiver {
 		return sb.toString();
 	}
 
-	private String postExecute(String sentense, String cookie)
+	private String executePost(String sentense, String cookie)
 			throws IOException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("client", "t");
@@ -170,19 +171,19 @@ public class TranslationReceiver {
 		if (isHistory.get()) {
 			String rawTranslate = HistoryHelper.INSTANCE.readRaw(normal);
 			if (isRewrite.get() || StringUtils.isBlank(rawTranslate)) {
-				rawTranslate = isGetMethod ? getExecute(sentense, cookie.get())
-						: postExecute(normal, cookie.get());
+				rawTranslate = isGetMethod ? executeGet(sentense, cookie.get())
+						: executePost(normal, cookie.get());
 				HistoryHelper.INSTANCE.writeRaw(normal, rawTranslate);
 			}
 			String translate = format(rawTranslate, isAddition.get());
-			if (normal.matches("[a-zA-Z]+")) {				
+			if (normal.matches("[a-zA-Z]+")) {
 				String translateWords = formatWord(rawTranslate);
-				HistoryHelper.INSTANCE.writeWord(normal, translateWords.trim());
+				HistoryHelper.INSTANCE.writeWord(normal, translateWords);
 			}
 			return translate;
 		} else {
-			String rawTranslate = isGetMethod ? getExecute(normal,
-					cookie.get()) : postExecute(normal, cookie.get());
+			String rawTranslate = isGetMethod ? executeGet(normal,
+					cookie.get()) : executePost(normal, cookie.get());
 			return format(rawTranslate, isAddition.get());
 		}
 	}
@@ -276,7 +277,7 @@ public class TranslationReceiver {
 			}
 			sb.append(s.trim().toLowerCase());
 		}
-		return sb.toString();
+		return sb.toString().trim();
 	}
 
 	private static Map<String, Result> parseTranslate(String translate) {
@@ -307,7 +308,7 @@ public class TranslationReceiver {
 		return resMap;
 	}
 	
-	private String toNormal(String s) {
+	public String toNormal(String s) {
 		int i = 0;
 		int j = s.length() - 1;
 		for (; i < s.length(); i++) {

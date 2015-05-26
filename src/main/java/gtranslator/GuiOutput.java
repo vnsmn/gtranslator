@@ -46,7 +46,7 @@ public class GuiOutput {
 
 	public enum ACTION_TYPE {
 		FIXED, START_STOP, MODE_SELECT, ADDITION_INFO, COOKIE, DISPOSE, 
-		REWRITE_HISTORY, CLEAN_HISTORY, USE_HISTORY, STATISTIC, DICTIONARY 
+		REWRITE_HISTORY, CLEAN_HISTORY, USE_HISTORY, STATISTIC, DICTIONARY, SOUND 
 	}
 
 	public abstract static class ActionListener {
@@ -96,6 +96,18 @@ public class GuiOutput {
 						.get(ACTION_TYPE.CLEAN_HISTORY);
 				if (actionListener != null) {
 					actionListener.execute(INSTANCE);
+				}				
+			}
+		});		
+		sourcePopupMenu.add(it);
+		it = new JMenuItem("sound");
+		it.addActionListener(new java.awt.event.ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ActionListener actionListener = actionListeners
+						.get(ACTION_TYPE.SOUND);
+				if (actionListener != null) {
+					actionListener.execute(INSTANCE.getSourceText());
 				}				
 			}
 		});		

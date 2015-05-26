@@ -22,8 +22,14 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 	private AtomicBoolean isPause = new AtomicBoolean(false);
 	private AtomicBoolean isSelected = new AtomicBoolean(false);
 	private AtomicBoolean isUsingHistory = new AtomicBoolean(false);
+	
+	private ActionListener actionListener;
 
 	static final Logger logger = Logger.getLogger(ClipboardObserver.class);
+	
+	public interface ActionListener {
+		void execute(String text);
+	}
 
 	@Override
 	public void run() {
@@ -56,6 +62,9 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 								.translateAndFormat(text.toString(), false);
 						GuiOutput.createAndShowGUI().setTargetText(translate);
 						GuiOutput.createAndShowGUI().selectTranslatePanel();
+						if (actionListener != null) {
+							actionListener.execute(text.toString());
+						}
 						// System.out.println(text.toString());
 						isLostData = false;
 					}
@@ -86,5 +95,9 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 	public synchronized void setSelected(boolean b) {
 		isSelected.set(b);
 		isLostData = true;
+	}
+	
+	public synchronized void setActionListener(ActionListener l) {
+		actionListener = l;
 	}
 }
