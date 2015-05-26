@@ -28,11 +28,14 @@ import javax.json.stream.JsonParser;
 import javax.json.stream.JsonParser.Event;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 
 public class TranslationReceiver {
 	public enum METHOD {
 		GET, POST
 	}
+	
+	static final Logger logger = Logger.getLogger(TranslationReceiver.class);
 
 	private AtomicReference<String> cookie = new AtomicReference<String>("");
 	private AtomicBoolean isAddition = new AtomicBoolean(false);
@@ -321,7 +324,12 @@ public class TranslationReceiver {
 				break;				
 			}
 		}
-		return s.substring(i, j + 1).replaceAll("[ ]+", " ");
+		try {
+			return s.substring(i, j + 1).replaceAll("[ ]+", " ");
+		} catch (StringIndexOutOfBoundsException ex) {
+			logger.error(ex.getMessage() + " : " + s);
+			throw ex;
+		}
 	}
 
 	public static void main1(String[] args) throws IOException {

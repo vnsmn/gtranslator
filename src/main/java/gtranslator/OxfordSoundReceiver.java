@@ -25,8 +25,8 @@ public class OxfordSoundReceiver implements SoundReceiver {
 		String request = String
 				.format("http://www.oxfordlearnersdictionaries.com/definition/english/%s_1?q=%s",
 						word, word);
-		File dirBr = new File(dirFile, "br");
-		File dirAm = new File(dirFile, "am");
+		File dirBr = new File(dirFile, BR);
+		File dirAm = new File(dirFile, AM);
 		if (!dirBr.exists()) {
 			dirBr.mkdirs();
 		}
@@ -39,8 +39,8 @@ public class OxfordSoundReceiver implements SoundReceiver {
 		if (!fBr.exists() || !fAm.exists()) {
 			try {
 				Map<String, String> refs = getDataSrcList(request);
-				String refBr = refs.get("br");
-				String refAm = refs.get("am");
+				String refBr = refs.get(BR);
+				String refAm = refs.get(AM);
 				logger.info(refBr);
 				logger.info(refAm);
 				isloaded = !fBr.exists() ? writeSound(fBr, word, refBr) : true;
@@ -53,11 +53,6 @@ public class OxfordSoundReceiver implements SoundReceiver {
 		}
 
 		return isloaded;
-	}
-	
-	public File findFile(boolean isBr, File soundDir, String word) {
-		File wordsDir = new File(soundDir, isBr ? "br" : "am");
-		return new File (wordsDir, word + ".mp3");
 	}
 
 	private boolean writeSound(File file, String word, String request)
@@ -94,10 +89,10 @@ public class OxfordSoundReceiver implements SoundReceiver {
 		Elements elements = doc
 				.select("div#entryContent span[geo=br].pron-g div[data-src-mp3].audio_play_button");
 		if (elements.size() > 0) {
-			refs.put("br", elements.first().attr("data-src-mp3"));
+			refs.put(BR, elements.first().attr("data-src-mp3"));
 			elements = doc
 					.select("div#entryContent span[geo=n_am].pron-g div[data-src-mp3].audio_play_button");
-			refs.put("am", elements.first().attr("data-src-mp3"));
+			refs.put(AM, elements.first().attr("data-src-mp3"));
 		}
 		return refs;
 	}

@@ -35,19 +35,6 @@ public class App {
 		readHistory();	
 
 		final ClipboardObserver clipboardObserver = new ClipboardObserver();
-		clipboardObserver.setActionListener(new ActionListener() {			
-			@Override
-			public void execute(String text) {
-				String normal = TranslationReceiver.INSTANCE.toNormal(text);
-				File f = DictionaryHelper.INSTANCE.findFile(true,
-						GuiOutput.createAndShowGUI().getDictionaryDirPath(), normal);						
-				try {
-					SoundHelper.play(f);
-				} catch (Exception ex) {
-					logger.error(ex.getMessage());
-				}				
-			}
-		});
 		final Thread th = new Thread(clipboardObserver);
 		th.start();
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
@@ -112,17 +99,8 @@ public class App {
 						new GuiOutput.ActionListener() {
 							@Override
 							public void execute(GuiOutput source) {
-								HistoryHelper.INSTANCE.delete(source
-										.getSourceText());
-								try {
-									String translate = TranslationReceiver.INSTANCE
-											.translateAndFormat(
-													source.getSourceText(),
-													false);
-									source.setTargetText(translate);
-								} catch (IOException e) {
-									logger.error(e.getMessage(), e);
-								}
+								HistoryHelper.INSTANCE.delete(
+										TranslationReceiver.INSTANCE.toNormal(source.getSourceText()));
 							}
 						});
 				GuiOutput.createAndShowGUI().putActionListener(
@@ -152,16 +130,26 @@ public class App {
 						new GuiOutput.ActionListener() {
 							@Override
 							public void execute(String text) {
-								String normal = TranslationReceiver.INSTANCE.toNormal(text);
-								File f = DictionaryHelper.INSTANCE.findFile(true,
-										GuiOutput.createAndShowGUI().getDictionaryDirPath(), normal);						
-								try {
-									SoundHelper.play(f);
-								} catch (Exception ex) {
-									logger.error(ex.getMessage());
+								playWord(text);
+							}
+						});
+				GuiOutput.createAndShowGUI().putActionListener(
+						GuiOutput.ACTION_TYPE.IS_SOUND,
+						new GuiOutput.ActionListener() {
+							@Override
+							public void execute(boolean b) {
+								if (b) {
+									clipboardObserver.setActionListener(new ActionListener() {			
+										@Override
+										public void execute(String text) {
+											playWord(text);
+										}
+									});
+								} else {
+									clipboardObserver.setActionListener(null);
 								}
 							}
-						});				
+						});
 				GuiOutput.createAndShowGUI().putActionListener(
 						GuiOutput.ACTION_TYPE.DISPOSE,
 						new GuiOutput.ActionListener() {
@@ -293,4 +281,17 @@ public class App {
 		}
 		return s.toLowerCase().matches("(y|yes|true|on)");
 	}
+	
+	private static void playWord(String text) {		
+		String normal = TranslationReceiver.INSTANCE.toNormal(text);
+		if (normal.matches("[a-zA-Z]+")) {
+			File f = DictionaryHelper.INSTANCE.findFile(true,
+				GuiOutput.createAndShowGUI().getDictionaryDirPath(), normal);						
+			try {
+				SoundHelper.play(f);
+			} catch (Exception ex) {
+				logger.error(ex.getMessage());
+			}
+		}
+	} 
 }

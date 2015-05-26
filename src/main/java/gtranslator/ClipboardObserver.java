@@ -47,6 +47,8 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 		while (!Thread.interrupted()) {
 			try {
 				if (isLostData && !isPause.get()) {
+					synchronized (this) {
+						
 					Clipboard clipboard = isSelected.get() ? selClipboard
 							: copyClipboard;
 					Transferable clipData = clipboard.getContents(null);
@@ -63,10 +65,13 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 						GuiOutput.createAndShowGUI().setTargetText(translate);
 						GuiOutput.createAndShowGUI().selectTranslatePanel();
 						if (actionListener != null) {
-							actionListener.execute(text.toString());
+							try {
+								actionListener.execute(text.toString());
+							} catch (Exception ex) {}
 						}
 						// System.out.println(text.toString());
 						isLostData = false;
+					}
 					}
 				}
 				Thread.sleep(1000);
@@ -75,15 +80,17 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 				Thread.interrupted();
 				break;
 			} catch (UnsupportedFlavorException e) {
+				isLostData = true;
 				logger.error(e.getMessage(), e);
 			} catch (Exception e) {
+				isLostData = true;
 				logger.error(e.getMessage(), e);
 			}
 		}
 	}
 
 	@Override
-	public void lostOwnership(Clipboard clipboard, Transferable contents) {
+	public synchronized void lostOwnership(Clipboard clipboard, Transferable contents) {
 		isLostData = true;
 	}
 

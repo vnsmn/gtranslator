@@ -1,15 +1,20 @@
 package gtranslator;
 
+import gtranslator.SoundHelper.SoundException;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+
+import javax.sound.sampled.UnsupportedAudioFileException;
 
 import org.apache.log4j.Logger;
 
@@ -42,11 +47,23 @@ public class DictionaryHelper {
 		try (FileOutputStream out = new FileOutputStream(wf)) {
 			out.write(text.getBytes("UTF-8"));
 		}
+		
+		try {
+			File brDir = new File(soundDir, SoundReceiver.BR);
+			File amDir = new File(soundDir, SoundReceiver.AM);
+			SoundHelper.concatFiles(2, wf.getAbsolutePath(), 
+					brDir.getAbsolutePath(), new File(dir, "words-sound-br.wav").getAbsolutePath());
+			SoundHelper.concatFiles(2, wf.getAbsolutePath(), 
+					amDir.getAbsolutePath(), new File(dir, "words-sound-am.wav").getAbsolutePath());
+		} catch (SoundException ex) {
+			logger.error(ex.getMessage());
+		}
 	}
 	
 	public File findFile(boolean isBr, String targetDirPath, String word) {
-		File soundDir = new File(targetDirPath, "sounds");
-		return soundReceiver.findFile(isBr, soundDir, word);		
+		return isBr
+				? Paths.get(targetDirPath, "sounds", SoundReceiver.BR, word + ".mp3").toFile()
+				: Paths.get(targetDirPath, "sounds", SoundReceiver.AM, word + ".mp3").toFile();		
 	}
 	
 	private String wordsToString(Map<String, String> words, Set<String> loadedSoundWords, boolean isAll) {

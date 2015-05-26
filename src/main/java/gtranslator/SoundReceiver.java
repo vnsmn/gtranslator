@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.IOException;
 
 public interface SoundReceiver {
+	public String AM = "am";
+	public String BR = "br";
+	
 	public class SoundReceiverException extends Exception {
 		public SoundReceiverException(String message) {
 			super(message);
@@ -13,6 +16,4 @@ public interface SoundReceiver {
 		}
 	}
 	boolean createSound(File dirFile, String word) throws SoundReceiverException;
-	
-	File findFile(boolean isBr, File soundDir, String word);
 }

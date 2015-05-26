@@ -42,11 +42,13 @@ public class GuiOutput {
 	private static GuiOutput INSTANCE;
 	
 	private JCheckBox usingHistoryCheckBox;
+	private JCheckBox soundCheckBox;
 	private JLabel statisticLabel;
 
 	public enum ACTION_TYPE {
 		FIXED, START_STOP, MODE_SELECT, ADDITION_INFO, COOKIE, DISPOSE, 
-		REWRITE_HISTORY, CLEAN_HISTORY, USE_HISTORY, STATISTIC, DICTIONARY, SOUND 
+		REWRITE_HISTORY, CLEAN_HISTORY, USE_HISTORY, STATISTIC, DICTIONARY,
+		SOUND, IS_SOUND
 	}
 
 	public abstract static class ActionListener {
@@ -88,7 +90,7 @@ public class GuiOutput {
 		tabbedPane.add(splitPane, "translate");
 
 		sourcePopupMenu = new JPopupMenu("Translate");
-		JMenuItem it = new JMenuItem("rewrite history");
+		JMenuItem it = new JMenuItem("delete history");
 		it.addActionListener(new java.awt.event.ActionListener() {			
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -143,6 +145,8 @@ public class GuiOutput {
 		//----------------------------------------------------------------------------------------//
 		usingHistoryCheckBox = addCheckBox("Is using history", ACTION_TYPE.USE_HISTORY, box, lineBorder);
 		//----------------------------------------------------------------------------------------//
+		soundCheckBox = addCheckBox("Is sound", ACTION_TYPE.IS_SOUND, box, lineBorder);
+		//----------------------------------------------------------------------------------------//
 		cookieField = addTextField("Cookie", "apply", ACTION_TYPE.COOKIE, box, lineBorder);		
 		//----------------------------------------------------------------------------------------//
 		dictionaryField = addTextField("Dictionary", "run", ACTION_TYPE.DICTIONARY, box, lineBorder);
@@ -167,6 +171,10 @@ public class GuiOutput {
 			case DICTIONARY:
 				dictionaryField.setText((String) value);
 			break;
+			case IS_SOUND:
+				soundCheckBox.setSelected((Boolean) value);
+				soundCheckBox.setText(soundCheckBox.isSelected() ? "Yes" : "No");
+				break;
 		default:
 			break;
 		}
