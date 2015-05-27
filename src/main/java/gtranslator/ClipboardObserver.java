@@ -22,11 +22,11 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 	private AtomicBoolean isPause = new AtomicBoolean(false);
 	private AtomicBoolean isSelected = new AtomicBoolean(false);
 	private AtomicBoolean isUsingHistory = new AtomicBoolean(false);
-	
+
 	private ActionListener actionListener;
 
 	static final Logger logger = Logger.getLogger(ClipboardObserver.class);
-	
+
 	public interface ActionListener {
 		void execute(String text);
 	}
@@ -48,30 +48,32 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 			try {
 				if (isLostData && !isPause.get()) {
 					synchronized (this) {
-						
-					Clipboard clipboard = isSelected.get() ? selClipboard
-							: copyClipboard;
-					Transferable clipData = clipboard.getContents(null);
-					if (clipData.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-						Object text = clipData
-								.getTransferData(DataFlavor.stringFlavor);
-						StringSelection st = new StringSelection(
-								text.toString());
-						clipboard.setContents(st, this);
-						GuiOutput.createAndShowGUI().setSourceText(
-								text.toString());
-						String translate = TranslationReceiver.INSTANCE
-								.translateAndFormat(text.toString(), false);
-						GuiOutput.createAndShowGUI().setTargetText(translate);
-						GuiOutput.createAndShowGUI().selectTranslatePanel();
-						if (actionListener != null) {
-							try {
-								actionListener.execute(text.toString());
-							} catch (Exception ex) {}
+						Clipboard clipboard = isSelected.get() ? selClipboard
+								: copyClipboard;
+						Transferable clipData = clipboard.getContents(null);
+						if (clipData
+								.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+							Object text = clipData
+									.getTransferData(DataFlavor.stringFlavor);
+							StringSelection st = new StringSelection(
+									text.toString());
+							GuiOutput.createAndShowGUI().setSourceText(
+									text.toString());
+							String translate = TranslationReceiver.INSTANCE
+									.translateAndFormat(text.toString(), false);
+							GuiOutput.createAndShowGUI().setTargetText(
+									translate);
+							GuiOutput.createAndShowGUI().selectTranslatePanel();
+							if (actionListener != null) {
+								try {
+									actionListener.execute(text.toString());
+								} catch (Exception ex) {
+									logger.error(ex.getMessage());
+								}
+							}
+							clipboard.setContents(st, this);
+							isLostData = false;
 						}
-						// System.out.println(text.toString());
-						isLostData = false;
-					}
 					}
 				}
 				Thread.sleep(1000);
@@ -90,7 +92,8 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 	}
 
 	@Override
-	public synchronized void lostOwnership(Clipboard clipboard, Transferable contents) {
+	public synchronized void lostOwnership(Clipboard clipboard,
+			Transferable contents) {
 		isLostData = true;
 	}
 
@@ -103,7 +106,7 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 		isSelected.set(b);
 		isLostData = true;
 	}
-	
+
 	public synchronized void setActionListener(ActionListener l) {
 		actionListener = l;
 	}

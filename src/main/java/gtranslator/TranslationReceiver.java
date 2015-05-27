@@ -34,7 +34,7 @@ public class TranslationReceiver {
 	public enum METHOD {
 		GET, POST
 	}
-	
+
 	static final Logger logger = Logger.getLogger(TranslationReceiver.class);
 
 	private AtomicReference<String> cookie = new AtomicReference<String>("");
@@ -185,8 +185,8 @@ public class TranslationReceiver {
 			}
 			return translate;
 		} else {
-			String rawTranslate = isGetMethod ? executeGet(normal,
-					cookie.get()) : executePost(normal, cookie.get());
+			String rawTranslate = isGetMethod ? executeGet(normal, cookie.get())
+					: executePost(normal, cookie.get());
 			return format(rawTranslate, isAddition.get());
 		}
 	}
@@ -257,10 +257,10 @@ public class TranslationReceiver {
 
 		return sb.toString();
 	}
-	
+
 	protected String formatWord(String translate) {
 		Map<String, Result> results = parseTranslate(translate);
-		Set<String> words = new HashSet<>();		
+		Set<String> words = new HashSet<>();
 		words.add(format(translate, false));
 		Result res = results.get("0.1.5");
 		int index = 1;
@@ -310,18 +310,18 @@ public class TranslationReceiver {
 
 		return resMap;
 	}
-	
+
 	public String toNormal(String s) {
 		int i = 0;
 		int j = s.length() - 1;
 		for (; i < s.length(); i++) {
 			if (Character.isLetter(s.charAt(i))) {
-				break;				
+				break;
 			}
 		}
 		for (; j > 0; j--) {
 			if (Character.isLetter(s.charAt(j))) {
-				break;				
+				break;
 			}
 		}
 		try {
@@ -333,16 +333,12 @@ public class TranslationReceiver {
 	}
 
 	public static void main1(String[] args) throws IOException {
-		String sentence = s2;
+		String sentence = "This works well when the initialization value is available and the initialization can be put on one"
+				+ " line. However, this form of initialization has limitations because of its simplicity. If initialization"
+				+ " requires some logic (e.g., error handling or a for loop to fill a complex array), simple assignment is"
+				+ " inadequate. Instance variables can be initialized in constructors, where error handling or other logic"
+				+ " can be used. To provide the same capability for class variables, the Java programming language"
+				+ " includes static initialization blocks.";
 		String cookie = "PREF=ID=eb1b92938bb56d0a:U=fe67bf9c92332070:FF=0:LD=ru:NW=1:TM=1419582403:LM=1432111202:GM=1:SG=2:S=L0BJCcJgRJ-97cSl; NID=67=KotPOyK2nrutho0P-sHb-Ubbv5vam6QinJn4rCRQbJJNgsph9-z6vCTUvjzkmItrtCIw1cP9FvtdkurKyt-gVs8MExJSQiQe7bpro4xiAb8jDHnCP1HNBxv1hp2lZz-qIuI5Pk859QHlh_FwnWsytRRfP4cErl7g7ErcuIZBuvQdwyL-kq45dbrSWFnOQt4ciMh7ozu4HsCFqgmowhkQIsee3SPNQGzYUpcaqIZjThfrPntaH42tKQcbLMBkesdCW6t1; SID=DQAAAP0AAAC2ePkxVGlZmOxwv9WccRtJhzzmmuZ2v6satIx_qOHgaEqRn_lqMGQ-hrnlO-xzdR-zG5WvJN9YcYRk3ENogNhkmaUz3MnIal1LjE-1drJsTATuyfTMYl_fIBAuA14EW0pCG42Abt4479higkk83ICgb8FnQojIA6xM1g51WOKNohf9hLaskBcUCLfBzuxF2ZDN8-xrZxzmP75TDbob3WNRhwtMdMKLYp4LU--wFeZ3vFlox_b7Xs90X8x1RCPzpjoNTrr5e0Iug9B_hAA0jIRTZ6-7axoqCEGJ-lO0ZSufKqZr1t2vnBE_a701ac45aWsiCsN4y6yucaubb7nkiglU; HSID=AWeTGGuwEMKQgf-J7; APISID=dIRfBsR7yg9PF55k/AH_lGYc85_jVtnOHq; OGPC=4061155-4:; _ga=GA1.3.911712002.1432041668; GOOGLE_ABUSE_EXEMPTION=ID=264a1d4b203382c8:TM=1432115998:C=c:IP=176.104.37.229-:S=APGng0v4qyjwi1fshUcKAOt91zojWBCufA";
 	}
-
-	static String s = "This works well when the initialization value is available and the initialization can be put on one"
-			+ " line. However, this form of initialization has limitations because of its simplicity. If initialization"
-			+ " requires some logic (e.g., error handling or a for loop to fill a complex array), simple assignment is"
-			+ " inadequate. Instance variables can be initialized in constructors, where error handling or other logic"
-			+ " can be used. To provide the same capability for class variables, the Java programming language"
-			+ " includes static initialization blocks.";
-
-	static String s2 = "This works well when the initialization value is available and the initialization can be put on one line.";	
 }

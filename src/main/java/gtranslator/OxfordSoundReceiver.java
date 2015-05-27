@@ -46,7 +46,8 @@ public class OxfordSoundReceiver implements SoundReceiver {
 				isloaded = !fBr.exists() ? writeSound(fBr, word, refBr) : true;
 				isloaded |= !fAm.exists() ? writeSound(fAm, word, refAm) : true;
 			} catch (IOException ex) {
-				throw new SoundReceiverException(ex.getMessage() + ". url: " + request, ex);
+				throw new SoundReceiverException(ex.getMessage() + ". url: "
+						+ request, ex);
 			}
 		} else {
 			isloaded = true;

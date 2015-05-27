@@ -32,7 +32,7 @@ public class App {
 			System.exit(-1);
 		}
 
-		readHistory();	
+		readHistory();
 
 		final ClipboardObserver clipboardObserver = new ClipboardObserver();
 		final Thread th = new Thread(clipboardObserver);
@@ -99,8 +99,10 @@ public class App {
 						new GuiOutput.ActionListener() {
 							@Override
 							public void execute(GuiOutput source) {
-								HistoryHelper.INSTANCE.delete(
-										TranslationReceiver.INSTANCE.toNormal(source.getSourceText()));
+								HistoryHelper.INSTANCE
+										.delete(TranslationReceiver.INSTANCE
+												.toNormal(source
+														.getSourceText()));
 							}
 						});
 				GuiOutput.createAndShowGUI().putActionListener(
@@ -119,7 +121,9 @@ public class App {
 								try {
 									saveHistory();
 									DictionaryHelper.INSTANCE.createDictionary(
-											HistoryHelper.INSTANCE.getWords(), GuiOutput.createAndShowGUI().getDictionaryDirPath());
+											HistoryHelper.INSTANCE.getWords(),
+											GuiOutput.createAndShowGUI()
+													.getDictionaryDirPath());
 								} catch (Exception ex) {
 									logger.error(ex.getMessage());
 								}
@@ -139,12 +143,13 @@ public class App {
 							@Override
 							public void execute(boolean b) {
 								if (b) {
-									clipboardObserver.setActionListener(new ActionListener() {			
-										@Override
-										public void execute(String text) {
-											playWord(text);
-										}
-									});
+									clipboardObserver
+											.setActionListener(new ActionListener() {
+												@Override
+												public void execute(String text) {
+													playWord(text);
+												}
+											});
 								} else {
 									clipboardObserver.setActionListener(null);
 								}
@@ -177,7 +182,8 @@ public class App {
 		CommandLineParser parser = new DefaultParser();
 		CommandLine line = parser.parse(options, args);
 		String path = line.getOptionValue("prop-path", "");
-		logger.info("The path of properties file is " + path + " by --prop-path");
+		logger.info("The path of properties file is " + path
+				+ " by --prop-path");
 		if (path.trim().startsWith("\"")) {
 			path = path.substring(1, path.length() - 1);
 		}
@@ -186,9 +192,10 @@ public class App {
 			path = System.getProperty("user.dir");
 		}
 		Properties defProps = new Properties();
-		try (InputStream in = App.class.getClassLoader().getResourceAsStream("settings.xml")) {			
+		try (InputStream in = App.class.getClassLoader().getResourceAsStream(
+				"settings.xml")) {
 			defProps.loadFromXML(in);
-		}		
+		}
 		if (!StringUtils.isBlank(path)) {
 			File f = new File(path);
 			if (f.isDirectory()) {
@@ -225,26 +232,28 @@ public class App {
 			HistoryHelper.INSTANCE.load(rawHisFile, wordHisFile);
 			GuiOutput.createAndShowGUI().init(ACTION_TYPE.STATISTIC,
 					HistoryHelper.INSTANCE.getStatistic());
-			HistoryHelper.INSTANCE.setStatisticListener(new HistoryHelper.StatisticListener() {				
-				@Override
-				public void execute(String message) {
-					GuiOutput.createAndShowGUI().init(ACTION_TYPE.STATISTIC,
-							HistoryHelper.INSTANCE.getStatistic());					
-				}
-			});
+			HistoryHelper.INSTANCE
+					.setStatisticListener(new HistoryHelper.StatisticListener() {
+						@Override
+						public void execute(String message) {
+							GuiOutput.createAndShowGUI().init(
+									ACTION_TYPE.STATISTIC,
+									HistoryHelper.INSTANCE.getStatistic());
+						}
+					});
 		} catch (Exception ex) {
 			logger.error(ex.getMessage(), ex);
 		}
 	}
 
-	private static Properties applyProperties(String... args) throws IOException,
-			java.text.ParseException, ParseException {
+	private static Properties applyProperties(String... args)
+			throws IOException, java.text.ParseException, ParseException {
 		final Properties props;
 		// String[] args2 =
 		// {"--prop-path=\"/home/vns/workspace/gtranslator/settings.xml\""};
 		props = loadProperties(args);
 		logger.info("********** properties **********");
-		
+
 		logger.info("----- cookie -----");
 		String cookie = props.getProperty("cookie", "").replaceAll("\n", "");
 		if (!StringUtils.isBlank(cookie)) {
@@ -252,24 +261,39 @@ public class App {
 			GuiOutput.createAndShowGUI().init(ACTION_TYPE.COOKIE, cookie);
 		}
 		logger.info(cookie);
-		
+
 		logger.info("----- history -----");
 		boolean isHistory = parseBoolean(props.getProperty("history", "")
 				.replaceAll("\n", ""));
 		TranslationReceiver.INSTANCE.setHistory(isHistory);
 		GuiOutput.createAndShowGUI().init(ACTION_TYPE.USE_HISTORY, isHistory);
 		logger.info(isHistory);
-		
-		logger.info("----- dictionary -----");
-		String dirPath = props.getProperty("dictionary", "")
-				.replaceAll("\n", "");
-		if (StringUtils.isBlank(dirPath)) {
-			dirPath = System.getProperty("user.home") + "/gtranslator-dictionary";
-		}
+
+		logger.info("----- dictionary.target.dir -----");
+		String dirPath = props.getProperty("dictionary.target.dir", "")
+				.replaceAll(
+						"\n",
+						System.getProperty("user.home")
+								+ "/gtranslator-dictionary");
+		dirPath = System.getProperty("user.home") + "/gtranslator-dictionary";
 		GuiOutput.createAndShowGUI().init(ACTION_TYPE.DICTIONARY, dirPath);
 		logger.info(dirPath);
 
-		logger.info("********************");		
+		logger.info("----- dictionary.pause.seconds -----");
+		String pauseSeconds = props
+				.getProperty("dictionary.pause.seconds", "2").replaceAll("\n",
+						"");
+		DictionaryHelper.INSTANCE
+				.setPauseSeconds(Integer.valueOf(pauseSeconds));
+		logger.info(pauseSeconds);
+
+		logger.info("----- dictionary.block.limit -----");
+		String blockLimit = props.getProperty("dictionary.block.limit", "10")
+				.replaceAll("\n", "");
+		DictionaryHelper.INSTANCE.setBlockLimit(Integer.valueOf(blockLimit));
+		logger.info(blockLimit);
+
+		logger.info("********************");
 		return props;
 	}
 
@@ -281,17 +305,17 @@ public class App {
 		}
 		return s.toLowerCase().matches("(y|yes|true|on)");
 	}
-	
-	private static void playWord(String text) {		
+
+	private static void playWord(String text) {
 		String normal = TranslationReceiver.INSTANCE.toNormal(text);
 		if (normal.matches("[a-zA-Z]+")) {
-			File f = DictionaryHelper.INSTANCE.findFile(true,
-				GuiOutput.createAndShowGUI().getDictionaryDirPath(), normal);						
+			File f = DictionaryHelper.INSTANCE.findFile(true, GuiOutput
+					.createAndShowGUI().getDictionaryDirPath(), normal);
 			try {
 				SoundHelper.play(f);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			}
 		}
-	} 
+	}
 }

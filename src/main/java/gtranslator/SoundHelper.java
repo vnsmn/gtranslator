@@ -18,8 +18,6 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-import org.apache.commons.lang3.StringUtils;
-
 import javazoom.spi.mpeg.sampled.convert.MpegFormatConversionProvider;
 import javazoom.spi.mpeg.sampled.file.MpegFileFormatType;
 
@@ -30,95 +28,121 @@ public class SoundHelper {
 		public SoundException(String message, Throwable th) {
 			super(message, th);
 		}
-		
+
 		public SoundException(String message) {
 			super(message);
 		}
 	}
-	
+
 	static AudioFormat WAVE_FORMAT;
-	
+
 	static {
 		int sampleRate = 44100;
 		boolean bigEndian = false;
 		boolean signed = true;
 		int bits = 16;
 		int channels = 2;
-		WAVE_FORMAT = new AudioFormat(sampleRate, bits, channels, signed, bigEndian);		
+		WAVE_FORMAT = new AudioFormat(sampleRate, bits, channels, signed,
+				bigEndian);
 	}
-	
+
 	public static AudioInputStream createEmptyWaveFile(int seconds) {
 		int bufferLength = seconds * (int) WAVE_FORMAT.getSampleRate();
 		final byte[] byteBuffer = new byte[bufferLength * 2];
 		Arrays.fill(byteBuffer, (byte) 0);
 		ByteArrayInputStream bais = new ByteArrayInputStream(byteBuffer);
-		return new AudioInputStream(bais,
-				WAVE_FORMAT, bufferLength);
+		return new AudioInputStream(bais, WAVE_FORMAT, bufferLength);
 	}
-	
-	public static AudioInputStream convertWave(File mp3File) throws UnsupportedAudioFileException, IOException {
-	    AudioInputStream mp3In = AudioSystem.getAudioInputStream(mp3File);
-		MpegFormatConversionProvider  cnv = new MpegFormatConversionProvider();
-		return cnv.isConversionSupported(WAVE_FORMAT, mp3In.getFormat())
-			? cnv.getAudioInputStream(WAVE_FORMAT, mp3In) : null;
+
+	public static AudioInputStream convertWave(File mp3File)
+			throws UnsupportedAudioFileException, IOException {
+		AudioInputStream mp3In = AudioSystem.getAudioInputStream(mp3File);
+		MpegFormatConversionProvider cnv = new MpegFormatConversionProvider();
+		return cnv.isConversionSupported(WAVE_FORMAT, mp3In.getFormat()) ? cnv
+				.getAudioInputStream(WAVE_FORMAT, mp3In) : null;
 	}
-	
-	public static void concatFiles(int seconds, File outWaveFile, List<File> mp3Files) throws UnsupportedAudioFileException, IOException, SoundException {
+
+	public static void concatFiles(int seconds, File outWaveFile,
+			List<File> mp3Files) throws UnsupportedAudioFileException,
+			IOException, SoundException {
 		List<AudioInputStream> streamList = new ArrayList<>();
 		Long frameLength = -1l;
-		for (File mp3File : mp3Files) { 
+		for (File mp3File : mp3Files) {
 			AudioInputStream in = convertWave(mp3File);
 			if (in == null) {
-				throw new SoundHelper.SoundException("the file is not support convert:" + mp3File.getAbsolutePath());
+				throw new SoundHelper.SoundException(
+						"the file is not support convert:"
+								+ mp3File.getAbsolutePath());
 			}
 			streamList.add(in);
 			streamList.add(createEmptyWaveFile(seconds));
-			//frameLength += in.getFrameLength();
+			// frameLength += in.getFrameLength();
 		}
-		
-		AudioInputStream ins = new AudioInputStream(
-				new SequenceInputStream(Collections.enumeration(streamList)), 
-				WAVE_FORMAT, frameLength);
+
+		AudioInputStream ins = new AudioInputStream(new SequenceInputStream(
+				Collections.enumeration(streamList)), WAVE_FORMAT, frameLength);
 		AudioSystem.write(ins, MpegFileFormatType.WAVE, outWaveFile);
 		for (AudioInputStream in : streamList) {
 			in.close();
-		}		
+		}
 	}
-	
-	public static void concatFiles(int seconds, String fileWordsPath, String soundDir, String outWaveFile) throws SoundException {
+
+	public static void concatFiles(int seconds, String sourceWordsFilePath,
+			String sourceMp3DirPath, String targetDir, String targetFileName,
+			int blockLimit) throws SoundException {
+		int suffics = 0;
 		try {
-			List<String> ss = Files.readAllLines(Paths.get(fileWordsPath));
+			List<String> ss = Files
+					.readAllLines(Paths.get(sourceWordsFilePath));
 			List<File> fs = new ArrayList<File>();
 			for (String s : ss) {
 				String word = s.split("[=]")[0];
-				fs.add(new File(soundDir, word + ".mp3"));
+				fs.add(new File(sourceMp3DirPath, word + ".mp3"));
+				if (fs.size() >= blockLimit) {
+					concatFiles(
+							seconds,
+							Paths.get(
+									targetDir,
+									String.format("%s_%d.wav", targetFileName,
+											suffics)).toFile(), fs);
+					fs.clear();
+					suffics++;
+				}
 			}
-			concatFiles(seconds, new File(outWaveFile), fs);
+			if (fs.size() > 0) {
+				concatFiles(
+						seconds,
+						Paths.get(
+								targetDir,
+								String.format("%s_%d.wav", targetFileName,
+										suffics)).toFile(), fs);
+			}
 		} catch (Exception ex) {
 			throw new SoundException(ex.getMessage());
 		}
 	}
-	
+
 	public static void play(File mp3File) throws SoundException {
-    	AudioInputStream in;
+		AudioInputStream in;
 		try {
 			in = convertWave(mp3File);
 		} catch (UnsupportedAudioFileException | IOException ex) {
 			throw new SoundException(ex.getMessage());
 		}
-    	SourceDataLine	line = null;
-		DataLine.Info info = new DataLine.Info(SourceDataLine.class, WAVE_FORMAT);
+		SourceDataLine line = null;
+		DataLine.Info info = new DataLine.Info(SourceDataLine.class,
+				WAVE_FORMAT);
 		try {
 			line = (SourceDataLine) AudioSystem.getLine(info);
 			line.open(in.getFormat());
 		} catch (Exception ex) {
 			throw new SoundException(ex.getMessage());
 		}
-		
-		line.start();		
-		int EXTERNAL_BUFFER_SIZE = 1024;   // 128Kb
-		int	nBytesRead = 0;
-		byte[]	data = new byte[EXTERNAL_BUFFER_SIZE];
+
+		line.start();
+		int EXTERNAL_BUFFER_SIZE = 1024; // 128Kb
+		int nBytesRead = 0;
+		byte[] data = new byte[EXTERNAL_BUFFER_SIZE];
 		while (nBytesRead != -1) {
 			try {
 				nBytesRead = in.read(data, 0, data.length);
@@ -128,24 +152,22 @@ public class SoundHelper {
 			if (nBytesRead >= 0) {
 				line.write(data, 0, nBytesRead);
 			}
-		}		
+		}
 		line.drain();
 		line.close();
 	}
-	
-	public static void main(String[] args) throws Exception {
-		File f1 = new File("/home/vns/gtranslator-dictionary/string.mp3");
-		File f2 = new File("/home/vns/gtranslator-dictionary/format.mp3");
-		File f3 = new File("/home/vns/gtranslator-dictionary/index.mp3");
-		File f = new File("/home/vns/gtranslator-dictionary/en.wav");
+
+	public static void main1(String[] args) throws Exception {
+		File f1 = new File("gtranslator-dictionary/string.mp3");
+		File f2 = new File("gtranslator-dictionary/format.mp3");
+		File f3 = new File("gtranslator-dictionary/index.mp3");
+		File f = new File("gtranslator-dictionary/en.wav");
 		List<File> fs = new ArrayList<File>();
 		fs.add(f1);
 		fs.add(f2);
 		fs.add(f3);
-		//concatFiles(2, f, fs);
-		concatFiles(2, "/home/vns/gtranslator-dictionary/words-sound.txt", 
-				"/home/vns/gtranslator-dictionary/sounds/br", "/home/vns/gtranslator-dictionary/words-sound.wav");
-		//play(f3);
+		// concatFiles(2, f, fs);
+		// play(f3);
 	}
 
 	/*

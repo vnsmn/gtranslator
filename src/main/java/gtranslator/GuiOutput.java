@@ -40,15 +40,13 @@ public class GuiOutput {
 	JTextField dictionaryField;
 	private Map<ACTION_TYPE, ActionListener> actionListeners = new HashMap<>();
 	private static GuiOutput INSTANCE;
-	
+
 	private JCheckBox usingHistoryCheckBox;
 	private JCheckBox soundCheckBox;
 	private JLabel statisticLabel;
 
 	public enum ACTION_TYPE {
-		FIXED, START_STOP, MODE_SELECT, ADDITION_INFO, COOKIE, DISPOSE, 
-		REWRITE_HISTORY, CLEAN_HISTORY, USE_HISTORY, STATISTIC, DICTIONARY,
-		SOUND, IS_SOUND
+		FIXED, START_STOP, MODE_SELECT, ADDITION_INFO, COOKIE, DISPOSE, REWRITE_HISTORY, CLEAN_HISTORY, USE_HISTORY, STATISTIC, DICTIONARY, SOUND, IS_SOUND
 	}
 
 	public abstract static class ActionListener {
@@ -82,7 +80,7 @@ public class GuiOutput {
 		JScrollPane targetScrollPane = new JScrollPane();
 		targetScrollPane.add(targetArea);
 		targetScrollPane.setViewportView(targetArea);
-		
+
 		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, sourceScrollPane,
 				targetScrollPane);
 		splitPane.setOneTouchExpandable(true);
@@ -91,90 +89,100 @@ public class GuiOutput {
 
 		sourcePopupMenu = new JPopupMenu("Translate");
 		JMenuItem it = new JMenuItem("delete history");
-		it.addActionListener(new java.awt.event.ActionListener() {			
+		it.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				ActionListener actionListener = actionListeners
 						.get(ACTION_TYPE.CLEAN_HISTORY);
 				if (actionListener != null) {
 					actionListener.execute(INSTANCE);
-				}				
+				}
 			}
-		});		
+		});
 		sourcePopupMenu.add(it);
 		it = new JMenuItem("sound");
-		it.addActionListener(new java.awt.event.ActionListener() {			
+		it.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				ActionListener actionListener = actionListeners
 						.get(ACTION_TYPE.SOUND);
 				if (actionListener != null) {
 					actionListener.execute(INSTANCE.getSourceText());
-				}				
+				}
 			}
-		});		
+		});
 		sourcePopupMenu.add(it);
-		sourceArea.setComponentPopupMenu(sourcePopupMenu);		
+		sourceArea.setComponentPopupMenu(sourcePopupMenu);
 
 		setupPanel = new JPanel();
 		setupPanel.setLayout(new BorderLayout());
 		JScrollPane setupScrollPane = new JScrollPane();
 		setupScrollPane.add(setupPanel);
-		setupScrollPane.setViewportView(setupPanel);		
+		setupScrollPane.setViewportView(setupPanel);
 		tabbedPane.add(setupScrollPane, "setup");
 
-		//----------------------------------------------------------------------------------------//
+		// ----------------------------------------------------------------------------------------//
 		Box box = Box.createVerticalBox();
 		setupPanel.add(box, BorderLayout.NORTH);
 		Border lineBorder = BorderFactory.createLineBorder(Color.GRAY);
-		//----------------------------------------------------------------------------------------//
+		// ----------------------------------------------------------------------------------------//
 		statisticLabel = new JLabel();
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
-		panel.setBorder(BorderFactory.createTitledBorder(lineBorder, "Statistic"));
+		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
+				"Statistic"));
 		panel.add(statisticLabel, BorderLayout.NORTH);
-		box.add(panel);		
-		//----------------------------------------------------------------------------------------//
-		addCheckBox("Stop-Yes/Start-No", ACTION_TYPE.START_STOP, box, lineBorder);
-		//----------------------------------------------------------------------------------------//
-		addCheckBox("Is selecting mode", ACTION_TYPE.MODE_SELECT, box, lineBorder);
-		//----------------------------------------------------------------------------------------//
-		addCheckBox("Is addition translate", ACTION_TYPE.ADDITION_INFO, box, lineBorder);
-		//----------------------------------------------------------------------------------------//
-		addCheckBox("Is rewriting history", ACTION_TYPE.REWRITE_HISTORY, box, lineBorder);
-		//----------------------------------------------------------------------------------------//
-		usingHistoryCheckBox = addCheckBox("Is using history", ACTION_TYPE.USE_HISTORY, box, lineBorder);
-		//----------------------------------------------------------------------------------------//
-		soundCheckBox = addCheckBox("Is sound", ACTION_TYPE.IS_SOUND, box, lineBorder);
-		//----------------------------------------------------------------------------------------//
-		cookieField = addTextField("Cookie", "apply", ACTION_TYPE.COOKIE, box, lineBorder);		
-		//----------------------------------------------------------------------------------------//
-		dictionaryField = addTextField("Dictionary", "run", ACTION_TYPE.DICTIONARY, box, lineBorder);
-		//----------------------------------------------------------------------------------------//		
+		box.add(panel);
+		// ----------------------------------------------------------------------------------------//
+		addCheckBox("Stop-Yes/Start-No", ACTION_TYPE.START_STOP, box,
+				lineBorder);
+		// ----------------------------------------------------------------------------------------//
+		addCheckBox("Is selecting mode", ACTION_TYPE.MODE_SELECT, box,
+				lineBorder);
+		// ----------------------------------------------------------------------------------------//
+		addCheckBox("Is addition translate", ACTION_TYPE.ADDITION_INFO, box,
+				lineBorder);
+		// ----------------------------------------------------------------------------------------//
+		addCheckBox("Is rewriting history", ACTION_TYPE.REWRITE_HISTORY, box,
+				lineBorder);
+		// ----------------------------------------------------------------------------------------//
+		usingHistoryCheckBox = addCheckBox("Is using history",
+				ACTION_TYPE.USE_HISTORY, box, lineBorder);
+		// ----------------------------------------------------------------------------------------//
+		soundCheckBox = addCheckBox("Is sound", ACTION_TYPE.IS_SOUND, box,
+				lineBorder);
+		// ----------------------------------------------------------------------------------------//
+		cookieField = addTextField("Cookie", "apply", ACTION_TYPE.COOKIE, box,
+				lineBorder);
+		// ----------------------------------------------------------------------------------------//
+		dictionaryField = addTextField("Dictionary", "run",
+				ACTION_TYPE.DICTIONARY, box, lineBorder);
+		// ----------------------------------------------------------------------------------------//
 		// frame.pack(); если размер устанавливается внутренними компонентами
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setVisible(true);
 	}
-	
+
 	public void init(ACTION_TYPE type, Object value) {
 		switch (type) {
-			case COOKIE:
-				cookieField.setText((String) value);	
+		case COOKIE:
+			cookieField.setText((String) value);
 			break;
-			case USE_HISTORY:
-				usingHistoryCheckBox.setSelected((Boolean) value);
-				usingHistoryCheckBox.setText(usingHistoryCheckBox.isSelected() ? "Yes" : "No");
+		case USE_HISTORY:
+			usingHistoryCheckBox.setSelected((Boolean) value);
+			usingHistoryCheckBox
+					.setText(usingHistoryCheckBox.isSelected() ? "Yes" : "No");
 			break;
-			case STATISTIC:
-				statisticLabel.setText("Count words/phrases: " + value.toString());
+		case STATISTIC:
+			statisticLabel.setText("Count words/phrases: " + value.toString());
 			break;
-			case DICTIONARY:
-				dictionaryField.setText((String) value);
+		case DICTIONARY:
+			dictionaryField.setText((String) value);
 			break;
-			case IS_SOUND:
-				soundCheckBox.setSelected((Boolean) value);
-				soundCheckBox.setText(soundCheckBox.isSelected() ? "Yes" : "No");
-				break;
+		case IS_SOUND:
+			soundCheckBox.setSelected((Boolean) value);
+			soundCheckBox.setText(soundCheckBox.isSelected() ? "Yes" : "No");
+			break;
 		default:
 			break;
 		}
@@ -210,7 +218,7 @@ public class GuiOutput {
 	public void selectTranslatePanel() {
 		tabbedPane.setSelectedIndex(0);
 	}
-	
+
 	public String getDictionaryDirPath() {
 		return dictionaryField.getText();
 	}
@@ -229,13 +237,14 @@ public class GuiOutput {
 		INSTANCE.frame.dispose();
 		INSTANCE = null;
 	}
-	
-	private JCheckBox addCheckBox(String title, final ACTION_TYPE type, Box box, Border lineBorder) {
+
+	private JCheckBox addCheckBox(String title, final ACTION_TYPE type,
+			Box box, Border lineBorder) {
 		JCheckBox checkBox = new JCheckBox("No");
 		checkBox.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				final JCheckBox check = (JCheckBox)e.getSource();
+				final JCheckBox check = (JCheckBox) e.getSource();
 				check.setText(check.isSelected() ? "Yes" : "No");
 				ActionListener actionListener = actionListeners.get(type);
 				if (actionListener != null) {
@@ -250,8 +259,9 @@ public class GuiOutput {
 		box.add(panel);
 		return checkBox;
 	}
-	
-	private JTextField addTextField(String title, String buttonText, final ACTION_TYPE type, Box box, Border lineBorder) {
+
+	private JTextField addTextField(String title, String buttonText,
+			final ACTION_TYPE type, Box box, Border lineBorder) {
 		JTextField field = new JTextField();
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
@@ -261,8 +271,7 @@ public class GuiOutput {
 		button.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				ActionListener actionListener = actionListeners
-						.get(type);
+				ActionListener actionListener = actionListeners.get(type);
 				if (actionListener != null) {
 					actionListener.execute(field.getText());
 				}
@@ -291,5 +300,5 @@ public class GuiOutput {
 				actionListener.execute(INSTANCE);
 			}
 		}
-	}	
+	}
 }
