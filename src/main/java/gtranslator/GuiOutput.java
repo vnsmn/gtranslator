@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -27,6 +26,10 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 
 public class GuiOutput {
 	private JFrame frame;
@@ -43,6 +46,8 @@ public class GuiOutput {
 
 	private JCheckBox usingHistoryCheckBox;
 	private JCheckBox soundCheckBox;
+	private JCheckBox activiteCheckBox;
+	private JMenuItem activiteMenuItem;
 	private JLabel statisticLabel;
 
 	public enum ACTION_TYPE {
@@ -88,30 +93,21 @@ public class GuiOutput {
 		tabbedPane.add(splitPane, "translate");
 
 		sourcePopupMenu = new JPopupMenu("Translate");
-		JMenuItem it = new JMenuItem("delete history");
-		it.addActionListener(new java.awt.event.ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				ActionListener actionListener = actionListeners
-						.get(ACTION_TYPE.CLEAN_HISTORY);
-				if (actionListener != null) {
-					actionListener.execute(INSTANCE);
-				}
+		addMenuItem("delete history", ACTION_TYPE.CLEAN_HISTORY, sourcePopupMenu);
+		addMenuItem("sound", ACTION_TYPE.SOUND, sourcePopupMenu, 
+				new Executor()  {
+			public void perform(ActionListener actListener) {
+				actListener.execute(INSTANCE.getSourceText());
+			}
+		});				
+		activiteMenuItem = addMenuItem("stop", ACTION_TYPE.START_STOP, sourcePopupMenu, new Executor()  {
+			public void perform(ActionListener actListener) {				
+				activiteCheckBox.setSelected(!activiteCheckBox.isSelected());
+				activiteCheckBox.firePropertyChange("isSelected", 
+						!activiteCheckBox.isSelected(), activiteCheckBox.isSelected());
 			}
 		});
-		sourcePopupMenu.add(it);
-		it = new JMenuItem("sound");
-		it.addActionListener(new java.awt.event.ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				ActionListener actionListener = actionListeners
-						.get(ACTION_TYPE.SOUND);
-				if (actionListener != null) {
-					actionListener.execute(INSTANCE.getSourceText());
-				}
-			}
-		});
-		sourcePopupMenu.add(it);
+		sourcePopupMenu.addPopupMenuListener(new PopupMenuListenerExt());
 		sourceArea.setComponentPopupMenu(sourcePopupMenu);
 
 		setupPanel = new JPanel();
@@ -134,7 +130,7 @@ public class GuiOutput {
 		panel.add(statisticLabel, BorderLayout.NORTH);
 		box.add(panel);
 		// ----------------------------------------------------------------------------------------//
-		addCheckBox("Stop-Yes/Start-No", ACTION_TYPE.START_STOP, box,
+		activiteCheckBox = addCheckBox("Stop-Yes/Start-No", ACTION_TYPE.START_STOP, box,
 				lineBorder);
 		// ----------------------------------------------------------------------------------------//
 		addCheckBox("Is selecting mode", ACTION_TYPE.MODE_SELECT, box,
@@ -157,7 +153,7 @@ public class GuiOutput {
 		// ----------------------------------------------------------------------------------------//
 		dictionaryField = addTextField("Dictionary", "run",
 				ACTION_TYPE.DICTIONARY, box, lineBorder);
-		// ----------------------------------------------------------------------------------------//
+		// ----------------------------------------------------------------------------------------//				
 		// frame.pack(); если размер устанавливается внутренними компонентами
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setVisible(true);
@@ -281,6 +277,37 @@ public class GuiOutput {
 		box.add(panel);
 		return field;
 	}
+	
+	private JMenuItem addMenuItem(String title, final ACTION_TYPE type, JPopupMenu popupMenu) {
+		JMenuItem it = new JMenuItem(title);
+		it.addActionListener(new java.awt.event.ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ActionListener actionListener = actionListeners.get(type);
+				if (actionListener != null) {
+					actionListener.execute(INSTANCE);
+				}
+			}
+		});
+		popupMenu.add(it);
+		return it;
+	}
+	
+	private JMenuItem addMenuItem(String title, final ACTION_TYPE type, JPopupMenu popupMenu,
+			final Executor executor) {
+		JMenuItem it = new JMenuItem(title);
+		it.addActionListener(new java.awt.event.ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ActionListener actionListener = actionListeners.get(type);
+				if (actionListener != null) {
+					executor.perform(actionListener);
+				}
+			}
+		});
+		popupMenu.add(it);
+		return it;
+	}
 
 	private class WindowAdapterExt extends WindowAdapter {
 		public void windowClosing(WindowEvent e) {
@@ -300,5 +327,23 @@ public class GuiOutput {
 				actionListener.execute(INSTANCE);
 			}
 		}
+	}
+	
+	private class PopupMenuListenerExt implements PopupMenuListener {			
+		@Override
+		public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+			activiteMenuItem.setText(activiteCheckBox.isSelected()
+					? "start" : "stop");
+		}
+		
+		@Override
+		public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+		}			
+		@Override
+		public void popupMenuCanceled(PopupMenuEvent e) {
+		}
+	}	
+	private interface Executor {
+		void perform(ActionListener actListener);
 	}
 }
