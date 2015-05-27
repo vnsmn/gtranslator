@@ -105,6 +105,7 @@ public class GuiOutput {
 				activiteCheckBox.setSelected(!activiteCheckBox.isSelected());
 				activiteCheckBox.firePropertyChange("isSelected", 
 						!activiteCheckBox.isSelected(), activiteCheckBox.isSelected());
+				actListener.execute(activiteCheckBox.isSelected());
 			}
 		});
 		sourcePopupMenu.addPopupMenuListener(new PopupMenuListenerExt());
