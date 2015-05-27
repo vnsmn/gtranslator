@@ -46,8 +46,10 @@ public class GuiOutput {
 
 	private JCheckBox usingHistoryCheckBox;
 	private JCheckBox soundCheckBox;
-	private JCheckBox activiteCheckBox;
-	private JMenuItem activiteMenuItem;
+	private JCheckBox activityCheckBox;
+	private JMenuItem activityMenuItem;
+	private JCheckBox modeCheckBox;
+	private JMenuItem modeMenuItem;
 	private JLabel statisticLabel;
 
 	public enum ACTION_TYPE {
@@ -100,12 +102,20 @@ public class GuiOutput {
 				actListener.execute(INSTANCE.getSourceText());
 			}
 		});				
-		activiteMenuItem = addMenuItem("stop", ACTION_TYPE.START_STOP, sourcePopupMenu, new Executor()  {
+		activityMenuItem = addMenuItem("stop", ACTION_TYPE.START_STOP, sourcePopupMenu, new Executor()  {
 			public void perform(ActionListener actListener) {				
-				activiteCheckBox.setSelected(!activiteCheckBox.isSelected());
-				activiteCheckBox.firePropertyChange("isSelected", 
-						!activiteCheckBox.isSelected(), activiteCheckBox.isSelected());
-				actListener.execute(activiteCheckBox.isSelected());
+				activityCheckBox.setSelected(!activityCheckBox.isSelected());
+				activityCheckBox.firePropertyChange("isSelected", 
+						!activityCheckBox.isSelected(), activityCheckBox.isSelected());
+				actListener.execute(activityCheckBox.isSelected());
+			}
+		});
+		modeMenuItem = addMenuItem("mode", ACTION_TYPE.MODE_SELECT, sourcePopupMenu, new Executor()  {
+			public void perform(ActionListener actListener) {				
+				modeCheckBox.setSelected(!modeCheckBox.isSelected());
+				modeCheckBox.firePropertyChange("isSelected", 
+						!modeCheckBox.isSelected(), modeCheckBox.isSelected());
+				actListener.execute(modeCheckBox.isSelected());
 			}
 		});
 		sourcePopupMenu.addPopupMenuListener(new PopupMenuListenerExt());
@@ -131,10 +141,10 @@ public class GuiOutput {
 		panel.add(statisticLabel, BorderLayout.NORTH);
 		box.add(panel);
 		// ----------------------------------------------------------------------------------------//
-		activiteCheckBox = addCheckBox("Stop-Yes/Start-No", ACTION_TYPE.START_STOP, box,
+		activityCheckBox = addCheckBox("Stop-Yes/Start-No", ACTION_TYPE.START_STOP, box,
 				lineBorder);
 		// ----------------------------------------------------------------------------------------//
-		addCheckBox("Is selecting mode", ACTION_TYPE.MODE_SELECT, box,
+		modeCheckBox = addCheckBox("Is selecting mode", ACTION_TYPE.MODE_SELECT, box,
 				lineBorder);
 		// ----------------------------------------------------------------------------------------//
 		addCheckBox("Is addition translate", ACTION_TYPE.ADDITION_INFO, box,
@@ -333,8 +343,10 @@ public class GuiOutput {
 	private class PopupMenuListenerExt implements PopupMenuListener {			
 		@Override
 		public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-			activiteMenuItem.setText(activiteCheckBox.isSelected()
+			activityMenuItem.setText(activityCheckBox.isSelected()
 					? "start" : "stop");
+			modeMenuItem.setText(modeCheckBox.isSelected()
+					? "copy" : "selecting");
 		}
 		
 		@Override
