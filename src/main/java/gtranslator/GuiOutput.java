@@ -53,7 +53,8 @@ public class GuiOutput {
 	private JLabel statisticLabel;
 
 	public enum ACTION_TYPE {
-		FIXED, START_STOP, MODE_SELECT, ADDITION_INFO, COOKIE, DISPOSE, REWRITE_HISTORY, CLEAN_HISTORY, USE_HISTORY, STATISTIC, DICTIONARY, SOUND, IS_SOUND
+		FIXED, START_STOP, MODE_SELECT, ADDITION_INFO, COOKIE, DISPOSE, REWRITE_HISTORY, 
+		CLEAN_HISTORY, USE_HISTORY, STATISTIC, DICTIONARY, SOUND, LOAD_SOUND, IS_SOUND
 	}
 
 	public abstract static class ActionListener {
@@ -101,7 +102,13 @@ public class GuiOutput {
 			public void perform(ActionListener actListener) {
 				actListener.execute(INSTANCE.getSourceText());
 			}
-		});				
+		});
+		addMenuItem("load sound", ACTION_TYPE.LOAD_SOUND, sourcePopupMenu, 
+				new Executor()  {
+			public void perform(ActionListener actListener) {
+				actListener.execute(INSTANCE.getSourceText());
+			}
+		});
 		activityMenuItem = addMenuItem("stop", ACTION_TYPE.START_STOP, sourcePopupMenu, new Executor()  {
 			public void perform(ActionListener actListener) {				
 				activityCheckBox.setSelected(!activityCheckBox.isSelected());

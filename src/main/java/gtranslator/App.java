@@ -7,13 +7,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Properties;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
@@ -134,7 +136,15 @@ public class App {
 						new GuiOutput.ActionListener() {
 							@Override
 							public void execute(String text) {
-								playWord(text);
+								playWord(text, false);
+							}
+						});
+				GuiOutput.createAndShowGUI().putActionListener(
+						GuiOutput.ACTION_TYPE.LOAD_SOUND,
+						new GuiOutput.ActionListener() {
+							@Override
+							public void execute(String text) {
+								playWord(text, true);
 							}
 						});
 				GuiOutput.createAndShowGUI().putActionListener(
@@ -147,7 +157,7 @@ public class App {
 											.setActionListener(new ActionListener() {
 												@Override
 												public void execute(String text) {
-													playWord(text);
+													playWord(text, false);
 												}
 											});
 								} else {
@@ -306,12 +316,22 @@ public class App {
 		return s.toLowerCase().matches("(y|yes|true|on)");
 	}
 
-	private static void playWord(String text) {
+	private static void playWord(String text, boolean doSoundLoad) {
 		String normal = TranslationReceiver.INSTANCE.toNormal(text);
 		if (normal.matches("[a-zA-Z]+")) {
-			File f = DictionaryHelper.INSTANCE.findFile(true, GuiOutput
-					.createAndShowGUI().getDictionaryDirPath(), normal);
+			String dicDirPath = GuiOutput.createAndShowGUI().getDictionaryDirPath();
+			File f = DictionaryHelper.INSTANCE.findFile(true, dicDirPath, normal);
 			try {
+				if (doSoundLoad && !f.exists()) {
+					File soundDir = DictionaryHelper.INSTANCE.createSoundDir(dicDirPath);
+					Map<String, String> words = new HashMap<String, String>();
+					words.put(normal, normal);
+					Set<String> loaded = DictionaryHelper.INSTANCE.loadSound(words, soundDir);
+					if (loaded.isEmpty()) {
+						logger.error("the file " + f.getAbsolutePath() + " not found.");
+						return;
+					}
+				}				
 				SoundHelper.play(f);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());

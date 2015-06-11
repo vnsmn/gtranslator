@@ -9,12 +9,11 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
-
-import javax.sound.sampled.UnsupportedAudioFileException;
 
 import org.apache.log4j.Logger;
 
@@ -28,6 +27,20 @@ public class DictionaryHelper {
 
 	private DictionaryHelper() {
 	};
+	
+	public synchronized File createSoundDir(String targetDirPath) {
+		File dir = new File(targetDirPath);
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
+
+		File soundDir = new File(dir, SOUNDS);
+		if (!soundDir.exists()) {
+			soundDir.mkdirs();
+		}
+		
+		return soundDir;
+	}
 
 	public synchronized void createDictionary(Map<String, String> words,
 			String targetDirPath) throws FileNotFoundException, IOException {
@@ -36,7 +49,7 @@ public class DictionaryHelper {
 			dir.mkdirs();
 		}
 
-		File soundDir = new File(dir, SOUNDS);
+		File soundDir = createSoundDir(targetDirPath);
 		if (!soundDir.exists()) {
 			soundDir.mkdirs();
 		}
@@ -110,7 +123,7 @@ public class DictionaryHelper {
 		return sb.toString();
 	}
 
-	private Set<String> loadSound(Map<String, String> words, File dirFile)
+	public Set<String> loadSound(Map<String, String> words, File dirFile)
 			throws IOException {
 		Set<String> loaded = new HashSet<>();
 		for (Entry<String, String> ent : words.entrySet()) {
