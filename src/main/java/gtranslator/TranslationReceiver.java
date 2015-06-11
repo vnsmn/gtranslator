@@ -325,7 +325,7 @@ public class TranslationReceiver {
 			}
 		}
 		try {
-			return s.substring(i, j + 1).replaceAll("[ ]+", " ");
+			return s.substring(i, j + 1).replaceAll("[ ]+", " ").toLowerCase();
 		} catch (StringIndexOutOfBoundsException ex) {
 			logger.error(ex.getMessage() + " : " + s);
 			throw ex;
