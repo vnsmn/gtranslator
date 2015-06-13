@@ -2,6 +2,7 @@ package gtranslator.translate;
 
 import gtranslator.DictionaryHelper;
 import gtranslator.HistoryHelper;
+import gtranslator.sound.RusGoogleSoundReceiver;
 import gtranslator.sound.SoundHelper;
 import gtranslator.sound.SoundHelper.SoundException;
 import gtranslator.sound.SoundReceiver;
@@ -15,11 +16,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.sound.sampled.UnsupportedAudioFileException;
 
@@ -39,7 +42,7 @@ public class BatchTranslationHelper {
 	
 	@SuppressWarnings("unchecked")
 	public void execute(String textFilePath,
-			String dicDirPath, int blockLimit, int seconds, boolean isAll, boolean doLoadSound) throws IOException, UnsupportedAudioFileException, SoundException {
+			String dicDirPath, int blockLimit, int seconds, int secondsDefis, boolean isAll, boolean doLoadSound) throws IOException, UnsupportedAudioFileException, SoundException {
 		
 		HistoryHelper.INSTANCE.load(rawHisFile, wordHisFile);
 		
@@ -64,7 +67,11 @@ public class BatchTranslationHelper {
 			if (eng.length() > 1 && eng.matches("[a-zA-Z]+")) {
 				if (!dublicates.contains(eng)) {
 					try {
-						words.put(eng, TranslationReceiver.INSTANCE.translateAndFormat(eng, false));
+						String rus = TranslationReceiver.INSTANCE.translateAndFormat(eng, false);
+						if (doLoadSound) {
+							RusGoogleSoundReceiver.INSTANCE.createSoundFile(new File(dicDirPath), rus);
+						}
+						words.put(eng, rus);
 					} catch (Exception ex) {
 						ex.printStackTrace();
 					}
@@ -99,31 +106,44 @@ public class BatchTranslationHelper {
 		Files.copy(new ByteArrayInputStream(transText.getBytes("UTF-8")), trgPath, 
 				StandardCopyOption.REPLACE_EXISTING.REPLACE_EXISTING);
 		
-		String outWaveFile =  new File(new File(textFilePath).getParentFile(), "words-sound" + "-" + seconds).getAbsolutePath();  
+		String outWaveFile =  new File(new File(textFilePath).getParentFile(), "words-sound" + "-" + seconds + "-" + secondsDefis).getAbsolutePath();  
 		int n = 1;
-		List<File> mp3Files = new ArrayList<>();
+		TreeMap<File, File> mp3Files = new TreeMap<>(new Comparator<File>() {
+			@Override
+			public int compare(File f1, File f2) {
+				return f1.compareTo(f2);
+			}
+		});
 		List<String> sortList = new ArrayList<>(loadedSoundWords);
 		sortList.sort(null);
 		for (String s : sortList) {
-			mp3Files.add(Paths.get(dicDirPath, SoundReceiver.BR_SOUND_DIR, s.concat(".mp3")).toFile());
-			if (mp3Files.size() == blockLimit) {				
-				SoundHelper.concatFiles(seconds, new File(outWaveFile.concat("-" + n).concat(".wave")), mp3Files); 
+			File engFile = Paths.get(dicDirPath, SoundReceiver.BR_SOUND_DIR, s.concat(".mp3")).toFile();			
+			String rus = words.get(s);
+			File rusFile = new File(RusGoogleSoundReceiver.INSTANCE.getFilePath(dicDirPath, rus));
+			if (rusFile.exists()) {
+				mp3Files.put(engFile, rusFile);
+			} else {
+				mp3Files.put(engFile, null);
+			}
+			if (mp3Files.size() == blockLimit) {
+				SoundHelper.concatFiles(seconds, secondsDefis, new File(outWaveFile.concat("-" + n).concat(".wave")), mp3Files); 
 				mp3Files.clear();
 				n++;
 			}
 		}
 		if (!mp3Files.isEmpty()) {				
-			SoundHelper.concatFiles(seconds, new File(outWaveFile.concat("-" + n++).concat(".wave")), mp3Files);
+			SoundHelper.concatFiles(seconds, secondsDefis, new File(outWaveFile.concat("-" + n++).concat(".wave")), mp3Files);
 		}
 	}
-	
+
 	public static void main(String... args) throws IOException, UnsupportedAudioFileException, SoundException {
-		String dicDirPath = "~/gtranslator-dictionary";
+		String dicDirPath = "/home/vns/gtranslator-dictionary";
 		String textFilePath = "/ext/english/learningenglish.voanews.com/LinkedIn EF Offer Test Scores for English Learners/words.txt";
 		int seconds = 0;
+		int secondsDefis = 0;
 		int blockLimit = 50;
-		boolean isAll = true;
+		boolean isAll = false;
 		boolean doLoadSound = false;
-		BatchTranslationHelper.INSTANCE.execute(textFilePath, dicDirPath, blockLimit, seconds, isAll, doLoadSound);
+		BatchTranslationHelper.INSTANCE.execute(textFilePath, dicDirPath, blockLimit, seconds, secondsDefis, isAll, doLoadSound);
 	}
 }

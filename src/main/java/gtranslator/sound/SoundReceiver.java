@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 public interface SoundReceiver {
 	String AM_SOUND_DIR = Paths.get("sounds", "am").toString();
 	String BR_SOUND_DIR = Paths.get("sounds", "br").toString();
+	String RU_SOUND_DIR = Paths.get("sounds", "ru").toString();
 	
 	boolean createSoundFile(File dirFile, String word)
 			throws SoundReceiverException;

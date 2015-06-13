@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -34,41 +36,76 @@ public class SoundHelper {
 		}
 	}
 
-	static AudioFormat WAVE_FORMAT;
+	static AudioFormat WAVE_FORMAT_44100;
+	static AudioFormat WAVE_FORMAT_16000;
 
 	static {
-		int sampleRate = 44100;
+		int sampleRate_44100 = 44100;
+		int sampleRate_16000 = 16000;
 		boolean bigEndian = false;
 		boolean signed = true;
 		int bits = 16;
 		int channels = 2;
-		WAVE_FORMAT = new AudioFormat(sampleRate, bits, channels, signed,
+		WAVE_FORMAT_44100 = new AudioFormat(sampleRate_44100, bits, channels, signed,
 				bigEndian);
+		WAVE_FORMAT_16000 = new AudioFormat(sampleRate_16000, bits, channels, signed,
+				bigEndian);		
 	}
 
 	public static AudioInputStream createEmptyWaveFile(int seconds) {
-		int bufferLength = seconds * (int) WAVE_FORMAT.getSampleRate();
+		int bufferLength = seconds * (int) WAVE_FORMAT_44100.getSampleRate();
 		final byte[] byteBuffer = new byte[bufferLength * 2];
 		Arrays.fill(byteBuffer, (byte) 0);
 		ByteArrayInputStream bais = new ByteArrayInputStream(byteBuffer);
-		return new AudioInputStream(bais, WAVE_FORMAT, bufferLength);
+		return new AudioInputStream(bais, WAVE_FORMAT_44100, bufferLength);
 	}
 
-	public static AudioInputStream convertWave(File mp3File)
+	public static AudioInputStream convertWave(File mp3File, AudioFormat audioFormat)
 			throws UnsupportedAudioFileException, IOException {
 		AudioInputStream mp3In = AudioSystem.getAudioInputStream(mp3File);
 		MpegFormatConversionProvider cnv = new MpegFormatConversionProvider();
-		return cnv.isConversionSupported(WAVE_FORMAT, mp3In.getFormat()) ? cnv
-				.getAudioInputStream(WAVE_FORMAT, mp3In) : null;
+		return cnv.isConversionSupported(audioFormat, mp3In.getFormat()) ? cnv
+				.getAudioInputStream(audioFormat, mp3In) : null;
 	}
 
+	public static void concatFiles(int seconds, int secondsDefis, File outWaveFile,
+			TreeMap<File, File> mp3Files) throws UnsupportedAudioFileException,
+			IOException, SoundException {
+		List<AudioInputStream> streamList = new ArrayList<>();
+		Long frameLength = -1l;
+		for (Entry<File, File> mp3File : mp3Files.entrySet()) {
+			AudioInputStream in = convertWave(mp3File.getKey(), WAVE_FORMAT_44100);			
+			AudioInputStream rusIn = convertWave(mp3File.getValue(), WAVE_FORMAT_16000);			
+			if (in == null) {
+				throw new SoundHelper.SoundException(
+						"the file is not support convert:"
+								+ mp3File.getKey().getAbsolutePath());
+			}
+			streamList.add(in);
+			if (rusIn != null) {
+				streamList.add(createEmptyWaveFile(secondsDefis));
+				rusIn = AudioSystem.getAudioInputStream(WAVE_FORMAT_44100, rusIn);				
+				streamList.add(rusIn);
+			}
+			streamList.add(createEmptyWaveFile(seconds));
+			// frameLength += in.getFrameLength();
+		}
+
+		AudioInputStream ins = new AudioInputStream(new SequenceInputStream(
+				Collections.enumeration(streamList)), WAVE_FORMAT_44100, frameLength);
+		AudioSystem.write(ins, MpegFileFormatType.WAVE, outWaveFile);
+		for (AudioInputStream in : streamList) {
+			in.close();
+		}
+	}
+	
 	public static void concatFiles(int seconds, File outWaveFile,
 			List<File> mp3Files) throws UnsupportedAudioFileException,
 			IOException, SoundException {
 		List<AudioInputStream> streamList = new ArrayList<>();
 		Long frameLength = -1l;
 		for (File mp3File : mp3Files) {
-			AudioInputStream in = convertWave(mp3File);
+			AudioInputStream in = convertWave(mp3File, WAVE_FORMAT_44100);			
 			if (in == null) {
 				throw new SoundHelper.SoundException(
 						"the file is not support convert:"
@@ -80,7 +117,7 @@ public class SoundHelper {
 		}
 
 		AudioInputStream ins = new AudioInputStream(new SequenceInputStream(
-				Collections.enumeration(streamList)), WAVE_FORMAT, frameLength);
+				Collections.enumeration(streamList)), WAVE_FORMAT_44100, frameLength);
 		AudioSystem.write(ins, MpegFileFormatType.WAVE, outWaveFile);
 		for (AudioInputStream in : streamList) {
 			in.close();
@@ -125,13 +162,13 @@ public class SoundHelper {
 	public static void play(File mp3File) throws SoundException {
 		AudioInputStream in;
 		try {
-			in = convertWave(mp3File);
+			in = convertWave(mp3File, WAVE_FORMAT_44100);
 		} catch (UnsupportedAudioFileException | IOException ex) {
 			throw new SoundException(ex.getMessage());
 		}
 		SourceDataLine line = null;
 		DataLine.Info info = new DataLine.Info(SourceDataLine.class,
-				WAVE_FORMAT);
+				WAVE_FORMAT_44100);
 		try {
 			line = (SourceDataLine) AudioSystem.getLine(info);
 			line.open(in.getFormat());
