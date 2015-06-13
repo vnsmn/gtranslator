@@ -1,4 +1,6 @@
-package gtranslator;
+package gtranslator.sound;
+
+import gtranslator.exception.SoundReceiverException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -15,39 +17,41 @@ import org.apache.log4j.Logger;
 public class GstaticSoundReceiver implements SoundReceiver {
 	static final Logger logger = Logger.getLogger(GstaticSoundReceiver.class);
 
+	private final static String REQUEST = "http://ssl.gstatic.com/dictionary/static/sounds/de/0/";
+
 	@Override
-	public boolean createSound(File dirFile, String word)
+	public boolean createSoundFile(File dicDir, String word)
 			throws SoundReceiverException {
-		File f = new File(dirFile, word + ".mp3");
-		boolean isloaded = f.exists();
-		if (!isloaded) {
+		File soundDir = new File(dicDir, AM_SOUND_DIR);
+		if (!soundDir.exists()) {
+			soundDir.mkdirs();
+		}
+		File fw = new File(soundDir, word + ".mp3");
+		boolean isloaded = fw.exists();
+		if (!isloaded)
 			try {
-				isloaded = writeSound(f, word);
+				isloaded = writeSound(fw, word);
 			} catch (IOException ex) {
+				logger.error(ex.getMessage(), ex);
 				throw new SoundReceiverException(ex.getMessage(), ex);
 			}
-		}
 		return isloaded;
 	}
 
 	private boolean writeSound(File dirFile, String word) throws IOException {
-		String request = "http://ssl.gstatic.com/dictionary/static/sounds/de/0/"
-				+ word + ".mp3";
-		URL url = new URL(request);
+		URL url = new URL(REQUEST.concat(word).concat(".mp3"));
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 		conn.setDoOutput(false);
+		conn.setUseCaches(false);
 		conn.setRequestMethod("GET");
 		conn.setRequestProperty(
 				"User-Agent",
 				"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.152 Safari/537.36");
-		conn.setUseCaches(false);
-		File f = new File(dirFile, word + ".mp3");
+		File fw = new File(dirFile, word + ".mp3");
 		long size = 0;
-		try {
-			InputStream in = conn.getInputStream();
-			size = Files.copy(in, Paths.get(f.toURI()),
+		try (InputStream in = conn.getInputStream()) {
+			size = Files.copy(in, Paths.get(fw.toURI()),
 					StandardCopyOption.REPLACE_EXISTING);
-			in.close();
 		} catch (FileNotFoundException ex) {
 			logger.error(ex.getMessage());
 		}

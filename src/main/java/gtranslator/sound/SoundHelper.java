@@ -1,4 +1,4 @@
-package gtranslator;
+package gtranslator.sound;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;

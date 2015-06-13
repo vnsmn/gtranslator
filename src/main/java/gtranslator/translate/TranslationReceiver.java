@@ -1,8 +1,9 @@
-package gtranslator;
+package gtranslator.translate;
+
+import gtranslator.HistoryHelper;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -21,7 +22,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.atomic.AtomicStampedReference;
 
 import javax.json.Json;
 import javax.json.stream.JsonParser;
@@ -153,32 +153,23 @@ public class TranslationReceiver {
 		}
 		return sb.toString();
 	}
-
-	private static class Result {
-		Result parent;
-		int index;
-		List<Result> childs = new ArrayList<Result>();
-		List<String> datas = new ArrayList<String>();
-
-		String getComplexIndex() {
-			if (parent != null)
-				return parent.getComplexIndex() + "." + index;
-			else
-				return "" + index;
-		}
+	
+	public synchronized String translateAndFormat(String sentense,
+			boolean isGetMethod) throws IOException {
+		return translateAndFormat(sentense, isGetMethod, isAddition.get());
 	}
 
 	public synchronized String translateAndFormat(String sentense,
-			boolean isGetMethod) throws IOException {
+			boolean isGetMethod, boolean isAddition) throws IOException {
 		String normal = toNormal(sentense);
 		if (isHistory.get()) {
 			String rawTranslate = HistoryHelper.INSTANCE.readRaw(normal);
 			if (isRewrite.get() || StringUtils.isBlank(rawTranslate)) {
-				rawTranslate = isGetMethod ? executeGet(sentense, cookie.get())
+				rawTranslate = isGetMethod ? executeGet(normal, cookie.get())
 						: executePost(normal, cookie.get());
 				HistoryHelper.INSTANCE.writeRaw(normal, rawTranslate);
 			}
-			String translate = format(rawTranslate, isAddition.get());
+			String translate = format(rawTranslate, isAddition);
 			if (normal.matches("[a-zA-Z]+")) {
 				String translateWords = formatWord(rawTranslate);
 				HistoryHelper.INSTANCE.writeWord(normal, translateWords);
@@ -187,7 +178,7 @@ public class TranslationReceiver {
 		} else {
 			String rawTranslate = isGetMethod ? executeGet(normal, cookie.get())
 					: executePost(normal, cookie.get());
-			return format(rawTranslate, isAddition.get());
+			return format(rawTranslate, isAddition);
 		}
 	}
 
@@ -329,6 +320,20 @@ public class TranslationReceiver {
 		} catch (StringIndexOutOfBoundsException ex) {
 			logger.error(ex.getMessage() + " : " + s);
 			throw ex;
+		}
+	}
+
+	private static class Result {
+		Result parent;
+		int index;
+		List<Result> childs = new ArrayList<Result>();
+		List<String> datas = new ArrayList<String>();
+
+		String getComplexIndex() {
+			if (parent != null)
+				return parent.getComplexIndex() + "." + index;
+			else
+				return "" + index;
 		}
 	}
 

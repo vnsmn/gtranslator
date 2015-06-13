@@ -1,7 +1,7 @@
 package gtranslator;
 
-import java.awt.AWTEvent;
-import java.awt.AWTPermission;
+import gtranslator.translate.TranslationReceiver;
+
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
@@ -9,7 +9,6 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.event.AWTEventListener;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.log4j.Logger;

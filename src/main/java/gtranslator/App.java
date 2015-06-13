@@ -2,6 +2,8 @@ package gtranslator;
 
 import gtranslator.ClipboardObserver.ActionListener;
 import gtranslator.GuiOutput.ACTION_TYPE;
+import gtranslator.sound.SoundHelper;
+import gtranslator.translate.TranslationReceiver;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -322,11 +324,10 @@ public class App {
 			String dicDirPath = GuiOutput.createAndShowGUI().getDictionaryDirPath();
 			File f = DictionaryHelper.INSTANCE.findFile(true, dicDirPath, normal);
 			try {
-				if (doSoundLoad && !f.exists()) {
-					File soundDir = DictionaryHelper.INSTANCE.createSoundDir(dicDirPath);
+				if (doSoundLoad && !f.exists()) {					
 					Map<String, String> words = new HashMap<String, String>();
 					words.put(normal, normal);
-					Set<String> loaded = DictionaryHelper.INSTANCE.loadSound(words, soundDir);
+					Set<String> loaded = DictionaryHelper.INSTANCE.loadSound(words, new File(dicDirPath));
 					if (loaded.isEmpty()) {
 						logger.error("the file " + f.getAbsolutePath() + " not found.");
 						return;

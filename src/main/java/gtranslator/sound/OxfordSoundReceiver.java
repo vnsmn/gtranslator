@@ -1,7 +1,9 @@
-package gtranslator;
+package gtranslator.sound;
+
+import gtranslator.DictionaryHelper;
+import gtranslator.exception.SoundReceiverException;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -19,35 +21,33 @@ import org.jsoup.select.Elements;
 
 public class OxfordSoundReceiver implements SoundReceiver {
 	static final Logger logger = Logger.getLogger(DictionaryHelper.class);
+	private static final String REQUEST = "http://www.oxfordlearnersdictionaries.com/definition/english/%s_1?q=%s";
 
-	public boolean createSound(File dirFile, String word)
+	public boolean createSoundFile(File dicDir, String word)
 			throws SoundReceiverException {
-		String request = String
-				.format("http://www.oxfordlearnersdictionaries.com/definition/english/%s_1?q=%s",
-						word, word);
-		File dirBr = new File(dirFile, BR);
-		File dirAm = new File(dirFile, AM);
+		File dirBr = new File(dicDir, BR_SOUND_DIR);
+		File dirAm = new File(dicDir, AM_SOUND_DIR);
 		if (!dirBr.exists()) {
 			dirBr.mkdirs();
 		}
 		if (!dirAm.exists()) {
 			dirAm.mkdirs();
 		}
-		File fBr = new File(dirBr, word + ".mp3");
-		File fAm = new File(dirAm, word + ".mp3");
+		File fBr = new File(dirBr, word.concat(".mp3"));
+		File fAm = new File(dirAm, word.concat(".mp3"));
 		boolean isloaded;
 		if (!fBr.exists() || !fAm.exists()) {
 			try {
-				Map<String, String> refs = getDataSrcList(request);
-				String refBr = refs.get(BR);
-				String refAm = refs.get(AM);
+				Map<String, String> refs = getDataSrcList(String.format(REQUEST, word, word));
+				String refBr = refs.get(BR_SOUND_DIR);
+				String refAm = refs.get(AM_SOUND_DIR);
 				logger.info(refBr);
 				logger.info(refAm);
 				isloaded = !fBr.exists() ? writeSound(fBr, word, refBr) : true;
 				isloaded |= !fAm.exists() ? writeSound(fAm, word, refAm) : true;
 			} catch (IOException ex) {
 				throw new SoundReceiverException(ex.getMessage() + ". url: "
-						+ request, ex);
+						+ String.format(REQUEST, word, word), ex);
 			}
 		} else {
 			isloaded = true;
@@ -72,13 +72,11 @@ public class OxfordSoundReceiver implements SoundReceiver {
 				"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.152 Safari/537.36");
 		conn.setUseCaches(false);
 		long size = 0;
-		try {
-			InputStream in = conn.getInputStream();
+		try (InputStream in = conn.getInputStream()) {			
 			size = Files.copy(in, Paths.get(file.toURI()),
 					StandardCopyOption.REPLACE_EXISTING);
-			in.close();
 		} catch (Exception ex) {
-			logger.error(ex.getMessage() + ". URL: " + request);
+			logger.error(ex.getMessage() + ". URL: ".concat(request));
 		}
 		return size > 0;
 	}
@@ -90,14 +88,13 @@ public class OxfordSoundReceiver implements SoundReceiver {
 		Elements elements = doc
 				.select("div#entryContent span[geo=br].pron-g div[data-src-mp3].audio_play_button");
 		if (elements.size() > 0) {
-			refs.put(BR, elements.first().attr("data-src-mp3"));
-			elements = doc
-					.select("div#entryContent span[geo=n_am].pron-g div[data-src-mp3].audio_play_button");
-			refs.put(AM, elements.first().attr("data-src-mp3"));
+			refs.put(BR_SOUND_DIR, elements.first().attr("data-src-mp3"));
+		}		
+		elements = doc
+				.select("div#entryContent span[geo=n_am].pron-g div[data-src-mp3].audio_play_button");
+		if (elements.size() > 0) {
+			refs.put(AM_SOUND_DIR, elements.first().attr("data-src-mp3"));
 		}
 		return refs;
-	}
-
-	public static void main(String... args) throws IOException {
 	}
 }
