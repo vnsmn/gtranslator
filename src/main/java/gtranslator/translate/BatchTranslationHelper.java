@@ -42,7 +42,9 @@ public class BatchTranslationHelper {
 	
 	@SuppressWarnings("unchecked")
 	public void execute(String textFilePath,
-			String dicDirPath, int blockLimit, int seconds, int secondsDefis, boolean isAll, boolean doLoadSound) throws IOException, UnsupportedAudioFileException, SoundException {
+			String dicDirPath, String targetSoundFileName, int blockLimit, 
+			int seconds, int secondsDefis, 
+			boolean isAll, boolean doLoadSound, boolean isRus) throws IOException, UnsupportedAudioFileException, SoundException {
 		
 		HistoryHelper.INSTANCE.load(rawHisFile, wordHisFile);
 		
@@ -106,7 +108,7 @@ public class BatchTranslationHelper {
 		Files.copy(new ByteArrayInputStream(transText.getBytes("UTF-8")), trgPath, 
 				StandardCopyOption.REPLACE_EXISTING.REPLACE_EXISTING);
 		
-		String outWaveFile =  new File(new File(textFilePath).getParentFile(), "words-sound" + "-" + seconds + "-" + secondsDefis).getAbsolutePath();  
+		String outWaveFile =  new File(new File(textFilePath).getParentFile(), targetSoundFileName + "-" + seconds + "-" + secondsDefis).getAbsolutePath();  
 		int n = 1;
 		TreeMap<File, File> mp3Files = new TreeMap<>(new Comparator<File>() {
 			@Override
@@ -120,7 +122,7 @@ public class BatchTranslationHelper {
 			File engFile = Paths.get(dicDirPath, SoundReceiver.BR_SOUND_DIR, s.concat(".mp3")).toFile();			
 			String rus = words.get(s);
 			File rusFile = new File(RusGoogleSoundReceiver.INSTANCE.getFilePath(dicDirPath, rus));
-			if (rusFile.exists()) {
+			if (isRus && rusFile.exists()) {
 				mp3Files.put(engFile, rusFile);
 			} else {
 				mp3Files.put(engFile, null);
@@ -139,11 +141,14 @@ public class BatchTranslationHelper {
 	public static void main(String... args) throws IOException, UnsupportedAudioFileException, SoundException {
 		String dicDirPath = "/home/vns/gtranslator-dictionary";
 		String textFilePath = "/ext/english/learningenglish.voanews.com/LinkedIn EF Offer Test Scores for English Learners/words.txt";
-		int seconds = 0;
-		int secondsDefis = 0;
+		String targetSoundFileName = "words-sound-ru";
+		int seconds = 1;
+		int secondsDefis = 1;
 		int blockLimit = 50;
 		boolean isAll = false;
 		boolean doLoadSound = false;
-		BatchTranslationHelper.INSTANCE.execute(textFilePath, dicDirPath, blockLimit, seconds, secondsDefis, isAll, doLoadSound);
+		boolean isRus = true;		
+		BatchTranslationHelper.INSTANCE.execute(textFilePath, dicDirPath, targetSoundFileName, blockLimit, 
+				seconds, secondsDefis, isAll, doLoadSound, isRus);
 	}
 }
