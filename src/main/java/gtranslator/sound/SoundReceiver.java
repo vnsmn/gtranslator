@@ -3,7 +3,6 @@ package gtranslator.sound;
 import gtranslator.exception.SoundReceiverException;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public interface SoundReceiver {
