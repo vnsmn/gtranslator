@@ -141,14 +141,28 @@ public class BatchTranslationHelper {
 	public static void main(String... args) throws IOException, UnsupportedAudioFileException, SoundException {
 		String dicDirPath = "/home/vns/gtranslator-dictionary";
 		String textFilePath = "/ext/english/learningenglish.voanews.com/LinkedIn EF Offer Test Scores for English Learners/words.txt";
+		String targetSoundFileName = "words-sound";
+		int seconds = 1;
+		int secondsDefis = 1;
+		int blockLimit = 50;
+		boolean isAllTranslated = false;
+		boolean doLoadSound = false;
+		boolean isRus = false;		
+		BatchTranslationHelper.INSTANCE.execute(textFilePath, dicDirPath, targetSoundFileName, blockLimit, 
+				seconds, secondsDefis, isAllTranslated, doLoadSound, isRus);
+	}
+	
+	public static void main1(String... args) throws IOException, UnsupportedAudioFileException, SoundException {
+		String dicDirPath = "/home/vns/gtranslator-dictionary";
+		String textFilePath = "/ext/english/learningenglish.voanews.com/LinkedIn EF Offer Test Scores for English Learners/words.txt";
 		String targetSoundFileName = "words-sound-ru";
 		int seconds = 1;
 		int secondsDefis = 1;
 		int blockLimit = 50;
-		boolean isAll = false;
+		boolean isAllTranslated = false;
 		boolean doLoadSound = false;
 		boolean isRus = true;		
 		BatchTranslationHelper.INSTANCE.execute(textFilePath, dicDirPath, targetSoundFileName, blockLimit, 
-				seconds, secondsDefis, isAll, doLoadSound, isRus);
+				seconds, secondsDefis, isAllTranslated, doLoadSound, isRus);
 	}
 }
