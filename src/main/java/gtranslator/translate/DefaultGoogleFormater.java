@@ -92,5 +92,5 @@ public class DefaultGoogleFormater {
 			}
 		}
 		return sb.toString();
-	}			
+	}
 }
