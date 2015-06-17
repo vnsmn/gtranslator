@@ -3,27 +3,37 @@ package gtranslator.translate;
 import gtranslator.HistoryHelper;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Formatter.BigDecimalLayoutForm;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.json.Json;
+import javax.json.spi.JsonProvider;
 import javax.json.stream.JsonParser;
 import javax.json.stream.JsonParser.Event;
 
@@ -41,7 +51,9 @@ public class TranslationReceiver {
 	private AtomicBoolean isAddition = new AtomicBoolean(false);
 	private AtomicBoolean isRewrite = new AtomicBoolean(false);
 	private AtomicBoolean isHistory = new AtomicBoolean(false);
-	public final static TranslationReceiver INSTANCE = new TranslationReceiver();
+	private WordGoogleFormater wordGoogleFormater = new WordGoogleFormater();
+	private PhraseGoogleFormater phraseGoogleFormater = new PhraseGoogleFormater();
+	public final static TranslationReceiver INSTANCE = new TranslationReceiver();	
 
 	private TranslationReceiver() {
 	}
@@ -168,138 +180,19 @@ public class TranslationReceiver {
 				rawTranslate = isGetMethod ? executeGet(normal, cookie.get())
 						: executePost(normal, cookie.get());
 				HistoryHelper.INSTANCE.writeRaw(normal, rawTranslate);
-			}
-			String translate = format(rawTranslate, isAddition);
+			}			
 			if (normal.matches("[a-zA-Z]+")) {
-				String translateWords = formatWord(rawTranslate);
+				String translateWords = wordGoogleFormater.format(rawTranslate, true);
 				HistoryHelper.INSTANCE.writeWord(normal, translateWords);
+				return translateWords;
+			} else {
+				return phraseGoogleFormater.format(rawTranslate, isAddition);
 			}
-			return translate;
 		} else {
 			String rawTranslate = isGetMethod ? executeGet(normal, cookie.get())
 					: executePost(normal, cookie.get());
-			return format(rawTranslate, isAddition);
+			return phraseGoogleFormater.format(rawTranslate, isAddition);
 		}
-	}
-
-	protected String format(String translate, boolean isAll) {
-		Map<String, Result> results = parseTranslate(translate);
-		StringBuilder sb = new StringBuilder();
-		Result res = results.get("0.1.1");
-		for (Result ch : res.childs) {
-			sb.append(ch.datas.get(0));
-			sb.append("\n");
-		}
-
-		String ts = sb.toString().replaceAll(
-				new String(Character.toChars(160)), "");
-		String[] tss = ts.split("\n");
-		sb.delete(0, sb.length());
-		for (String s : tss) {
-			if (StringUtils.isBlank(s)) {
-				continue;
-			}
-			if (sb.length() > 0) {
-				sb.append("\n");
-			}
-			sb.append(s.startsWith(" ") ? s.substring(1) : s);
-		}
-		ts = sb.toString();
-
-		if (!isAll) {
-			return ts;
-		}
-
-		sb.delete(0, sb.length());
-		sb.append(ts);
-
-		sb.append("\n**********\n");
-
-		res = results.get("0.1.5");
-		int index = 1;
-		boolean isDrawLine = false;
-		for (Result ch : res.childs) {
-			if (isDrawLine) {
-				sb.append("----------\n");
-			} else {
-				isDrawLine = true;
-			}
-			Set<String> uniqWords = new HashSet<>();
-			for (String s : ch.datas) {
-				String st = s.trim();
-				if (st.isEmpty() || uniqWords.contains(st))
-					continue;
-				sb.append(st);
-				sb.append("\n");
-				uniqWords.add(st);
-			}
-			Result rus = results.get("0.1.5." + index + ".1");
-			for (Result ch2 : rus.childs) {
-				for (String s : ch2.datas) {
-					if (s.trim().isEmpty())
-						continue;
-					sb.append("  ");
-					sb.append(s);
-					sb.append("\n");
-				}
-			}
-			index++;
-		}
-
-		return sb.toString();
-	}
-
-	protected String formatWord(String translate) {
-		Map<String, Result> results = parseTranslate(translate);
-		Set<String> words = new HashSet<>();
-		words.add(format(translate, false));
-		Result res = results.get("0.1.5");
-		int index = 1;
-		for (Result ch : res.childs) {
-			Result target = results.get("0.1.5." + index + ".1");
-			for (Result ch2 : target.childs) {
-				for (String s : ch2.datas) {
-					words.add(s);
-				}
-			}
-			index++;
-		}
-		StringBuilder sb = new StringBuilder();
-		for (String s : words) {
-			if (sb.length() > 0) {
-				sb.append(",");
-			}
-			sb.append(s.trim().toLowerCase());
-		}
-		return sb.toString().trim();
-	}
-
-	private static Map<String, Result> parseTranslate(String translate) {
-		while (translate.indexOf(",,") != -1) {
-			translate = translate.replaceAll(",,", ",[],");
-		}
-		Map<String, Result> resMap = new HashMap<>();
-		Reader reader = new StringReader(translate);
-		JsonParser parser = Json.createParser(reader);
-		Result current = new Result();
-		while (parser.hasNext()) {
-			JsonParser.Event e;
-			e = parser.next();
-			if (e == Event.START_ARRAY) {
-				Result newData = new Result();
-				newData.parent = current;
-				current.childs.add(newData);
-				newData.index = current.childs.size();
-				current = newData;
-				resMap.put(current.getComplexIndex(), current);
-			} else if (e == Event.END_ARRAY && current.parent != null) {
-				current = current.parent;
-			} else if (e == Event.VALUE_STRING) {
-				current.datas.add(parser.getString());
-			}
-		}
-
-		return resMap;
 	}
 
 	public String toNormal(String s) {
@@ -337,7 +230,7 @@ public class TranslationReceiver {
 		}
 	}
 
-	public static void main1(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, URISyntaxException {
 		String sentence = "This works well when the initialization value is available and the initialization can be put on one"
 				+ " line. However, this form of initialization has limitations because of its simplicity. If initialization"
 				+ " requires some logic (e.g., error handling or a for loop to fill a complex array), simple assignment is"
@@ -345,5 +238,11 @@ public class TranslationReceiver {
 				+ " can be used. To provide the same capability for class variables, the Java programming language"
 				+ " includes static initialization blocks.";
 		String cookie = "PREF=ID=eb1b92938bb56d0a:U=fe67bf9c92332070:FF=0:LD=ru:NW=1:TM=1419582403:LM=1432111202:GM=1:SG=2:S=L0BJCcJgRJ-97cSl; NID=67=KotPOyK2nrutho0P-sHb-Ubbv5vam6QinJn4rCRQbJJNgsph9-z6vCTUvjzkmItrtCIw1cP9FvtdkurKyt-gVs8MExJSQiQe7bpro4xiAb8jDHnCP1HNBxv1hp2lZz-qIuI5Pk859QHlh_FwnWsytRRfP4cErl7g7ErcuIZBuvQdwyL-kq45dbrSWFnOQt4ciMh7ozu4HsCFqgmowhkQIsee3SPNQGzYUpcaqIZjThfrPntaH42tKQcbLMBkesdCW6t1; SID=DQAAAP0AAAC2ePkxVGlZmOxwv9WccRtJhzzmmuZ2v6satIx_qOHgaEqRn_lqMGQ-hrnlO-xzdR-zG5WvJN9YcYRk3ENogNhkmaUz3MnIal1LjE-1drJsTATuyfTMYl_fIBAuA14EW0pCG42Abt4479higkk83ICgb8FnQojIA6xM1g51WOKNohf9hLaskBcUCLfBzuxF2ZDN8-xrZxzmP75TDbob3WNRhwtMdMKLYp4LU--wFeZ3vFlox_b7Xs90X8x1RCPzpjoNTrr5e0Iug9B_hAA0jIRTZ6-7axoqCEGJ-lO0ZSufKqZr1t2vnBE_a701ac45aWsiCsN4y6yucaubb7nkiglU; HSID=AWeTGGuwEMKQgf-J7; APISID=dIRfBsR7yg9PF55k/AH_lGYc85_jVtnOHq; OGPC=4061155-4:; _ga=GA1.3.911712002.1432041668; GOOGLE_ABUSE_EXEMPTION=ID=264a1d4b203382c8:TM=1432115998:C=c:IP=176.104.37.229-:S=APGng0v4qyjwi1fshUcKAOt91zojWBCufA";
-	}
+		String s = "[[[\"тест\",\"test\",\"test\",\"\"]],[[\"имя существительное\",[\"тест\",\"испытание\",\"проверка\",\"анализ\",\"проба\",\"мерило\",\"критерий\",\"контрольная работа\",\"проверочная работа\",\"исследование\",\"опыт\",\"реакция\",\"реактив\"],[[\"тест\",[\"test\",\"reaction\",\"test paper\"],,0.20961139],[\"испытание\",[\"test\",\"trial\",\"touch\",\"try\",\"assay\",\"checkout\"],,0.15335497],[\"проверка\",[\"check\",\"verification\",\"test\",\"examination\",\"review\",\"checkup\"],,0.015666196],[\"анализ\",[\"analysis\",\"assay\",\"test\",\"scan\",\"dissection\",\"anatomy\"],,0.015666196],[\"проба\",[\"try\",\"sample\",\"test\",\"trial\",\"probe\",\"assay\"]],[\"мерило\",[\"measure\",\"yardstick\",\"criterion\",\"standard\",\"test\",\"metewand\"]],[\"критерий\",[\"criterion\",\"test\",\"measure\",\"norm\",\"touchstone\",\"yardstick\"]],[\"контрольная работа\",[\"test\"]],[\"проверочная работа\",[\"test\"]],[\"исследование\",[\"study\",\"research\",\"investigation\",\"survey\",\"examination\",\"test\"]],[\"опыт\",[\"experience\",\"experiment\",\"practice\",\"attempt\",\"essay\",\"test\"]],[\"реакция\",[\"reaction\",\"response\",\"anticlimax\",\"answer\",\"test\"]],[\"реактив\",[\"reagent\",\"chemical agent\",\"test\"]]],\"test\",1],[\"глагол\",[\"тестировать\",\"проверять\",\"испытывать\",\"подвергать испытанию\",\"подвергать проверке\",\"производить опыты\"],[[\"тестировать\",[\"test\"],,0.029729217],[\"проверять\",[\"check\",\"verify\",\"check out\",\"test\",\"check up\",\"control\"],,0.017476905],[\"испытывать\",[\"test\",\"experience\",\"feel\",\"have\",\"tempt\",\"undergo\"],,0.011461634],[\"подвергать испытанию\",[\"put to test\",\"test\",\"try\",\"put to the proof\",\"essay\",\"tax\"]],[\"подвергать проверке\",[\"test\"]],[\"производить опыты\",[\"test\",\"experiment\",\"experimentalize\",\"experimentalise\"]]],\"test\",2],[\"имя прилагательное\",[\"испытательный\",\"контрольный\",\"проверочный\",\"пробный\"],[[\"испытательный\",[\"test\",\"trial\",\"probationary\",\"probatory\"],,0.016418032],[\"контрольный\",[\"controlling\",\"check\",\"test\",\"pilot\",\"checking\",\"master\"]],[\"проверочный\",[\"checking\",\"checkup\",\"test\"]],[\"пробный\",[\"trial\",\"test\",\"pilot\",\"tentative\",\"experimental\",\"specimen\"]]],\"test\",3]],\"en\",,[[\"тест\",[1],true,false,1000,0,1,0]],[[\"test\",1,[[\"тест\",1000,true,false],[\"испытание\",0,true,false],[\"испытания\",0,true,false],[\"проверка\",0,true,false],[\"тестирование\",0,true,false]],[[0,4]],\"test\"]],,,[],29]";
+		TranslationReceiver.INSTANCE.setCookie(cookie);
+		s = TranslationReceiver.INSTANCE.executePost(sentence, cookie);
+		System.out.println(s);
+		s = new PhraseGoogleFormater().format(s, true);
+		System.out.println(s);	
+	}	
 }
