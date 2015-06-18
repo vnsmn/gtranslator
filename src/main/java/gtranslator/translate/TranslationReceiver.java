@@ -51,9 +51,7 @@ public class TranslationReceiver {
 	private AtomicBoolean isAddition = new AtomicBoolean(false);
 	private AtomicBoolean isRewrite = new AtomicBoolean(false);
 	private AtomicBoolean isHistory = new AtomicBoolean(false);
-	private WordGoogleFormater wordGoogleFormater = new WordGoogleFormater();
-	private PhraseGoogleFormater phraseGoogleFormater = new PhraseGoogleFormater();
-	private DictGoogleFormater dictGoogleFormater = new DictGoogleFormater();
+	private DefaultGoogleFormater defaultGoogleFormater = new DefaultGoogleFormater();
 	public final static TranslationReceiver INSTANCE = new TranslationReceiver();
 
 	private TranslationReceiver() {
@@ -182,17 +180,17 @@ public class TranslationReceiver {
 						: executePost(normal, cookie.get());
 				HistoryHelper.INSTANCE.writeRaw(normal, rawTranslate);
 			}
+			String translate = defaultGoogleFormater.format(rawTranslate, isAddition);
 			if (normal.matches("[a-zA-Z]+")) {
+				defaultGoogleFormater.format(rawTranslate, isAddition);
 				HistoryHelper.INSTANCE.writeWord(normal,
-						dictGoogleFormater.format(normal, false));
-				return wordGoogleFormater.format(rawTranslate, isAddition);
-			} else {
-				return phraseGoogleFormater.format(rawTranslate, isAddition);
+						defaultGoogleFormater.formatSimple(defaultGoogleFormater.getLastVariantWords()));				
 			}
+			return translate;
 		} else {
 			String rawTranslate = isGetMethod ? executeGet(normal, cookie.get())
 					: executePost(normal, cookie.get());
-			return phraseGoogleFormater.format(rawTranslate, isAddition);
+			return defaultGoogleFormater.format(rawTranslate, isAddition);
 		}
 	}
 
@@ -242,9 +240,15 @@ public class TranslationReceiver {
 		String cookie = "PREF=ID=eb1b92938bb56d0a:U=fe67bf9c92332070:FF=0:LD=ru:NW=1:TM=1419582403:LM=1432111202:GM=1:SG=2:S=L0BJCcJgRJ-97cSl; NID=67=KotPOyK2nrutho0P-sHb-Ubbv5vam6QinJn4rCRQbJJNgsph9-z6vCTUvjzkmItrtCIw1cP9FvtdkurKyt-gVs8MExJSQiQe7bpro4xiAb8jDHnCP1HNBxv1hp2lZz-qIuI5Pk859QHlh_FwnWsytRRfP4cErl7g7ErcuIZBuvQdwyL-kq45dbrSWFnOQt4ciMh7ozu4HsCFqgmowhkQIsee3SPNQGzYUpcaqIZjThfrPntaH42tKQcbLMBkesdCW6t1; SID=DQAAAP0AAAC2ePkxVGlZmOxwv9WccRtJhzzmmuZ2v6satIx_qOHgaEqRn_lqMGQ-hrnlO-xzdR-zG5WvJN9YcYRk3ENogNhkmaUz3MnIal1LjE-1drJsTATuyfTMYl_fIBAuA14EW0pCG42Abt4479higkk83ICgb8FnQojIA6xM1g51WOKNohf9hLaskBcUCLfBzuxF2ZDN8-xrZxzmP75TDbob3WNRhwtMdMKLYp4LU--wFeZ3vFlox_b7Xs90X8x1RCPzpjoNTrr5e0Iug9B_hAA0jIRTZ6-7axoqCEGJ-lO0ZSufKqZr1t2vnBE_a701ac45aWsiCsN4y6yucaubb7nkiglU; HSID=AWeTGGuwEMKQgf-J7; APISID=dIRfBsR7yg9PF55k/AH_lGYc85_jVtnOHq; OGPC=4061155-4:; _ga=GA1.3.911712002.1432041668; GOOGLE_ABUSE_EXEMPTION=ID=264a1d4b203382c8:TM=1432115998:C=c:IP=176.104.37.229-:S=APGng0v4qyjwi1fshUcKAOt91zojWBCufA";
 		String s = "[[[\"тест\",\"test\",\"test\",\"\"]],[[\"имя существительное\",[\"тест\",\"испытание\",\"проверка\",\"анализ\",\"проба\",\"мерило\",\"критерий\",\"контрольная работа\",\"проверочная работа\",\"исследование\",\"опыт\",\"реакция\",\"реактив\"],[[\"тест\",[\"test\",\"reaction\",\"test paper\"],,0.20961139],[\"испытание\",[\"test\",\"trial\",\"touch\",\"try\",\"assay\",\"checkout\"],,0.15335497],[\"проверка\",[\"check\",\"verification\",\"test\",\"examination\",\"review\",\"checkup\"],,0.015666196],[\"анализ\",[\"analysis\",\"assay\",\"test\",\"scan\",\"dissection\",\"anatomy\"],,0.015666196],[\"проба\",[\"try\",\"sample\",\"test\",\"trial\",\"probe\",\"assay\"]],[\"мерило\",[\"measure\",\"yardstick\",\"criterion\",\"standard\",\"test\",\"metewand\"]],[\"критерий\",[\"criterion\",\"test\",\"measure\",\"norm\",\"touchstone\",\"yardstick\"]],[\"контрольная работа\",[\"test\"]],[\"проверочная работа\",[\"test\"]],[\"исследование\",[\"study\",\"research\",\"investigation\",\"survey\",\"examination\",\"test\"]],[\"опыт\",[\"experience\",\"experiment\",\"practice\",\"attempt\",\"essay\",\"test\"]],[\"реакция\",[\"reaction\",\"response\",\"anticlimax\",\"answer\",\"test\"]],[\"реактив\",[\"reagent\",\"chemical agent\",\"test\"]]],\"test\",1],[\"глагол\",[\"тестировать\",\"проверять\",\"испытывать\",\"подвергать испытанию\",\"подвергать проверке\",\"производить опыты\"],[[\"тестировать\",[\"test\"],,0.029729217],[\"проверять\",[\"check\",\"verify\",\"check out\",\"test\",\"check up\",\"control\"],,0.017476905],[\"испытывать\",[\"test\",\"experience\",\"feel\",\"have\",\"tempt\",\"undergo\"],,0.011461634],[\"подвергать испытанию\",[\"put to test\",\"test\",\"try\",\"put to the proof\",\"essay\",\"tax\"]],[\"подвергать проверке\",[\"test\"]],[\"производить опыты\",[\"test\",\"experiment\",\"experimentalize\",\"experimentalise\"]]],\"test\",2],[\"имя прилагательное\",[\"испытательный\",\"контрольный\",\"проверочный\",\"пробный\"],[[\"испытательный\",[\"test\",\"trial\",\"probationary\",\"probatory\"],,0.016418032],[\"контрольный\",[\"controlling\",\"check\",\"test\",\"pilot\",\"checking\",\"master\"]],[\"проверочный\",[\"checking\",\"checkup\",\"test\"]],[\"пробный\",[\"trial\",\"test\",\"pilot\",\"tentative\",\"experimental\",\"specimen\"]]],\"test\",3]],\"en\",,[[\"тест\",[1],true,false,1000,0,1,0]],[[\"test\",1,[[\"тест\",1000,true,false],[\"испытание\",0,true,false],[\"испытания\",0,true,false],[\"проверка\",0,true,false],[\"тестирование\",0,true,false]],[[0,4]],\"test\"]],,,[],29]";
 		TranslationReceiver.INSTANCE.setCookie(cookie);
-		s = TranslationReceiver.INSTANCE.executePost("test", cookie);
+		s = TranslationReceiver.INSTANCE.executePost("when", cookie);
 		System.out.println(s);
-		s = new DictGoogleFormater().format(s, false);
+		DefaultGoogleFormater f = new DefaultGoogleFormater();
+		s = f.format(s, true);
+		System.out.println(s);
+		s = f.formatSimple(f.getLastVariantWords());
+		//s = new DictGoogleFormater().format(s, true);
+		//s = new WordGoogleFormater().format(s, true);
+		//s = new PhraseGoogleFormater().format(s, true);
 		System.out.println(s);
 	}
 }
