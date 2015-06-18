@@ -59,7 +59,7 @@ public class DefaultGoogleFormater {
 		if (!isAddition) {
 			return sb.toString();
 		}
-		sb.append("\n");
+		sb.append("\n\n");
 		Tree t = root.first(Tree.class);
 		boolean isWordType = Tree.class == t.get(1).getClass();
 		if (isWordType) {
