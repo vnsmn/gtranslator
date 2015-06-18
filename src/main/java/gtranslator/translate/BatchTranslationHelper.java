@@ -2,6 +2,7 @@ package gtranslator.translate;
 
 import gtranslator.DictionaryHelper;
 import gtranslator.HistoryHelper;
+import gtranslator.ProgressMonitorDemo;
 import gtranslator.sound.RusGoogleSoundReceiver;
 import gtranslator.sound.SoundHelper;
 import gtranslator.sound.SoundHelper.SoundException;
@@ -29,17 +30,15 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import org.apache.commons.lang3.StringUtils;
 
 public class BatchTranslationHelper {
-	
+
 	public static final BatchTranslationHelper INSTANCE = new BatchTranslationHelper();
-	
+
 	@SuppressWarnings("unchecked")
-	public void execute(String textFilePath,
-			String dicDirPath, String targetSoundFileName, int blockLimit, 
-			int seconds, int secondsDefis, 
-			boolean isAll, boolean doLoadSound, boolean isRus) throws IOException, UnsupportedAudioFileException, SoundException {
-		
-		HistoryHelper.INSTANCE.load();
-		
+	public void execute(String textFilePath, String dicDirPath,
+			String targetSoundFileName, int blockLimit, int seconds,
+			int secondsDefis, boolean isAll, boolean doLoadSound, boolean isRus)
+			throws IOException, UnsupportedAudioFileException, SoundException {
+
 		Path path = Paths.get(new File(textFilePath).toURI());
 		if (!path.toFile().exists()) {
 			return;
@@ -49,59 +48,96 @@ public class BatchTranslationHelper {
 		if (size == 0) {
 			return;
 		}
-		String text = new String(out.toByteArray(), "UTF-8")
+		String engText = new String(out.toByteArray(), "UTF-8")
 				.replaceAll("[ ]+", " ").trim().toLowerCase();
-		String[] ss = text.split("[^a-zA-Z]");
+
+		executeFromText(engText, textFilePath, dicDirPath, targetSoundFileName,
+				blockLimit, seconds, secondsDefis, isAll, doLoadSound, isRus);
+	}
+
+	@SuppressWarnings("unchecked")
+	public void executeFromText(String engText, String textFilePath,
+			String dicDirPath, String targetSoundFileName, int blockLimit,
+			int seconds, int secondsDefis, boolean isAll, boolean doLoadSound,
+			boolean isRus) throws IOException, UnsupportedAudioFileException,
+			SoundException {
+
+		HistoryHelper.INSTANCE.load();
+
+		String[] ss = engText.split("[^a-zA-Z]");
 		Map<String, String> words = new HashMap<String, String>();
+		Map<String, String> soundWords = new HashMap<String, String>();
 		Set<String> dublicates = new HashSet<>();
 		TranslationReceiver.INSTANCE.setAddition(false);
 		TranslationReceiver.INSTANCE.setHistory(true);
-		for (String s : ss) {
-			String eng = s.matches("[a-zA-Z]+") ? TranslationReceiver.INSTANCE.toNormal(s) : "";			
-			if (eng.length() > 1 && eng.matches("[a-zA-Z]+")) {
-				if (!dublicates.contains(eng)) {
-					try {
-						String rus = TranslationReceiver.INSTANCE.translateAndFormat(eng, false);
-						if (doLoadSound) {
-							RusGoogleSoundReceiver.INSTANCE.createSoundFile(new File(dicDirPath), rus);
-						}
-						rus = TranslationReceiver.INSTANCE.formatSimpleFromHistory(eng);
-						words.put(eng, rus);
-					} catch (Exception ex) {
-						ex.printStackTrace();
-					}
-					dublicates.add(eng);
-				}
-				String t = HistoryHelper.INSTANCE.readRaw(eng);
-				if (StringUtils.isBlank(t)) {
-					HistoryHelper.INSTANCE.writeRaw(eng, "[[[\"\",\"\",\"\",\"\"]],,\"en\",,,,,,,12]");
-				}				
-			}
-		}
-		HistoryHelper.INSTANCE.save();
 
-		Set<String> loadedSoundWords; 
+		ProgressMonitorDemo progressMonitorDemo = ProgressMonitorDemo
+				.createAndShowGUI("Loading rus sound", ss.length);
+		try {
+			int i = 0;
+			for (String s : ss) {
+				String eng = s.matches("[a-zA-Z]+") ? TranslationReceiver.INSTANCE
+						.toNormal(s) : "";
+				if (eng.length() > 1 && eng.matches("[a-zA-Z]+")) {
+					if (!dublicates.contains(eng)) {
+						try {
+							String rus = TranslationReceiver.INSTANCE
+									.translateAndFormat(eng, false);
+							soundWords.put(eng, rus);
+							if (doLoadSound) {
+								RusGoogleSoundReceiver.INSTANCE
+										.createSoundFile(new File(dicDirPath),
+												rus);
+							}
+							rus = TranslationReceiver.INSTANCE
+									.formatSimpleFromHistory(eng);
+							words.put(eng, rus);
+						} catch (Exception ex) {
+							ex.printStackTrace();
+						}
+						dublicates.add(eng);
+					}
+					String t = HistoryHelper.INSTANCE.readRaw(eng);
+					if (StringUtils.isBlank(t)) {
+						HistoryHelper.INSTANCE.writeRaw(eng,
+								"[[[\"\",\"\",\"\",\"\"]],,\"en\",,,,,,,12]");
+					}
+				}
+				progressMonitorDemo.nextProgress(i++);
+				if (progressMonitorDemo.isCanceled()) {
+					Thread.currentThread().stop();
+				}
+			}
+		} finally {
+			HistoryHelper.INSTANCE.save();
+			progressMonitorDemo.close();
+		}
+
+		Set<String> loadedSoundWords;
 		if (doLoadSound) {
-			loadedSoundWords = DictionaryHelper.INSTANCE.loadSound(
-				words, new File(dicDirPath));
-		} else  {
+			loadedSoundWords = DictionaryHelper.INSTANCE.loadSound(words,
+					new File(dicDirPath));
+		} else {
 			loadedSoundWords = new HashSet<>();
 			for (String eng : dublicates) {
-				File f = DictionaryHelper.INSTANCE.findFile(true, dicDirPath, eng);
+				File f = DictionaryHelper.INSTANCE.findFile(true, dicDirPath,
+						eng);
 				if (f.exists()) {
 					loadedSoundWords.add(eng);
 				}
 			}
 		}
-		
+
 		String transText = DictionaryHelper.INSTANCE.wordsToString(words,
 				loadedSoundWords, isAll);
 
 		Path trgPath = Paths.get(textFilePath.concat(".tsl.txt"));
-		Files.copy(new ByteArrayInputStream(transText.getBytes("UTF-8")), trgPath, 
-				StandardCopyOption.REPLACE_EXISTING.REPLACE_EXISTING);
-		
-		String outWaveFile =  new File(new File(textFilePath).getParentFile(), targetSoundFileName + "-" + seconds + "-" + secondsDefis).getAbsolutePath();  
+		Files.copy(new ByteArrayInputStream(transText.getBytes("UTF-8")),
+				trgPath, StandardCopyOption.REPLACE_EXISTING.REPLACE_EXISTING);
+
+		String outWaveFile = new File(new File(textFilePath).getParentFile(),
+				targetSoundFileName + "-" + seconds + "-" + secondsDefis)
+				.getAbsolutePath();
 		int n = 1;
 		TreeMap<File, File> mp3Files = new TreeMap<>(new Comparator<File>() {
 			@Override
@@ -109,29 +145,51 @@ public class BatchTranslationHelper {
 				return f1.compareTo(f2);
 			}
 		});
+
 		List<String> sortList = new ArrayList<>(loadedSoundWords);
 		sortList.sort(null);
-		for (String s : sortList) {
-			File engFile = Paths.get(dicDirPath, SoundReceiver.BR_SOUND_DIR, s.concat(".mp3")).toFile();			
-			String rus = words.get(s);
-			File rusFile = new File(RusGoogleSoundReceiver.INSTANCE.getFilePath(dicDirPath, rus));
-			if (isRus && rusFile.exists()) {
-				mp3Files.put(engFile, rusFile);
-			} else {
-				mp3Files.put(engFile, null);
+
+		progressMonitorDemo = ProgressMonitorDemo.createAndShowGUI(
+				"Write sound", sortList.size());
+		int i = 0;
+		try {
+			for (String s : sortList) {
+				File engFile = Paths.get(dicDirPath,
+						SoundReceiver.BR_SOUND_DIR, s.concat(".mp3")).toFile();
+				String rus = soundWords.get(s);
+				File rusFile = new File(
+						RusGoogleSoundReceiver.INSTANCE.getFilePath(dicDirPath,
+								rus));
+				if (isRus && rusFile.exists()) {
+					mp3Files.put(engFile, rusFile);
+				} else {
+					mp3Files.put(engFile, null);
+				}
+				if (mp3Files.size() == blockLimit) {
+					SoundHelper.concatFiles(seconds, secondsDefis, new File(
+							outWaveFile.concat("-" + n).concat(".wave")),
+							mp3Files);
+					mp3Files.clear();
+					n++;
+				}
+				progressMonitorDemo.nextProgress(i++);
 			}
-			if (mp3Files.size() == blockLimit) {
-				SoundHelper.concatFiles(seconds, secondsDefis, new File(outWaveFile.concat("-" + n).concat(".wave")), mp3Files); 
-				mp3Files.clear();
-				n++;
+			if (!mp3Files.isEmpty()) {
+				SoundHelper.concatFiles(seconds, secondsDefis, new File(
+						outWaveFile.concat("-" + n++).concat(".wave")),
+						mp3Files);
 			}
-		}
-		if (!mp3Files.isEmpty()) {				
-			SoundHelper.concatFiles(seconds, secondsDefis, new File(outWaveFile.concat("-" + n++).concat(".wave")), mp3Files);
+			progressMonitorDemo.nextProgress(i++);
+			if (progressMonitorDemo.isCanceled()) {
+				Thread.currentThread().stop();
+			}
+		} finally {
+			progressMonitorDemo.close();
 		}
 	}
 
-	public static void main(String... args) throws IOException, UnsupportedAudioFileException, SoundException {
+	public static void main(String... args) throws IOException,
+			UnsupportedAudioFileException, SoundException {
 		String dicDirPath = "/home/vns/gtranslator-dictionary";
 		String textFilePath = "/ext/english/learningenglish.voanews.com/LinkedIn EF Offer Test Scores for English Learners/words.txt";
 		String targetSoundFileName = "words-sound";
@@ -140,12 +198,14 @@ public class BatchTranslationHelper {
 		int blockLimit = 50;
 		boolean isAllTranslated = false;
 		boolean doLoadSound = false;
-		boolean isRus = false;		
-		BatchTranslationHelper.INSTANCE.execute(textFilePath, dicDirPath, targetSoundFileName, blockLimit, 
-				seconds, secondsDefis, isAllTranslated, doLoadSound, isRus);
+		boolean isRus = false;
+		BatchTranslationHelper.INSTANCE.execute(textFilePath, dicDirPath,
+				targetSoundFileName, blockLimit, seconds, secondsDefis,
+				isAllTranslated, doLoadSound, isRus);
 	}
-	
-	public static void main1(String... args) throws IOException, UnsupportedAudioFileException, SoundException {
+
+	public static void main1(String... args) throws IOException,
+			UnsupportedAudioFileException, SoundException {
 		String dicDirPath = "/home/vns/gtranslator-dictionary";
 		String textFilePath = "/ext/english/learningenglish.voanews.com/LinkedIn EF Offer Test Scores for English Learners/words.txt";
 		String targetSoundFileName = "words-sound-ru";
@@ -154,8 +214,9 @@ public class BatchTranslationHelper {
 		int blockLimit = 50;
 		boolean isAllTranslated = false;
 		boolean doLoadSound = false;
-		boolean isRus = true;		
-		BatchTranslationHelper.INSTANCE.execute(textFilePath, dicDirPath, targetSoundFileName, blockLimit, 
-				seconds, secondsDefis, isAllTranslated, doLoadSound, isRus);
+		boolean isRus = true;
+		BatchTranslationHelper.INSTANCE.execute(textFilePath, dicDirPath,
+				targetSoundFileName, blockLimit, seconds, secondsDefis,
+				isAllTranslated, doLoadSound, isRus);
 	}
 }

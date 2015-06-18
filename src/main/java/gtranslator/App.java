@@ -301,6 +301,14 @@ public class App {
 		DictionaryHelper.INSTANCE
 				.setPauseSeconds(Integer.valueOf(pauseSeconds));
 		logger.info(pauseSeconds);
+		
+		logger.info("----- dictionary.defis.seconds -----");
+		String defisSeconds = props
+				.getProperty("dictionary.defis.seconds", "1").replaceAll("\n",
+						"");
+		DictionaryHelper.INSTANCE
+				.setDefisSeconds(Integer.valueOf(defisSeconds));
+		logger.info(defisSeconds);		
 
 		logger.info("----- dictionary.block.limit -----");
 		String blockLimit = props.getProperty("dictionary.block.limit", "10")

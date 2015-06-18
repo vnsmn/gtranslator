@@ -137,6 +137,8 @@ public class SoundHelper {
 		for (AudioInputStream in : streamList) {
 			in.close();
 		}
+		LameSoundHelper.INSTANCE.convert(outWaveFile.getAbsolutePath(), 
+				new File(outWaveFile.getParent(), outWaveFile.getName().replaceAll(".wav", ".mp3")).getAbsolutePath());
 	}
 
 	public static void concatFiles(int seconds, String sourceWordsFilePath,

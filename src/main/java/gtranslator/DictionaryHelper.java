@@ -4,6 +4,7 @@ import gtranslator.sound.OxfordSoundReceiver;
 import gtranslator.sound.SoundHelper;
 import gtranslator.sound.SoundHelper.SoundException;
 import gtranslator.sound.SoundReceiver;
+import gtranslator.translate.BatchTranslationHelper;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -17,6 +18,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
+import javax.sound.sampled.UnsupportedAudioFileException;
+
 import org.apache.log4j.Logger;
 
 public class DictionaryHelper {
@@ -25,7 +28,8 @@ public class DictionaryHelper {
 	private SoundReceiver soundReceiver = new OxfordSoundReceiver();
 	//private String SOUNDS = "sounds";
 	private int pauseSeconds;
-	private int blockLimit;
+	private int defisSeconds;
+	private int blockLimit;	
 
 	private DictionaryHelper() {
 	};
@@ -59,6 +63,29 @@ public class DictionaryHelper {
 			SoundHelper.concatFiles(pauseSeconds, wf.getAbsolutePath(),
 					amDir.getAbsolutePath(), dir.getAbsolutePath(),
 					"words-sound-am", blockLimit);
+						
+			boolean isAllTranslated = false;
+			boolean doLoadSound = true;
+			boolean isRus = true;
+			
+			StringBuilder sb = new StringBuilder();
+			sb.append("");
+			for(String eng1 : text.split("[\n]")) {
+				for(String eng2 : eng1.split("[=]")) {
+					sb.append(eng2);
+					sb.append(" ");
+					break;
+				}
+			}	
+			System.out.println(sb.toString());
+			try {
+				BatchTranslationHelper.INSTANCE.executeFromText(sb.toString().trim(), 
+						new File(wf.getParent(), "words-text-ru.txt").getAbsolutePath(), 
+						targetDirPath, "words-sound-ru", blockLimit, pauseSeconds, defisSeconds,
+						isAllTranslated, doLoadSound, isRus);
+			} catch (UnsupportedAudioFileException ex) {
+				logger.error(ex.getMessage());
+			}			
 		} catch (SoundException ex) {
 			logger.error(ex.getMessage());
 		}
@@ -73,6 +100,10 @@ public class DictionaryHelper {
 	public synchronized void setPauseSeconds(int pauseSeconds) {
 		this.pauseSeconds = pauseSeconds;
 	}
+	
+	public synchronized void setDefisSeconds(int defisSeconds) {
+		this.defisSeconds = defisSeconds;
+	}	
 
 	public synchronized void setBlockLimit(int blockLimit) {
 		this.blockLimit = blockLimit;
