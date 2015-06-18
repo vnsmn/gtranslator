@@ -1,5 +1,7 @@
 package gtranslator;
 
+import gtranslator.translate.DefaultGoogleFormater;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -12,40 +14,37 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+
 public class HistoryHelper {
+	static final Logger logger = Logger.getLogger(HistoryHelper.class);
+
+	private static File rawHisFile;
+	static {
+		String dir = System.getProperty("user.home");
+		rawHisFile = new File(dir, "gtranslator-raw-his.xml");
+	}
+
 	public interface StatisticListener {
 		void execute(String message);
 	}
 
 	public final static HistoryHelper INSTANCE = new HistoryHelper();
 	private Properties rawHis = new Properties();
-	private Properties wordHis = new Properties();
 	private StatisticListener statisticListener;
 
 	private HistoryHelper() {
 	}
 
-	public void load(File rawHisFile, File wordHisFile)
-			throws FileNotFoundException, IOException {
+	public void load() throws FileNotFoundException, IOException {
 		if (rawHisFile.exists())
 			try (FileInputStream in = new FileInputStream(rawHisFile)) {
 				rawHis.loadFromXML(in);
-			}
-		if (wordHisFile.exists())
-			try (FileInputStream in = new FileInputStream(wordHisFile)) {
-				wordHis.loadFromXML(in);
 			}
 	}
 
 	public void writeRaw(String key, String value) {
 		rawHis.put(toNormal(key), value);
-		if (statisticListener != null) {
-			statisticListener.execute(getStatistic());
-		}
-	}
-
-	public void writeWord(String key, String value) {
-		wordHis.put(toNormal(key), value);
 		if (statisticListener != null) {
 			statisticListener.execute(getStatistic());
 		}
@@ -58,33 +57,41 @@ public class HistoryHelper {
 	public void delete(String key) {
 		String n = toNormal(key);
 		rawHis.remove(n);
-		wordHis.remove(n);
+		// wordHis.remove(n);
 	}
 
-	public void save(File rawHisFile, File wordHisFile)
-			throws FileNotFoundException, IOException {
+	public void save() throws FileNotFoundException, IOException {
 		if (!rawHisFile.exists()) {
 			rawHisFile.createNewFile();
 		}
 		try (FileOutputStream out = new FileOutputStream(rawHisFile)) {
 			rawHis.storeToXML(out, new Date().toString(), "UTF-8");
 		}
-		if (!wordHisFile.exists()) {
-			wordHisFile.createNewFile();
-		}
-		try (FileOutputStream out = new FileOutputStream(wordHisFile)) {
-			wordHis.storeToXML(out, new Date().toString(), "UTF-8");
-		}
 	}
 
 	public String getStatistic() {
-		return "" + wordHis.size() + "/" + rawHis.size();
+		return "" + getWords().size() + "/" + rawHis.size();
 	}
 
 	public Map<String, String> getWords() {
 		Map<String, String> words = new HashMap<>();
-		for (Entry<Object, Object> ent : wordHis.entrySet()) {
-			words.put(ent.getKey().toString(), ent.getValue().toString());
+		DefaultGoogleFormater formater = new DefaultGoogleFormater();
+		String key = "";
+		String val = "";
+		for (Entry<Object, Object> ent : rawHis.entrySet()) {
+			try {
+				key = toNormal((String) ent.getKey());
+				val = toNormal((String) ent.getValue());
+				if (key.matches("[a-zA-Z]+")) {
+					formater.format(val, true);
+					String s = formater.formatSimple(formater
+							.getLastVariantWords());
+					words.put(key, s);
+				}
+			} catch (Exception ex) {
+				logger.error(key, ex);
+				throw ex;
+			}
 		}
 		return Collections.unmodifiableMap(words);
 	}

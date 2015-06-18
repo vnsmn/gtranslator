@@ -30,14 +30,6 @@ import org.apache.commons.lang3.StringUtils;
 
 public class BatchTranslationHelper {
 	
-	private static File rawHisFile;
-	private static File wordHisFile;
-	static {
-		String dir = System.getProperty("user.home");
-		rawHisFile = new File(dir, "gtranslator-raw-batch-his.xml");
-		wordHisFile = new File(dir, "gtranslator-word-batch-his.xml");
-	}
-	
 	public static final BatchTranslationHelper INSTANCE = new BatchTranslationHelper();
 	
 	@SuppressWarnings("unchecked")
@@ -46,7 +38,7 @@ public class BatchTranslationHelper {
 			int seconds, int secondsDefis, 
 			boolean isAll, boolean doLoadSound, boolean isRus) throws IOException, UnsupportedAudioFileException, SoundException {
 		
-		HistoryHelper.INSTANCE.load(rawHisFile, wordHisFile);
+		HistoryHelper.INSTANCE.load();
 		
 		Path path = Paths.get(new File(textFilePath).toURI());
 		if (!path.toFile().exists()) {
@@ -73,6 +65,7 @@ public class BatchTranslationHelper {
 						if (doLoadSound) {
 							RusGoogleSoundReceiver.INSTANCE.createSoundFile(new File(dicDirPath), rus);
 						}
+						rus = TranslationReceiver.INSTANCE.formatSimpleFromHistory(eng);
 						words.put(eng, rus);
 					} catch (Exception ex) {
 						ex.printStackTrace();
@@ -81,11 +74,11 @@ public class BatchTranslationHelper {
 				}
 				String t = HistoryHelper.INSTANCE.readRaw(eng);
 				if (StringUtils.isBlank(t)) {
-					HistoryHelper.INSTANCE.writeWord(eng, eng);
+					HistoryHelper.INSTANCE.writeRaw(eng, "[[[\"\",\"\",\"\",\"\"]],,\"en\",,,,,,,12]");
 				}				
 			}
 		}
-		HistoryHelper.INSTANCE.save(rawHisFile, wordHisFile);
+		HistoryHelper.INSTANCE.save();
 
 		Set<String> loadedSoundWords; 
 		if (doLoadSound) {

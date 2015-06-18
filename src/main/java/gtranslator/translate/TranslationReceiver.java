@@ -169,6 +169,20 @@ public class TranslationReceiver {
 			boolean isGetMethod) throws IOException {
 		return translateAndFormat(sentense, isGetMethod, isAddition.get());
 	}
+	
+	public synchronized String formatSimpleFromHistory(String sentense) throws IOException {
+		String normal = toNormal(sentense);
+		if (isHistory.get()) {
+			String rawTranslate = HistoryHelper.INSTANCE.readRaw(normal);
+			if (!StringUtils.isBlank(rawTranslate)) {				
+				defaultGoogleFormater.format(rawTranslate, true);
+				return defaultGoogleFormater.formatSimple(defaultGoogleFormater.getLastVariantWords());
+			} else {
+				return "";
+			}
+		}
+		return "";
+	}
 
 	public synchronized String translateAndFormat(String sentense,
 			boolean isGetMethod, boolean isAddition) throws IOException {
@@ -183,8 +197,6 @@ public class TranslationReceiver {
 			String translate = defaultGoogleFormater.format(rawTranslate, isAddition);
 			if (normal.matches("[a-zA-Z]+")) {
 				defaultGoogleFormater.format(rawTranslate, isAddition);
-				HistoryHelper.INSTANCE.writeWord(normal,
-						defaultGoogleFormater.formatSimple(defaultGoogleFormater.getLastVariantWords()));				
 			}
 			return translate;
 		} else {
@@ -192,26 +204,27 @@ public class TranslationReceiver {
 					: executePost(normal, cookie.get());
 			return defaultGoogleFormater.format(rawTranslate, isAddition);
 		}
-	}
+	}	
 
 	public String toNormal(String s) {
+		String s1 = s;
 		int i = 0;
-		int j = s.length() - 1;
-		for (; i < s.length(); i++) {
-			if (Character.isLetter(s.charAt(i))) {
+		int j = s1.length() - 1;
+		for (; i < s1.length(); i++) {
+			if (Character.isLetter(s1.charAt(i))) {
 				break;
 			}
 		}
 		for (; j > 0; j--) {
-			if (Character.isLetter(s.charAt(j))) {
+			if (Character.isLetter(s1.charAt(j))) {
 				break;
 			}
 		}
 		try {
-			return s.substring(i, j + 1).replaceAll("[ ]+", " ").toLowerCase();
+			return s1.substring(i, j + 1).replaceAll("[ ]+", " ").toLowerCase();
 		} catch (StringIndexOutOfBoundsException ex) {
-			logger.error(ex.getMessage() + " : " + s);
-			throw ex;
+			logger.error(ex.getMessage() + " : " + s);			
+			return "";
 		}
 	}
 

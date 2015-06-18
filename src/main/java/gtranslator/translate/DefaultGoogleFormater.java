@@ -21,6 +21,12 @@ public class DefaultGoogleFormater {
 		while (s.indexOf(",,") != -1) {
 			s = s.replaceAll(",,", ",[],");
 		}
+		while (s.indexOf("[,") != -1) {
+			s = s.replaceAll("[\\[],", "[[],");
+		}
+		while (s.indexOf(",]") != -1) {
+			s = s.replaceAll(",[\\]]", ",[]]");
+		}
 		JsonParser jsp = JsonProvider.provider().createParser(
 				new StringReader(s));
 		Tree current = new Tree();
@@ -41,6 +47,7 @@ public class DefaultGoogleFormater {
 				}
 			} catch (javax.json.stream.JsonParsingException ex) {
 				ex.printStackTrace();
+				throw ex;
 			}
 		}
 		return current;

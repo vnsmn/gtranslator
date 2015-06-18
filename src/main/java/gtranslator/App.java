@@ -122,6 +122,7 @@ public class App {
 						new GuiOutput.ActionListener() {
 							@Override
 							public void execute(String s) {
+								GuiOutput.createAndShowGUI().setWaitCursor();
 								try {
 									saveHistory();
 									DictionaryHelper.INSTANCE.createDictionary(
@@ -130,6 +131,8 @@ public class App {
 													.getDictionaryDirPath());
 								} catch (Exception ex) {
 									logger.error(ex.getMessage());
+								} finally {
+									GuiOutput.createAndShowGUI().setDefCursor();
 								}
 							}
 						});
@@ -223,17 +226,17 @@ public class App {
 		return props;
 	}
 
-	private static File rawHisFile;
-	private static File wordHisFile;
-	static {
-		String dir = System.getProperty("user.home");
-		rawHisFile = new File(dir, "gtranslator-raw-his.xml");
-		wordHisFile = new File(dir, "gtranslator-word-his.xml");
-	}
+	// private static File rawHisFile;
+	// //private static File wordHisFile;
+	// static {
+	// String dir = System.getProperty("user.home");
+	// rawHisFile = new File(dir, "gtranslator-raw-his.xml");
+	// //wordHisFile = new File(dir, "gtranslator-word-his.xml");
+	// }
 
 	private static void saveHistory() {
 		try {
-			HistoryHelper.INSTANCE.save(rawHisFile, wordHisFile);
+			HistoryHelper.INSTANCE.save();
 		} catch (Exception ex) {
 			logger.error(ex.getMessage(), ex);
 		}
@@ -241,7 +244,7 @@ public class App {
 
 	private static void readHistory() {
 		try {
-			HistoryHelper.INSTANCE.load(rawHisFile, wordHisFile);
+			HistoryHelper.INSTANCE.load();
 			GuiOutput.createAndShowGUI().init(ACTION_TYPE.STATISTIC,
 					HistoryHelper.INSTANCE.getStatistic());
 			HistoryHelper.INSTANCE
@@ -321,18 +324,22 @@ public class App {
 	private static void playWord(String text, boolean doSoundLoad) {
 		String normal = TranslationReceiver.INSTANCE.toNormal(text);
 		if (normal.matches("[a-zA-Z]+")) {
-			String dicDirPath = GuiOutput.createAndShowGUI().getDictionaryDirPath();
-			File f = DictionaryHelper.INSTANCE.findFile(true, dicDirPath, normal);
+			String dicDirPath = GuiOutput.createAndShowGUI()
+					.getDictionaryDirPath();
+			File f = DictionaryHelper.INSTANCE.findFile(true, dicDirPath,
+					normal);
 			try {
-				if (doSoundLoad && !f.exists()) {					
+				if (doSoundLoad && !f.exists()) {
 					Map<String, String> words = new HashMap<String, String>();
 					words.put(normal, normal);
-					Set<String> loaded = DictionaryHelper.INSTANCE.loadSound(words, new File(dicDirPath));
+					Set<String> loaded = DictionaryHelper.INSTANCE.loadSound(
+							words, new File(dicDirPath));
 					if (loaded.isEmpty()) {
-						logger.error("the file " + f.getAbsolutePath() + " not found.");
+						logger.error("the file " + f.getAbsolutePath()
+								+ " not found.");
 						return;
 					}
-				}				
+				}
 				SoundHelper.play(f);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());

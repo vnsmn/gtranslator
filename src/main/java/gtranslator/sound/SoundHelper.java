@@ -1,5 +1,7 @@
 package gtranslator.sound;
 
+import gtranslator.ProgressMonitorDemo;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -145,19 +147,30 @@ public class SoundHelper {
 			List<String> ss = Files
 					.readAllLines(Paths.get(sourceWordsFilePath));
 			List<File> fs = new ArrayList<File>();
-			for (String s : ss) {
-				String word = s.split("[=]")[0];
-				fs.add(new File(sourceMp3DirPath, word + ".mp3"));
-				if (fs.size() >= blockLimit) {
-					concatFiles(
-							seconds,
-							Paths.get(
-									targetDir,
-									String.format("%s_%d.wav", targetFileName,
-											suffics)).toFile(), fs);
-					fs.clear();
-					suffics++;
+			ProgressMonitorDemo progressMonitorDemo = ProgressMonitorDemo.createAndShowGUI(
+					"Contcat files", ss.size());
+			try {
+				int i = 0;
+				for (String s : ss) {
+					String word = s.split("[=]")[0];
+					fs.add(new File(sourceMp3DirPath, word + ".mp3"));
+					if (fs.size() >= blockLimit) {
+						concatFiles(
+								seconds,
+								Paths.get(
+										targetDir,
+										String.format("%s_%d.wav", targetFileName,
+												suffics)).toFile(), fs);
+						fs.clear();
+						suffics++;
+					}
+					progressMonitorDemo.nextProgress(i++);
+					if (progressMonitorDemo.isCanceled()) {
+						Thread.currentThread().stop();
+					}
 				}
+			} finally {
+				progressMonitorDemo.close();
 			}
 			if (fs.size() > 0) {
 				concatFiles(

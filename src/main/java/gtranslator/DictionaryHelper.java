@@ -109,15 +109,27 @@ public class DictionaryHelper {
 
 	public Set<String> loadSound(Map<String, String> words, File dirFile)
 			throws IOException {
-		Set<String> loaded = new HashSet<>();
-		for (Entry<String, String> ent : words.entrySet()) {
-			try {
-				if (soundReceiver.createSoundFile(dirFile, ent.getKey())) {
-					loaded.add(ent.getKey());
+		Set<String> loaded = new HashSet<>();		
+		ProgressMonitorDemo progressMonitorDemo = ProgressMonitorDemo.createAndShowGUI(
+				"Loading sound",
+				words.size());
+		try {
+			int i = 0;
+			for (Entry<String, String> ent : words.entrySet()) {
+				try {				
+					if (soundReceiver.createSoundFile(dirFile, ent.getKey())) {
+						loaded.add(ent.getKey());
+					}
+					progressMonitorDemo.nextProgress(i++);
+					if (progressMonitorDemo.isCanceled()) {
+						Thread.currentThread().stop();
+					}
+				} catch (Exception ex) {
+					logger.error(ex);
 				}
-			} catch (Exception ex) {
-				logger.error(ex.getMessage());
 			}
+		} finally {
+			progressMonitorDemo.close();
 		}
 		return loaded;
 	}	
