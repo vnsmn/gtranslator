@@ -1,4 +1,4 @@
-package gtranslator;
+package gtranslator.ui;
 
 import java.awt.Toolkit;
 import java.beans.PropertyChangeEvent;

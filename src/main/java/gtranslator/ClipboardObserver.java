@@ -1,6 +1,7 @@
 package gtranslator;
 
 import gtranslator.translate.TranslationReceiver;
+import gtranslator.ui.UIOutput;
 
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -21,13 +22,24 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 	private AtomicBoolean isPause = new AtomicBoolean(false);
 	private AtomicBoolean isSelected = new AtomicBoolean(false);
 	private AtomicBoolean isUsingHistory = new AtomicBoolean(false);
+	private static ClipboardObserver instance;
 
 	private ActionListener actionListener;
-
+	
 	static final Logger logger = Logger.getLogger(ClipboardObserver.class);
 
 	public interface ActionListener {
 		void execute(String text);
+	}
+	
+	private ClipboardObserver() {
+	}
+	
+	public static ClipboardObserver getInstance() {
+		if (instance == null) {
+			instance = new ClipboardObserver();
+		}
+		return instance;
 	}
 
 	@Override
@@ -56,13 +68,13 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 									.getTransferData(DataFlavor.stringFlavor);
 							StringSelection st = new StringSelection(
 									text.toString());
-							GuiOutput.createAndShowGUI().setSourceText(
+							UIOutput.getInstance().setSourceText(
 									text.toString());
 							String translate = TranslationReceiver.INSTANCE
 									.translateAndFormat(text.toString(), false);
-							GuiOutput.createAndShowGUI().setTargetText(
+							UIOutput.getInstance().setTargetText(
 									translate);
-							GuiOutput.createAndShowGUI().selectTranslatePanel();
+							UIOutput.getInstance().selectTranslatePanel();
 							if (actionListener != null) {
 								try {
 									actionListener.execute(text.toString());

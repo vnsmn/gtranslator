@@ -1,6 +1,9 @@
 package gtranslator.sound;
 
-import gtranslator.ProgressMonitorDemo;
+import gtranslator.AppProperties;
+import gtranslator.DictionaryHelper;
+import gtranslator.translate.TranslationReceiver;
+import gtranslator.ui.ProgressMonitorDemo;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -11,11 +14,13 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 
-import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -23,13 +28,14 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-import org.tritonus.share.sampled.AudioFileTypes;
-import org.tritonus.share.sampled.Encodings;
-
 import javazoom.spi.mpeg.sampled.convert.MpegFormatConversionProvider;
 import javazoom.spi.mpeg.sampled.file.MpegFileFormatType;
 
+import org.apache.log4j.Logger;
+
 public class SoundHelper {
+	private static final Logger logger = Logger.getLogger(SoundHelper.class);
+
 	public static class SoundException extends Exception {
 		private static final long serialVersionUID = 1L;
 
@@ -52,10 +58,10 @@ public class SoundHelper {
 		boolean signed = true;
 		int bits = 16;
 		int channels = 2;
-		WAVE_FORMAT_44100 = new AudioFormat(sampleRate_44100, bits, channels, signed,
-				bigEndian);
-		WAVE_FORMAT_16000 = new AudioFormat(sampleRate_16000, bits, channels, signed,
-				bigEndian);		
+		WAVE_FORMAT_44100 = new AudioFormat(sampleRate_44100, bits, channels,
+				signed, bigEndian);
+		WAVE_FORMAT_16000 = new AudioFormat(sampleRate_16000, bits, channels,
+				signed, bigEndian);
 	}
 
 	public static AudioInputStream createEmptyWaveFile(int seconds) {
@@ -65,37 +71,37 @@ public class SoundHelper {
 		ByteArrayInputStream bais = new ByteArrayInputStream(byteBuffer);
 		return new AudioInputStream(bais, WAVE_FORMAT_44100, bufferLength);
 	}
-	
-	public static void convertMp3() {
-		Mp3Encoder m;
-	}
 
-	public static AudioInputStream convertWave(File mp3File, AudioFormat audioFormat)
-			throws UnsupportedAudioFileException, IOException {
+	public static AudioInputStream convertWave(File mp3File,
+			AudioFormat audioFormat) throws UnsupportedAudioFileException,
+			IOException {
 		AudioInputStream mp3In = AudioSystem.getAudioInputStream(mp3File);
 		MpegFormatConversionProvider cnv = new MpegFormatConversionProvider();
 		return cnv.isConversionSupported(audioFormat, mp3In.getFormat()) ? cnv
 				.getAudioInputStream(audioFormat, mp3In) : null;
 	}
 
-	public static void concatFiles(int seconds, int secondsDefis, File outWaveFile,
-			TreeMap<File, File> mp3Files) throws UnsupportedAudioFileException,
-			IOException, SoundException {
+	public static void concatFiles(int seconds, int secondsDefis,
+			File outWaveFile, TreeMap<File, File> mp3Files)
+			throws UnsupportedAudioFileException, IOException, SoundException {
 		List<AudioInputStream> streamList = new ArrayList<>();
 		Long frameLength = -1l;
 		for (Entry<File, File> mp3File : mp3Files.entrySet()) {
-			AudioInputStream in = convertWave(mp3File.getKey(), WAVE_FORMAT_44100);								
+			AudioInputStream in = convertWave(mp3File.getKey(),
+					WAVE_FORMAT_44100);
 			if (in == null) {
 				throw new SoundHelper.SoundException(
 						"the file is not support convert:"
 								+ mp3File.getKey().getAbsolutePath());
 			}
-			streamList.add(in);			
+			streamList.add(in);
 			if (mp3File.getValue() != null) {
-				AudioInputStream rusIn = convertWave(mp3File.getValue(), WAVE_FORMAT_16000);
+				AudioInputStream rusIn = convertWave(mp3File.getValue(),
+						WAVE_FORMAT_16000);
 				if (rusIn != null) {
 					streamList.add(createEmptyWaveFile(secondsDefis));
-					rusIn = AudioSystem.getAudioInputStream(WAVE_FORMAT_44100, rusIn);				
+					rusIn = AudioSystem.getAudioInputStream(WAVE_FORMAT_44100,
+							rusIn);
 					streamList.add(rusIn);
 				}
 			}
@@ -104,23 +110,25 @@ public class SoundHelper {
 		}
 
 		AudioInputStream ins = new AudioInputStream(new SequenceInputStream(
-				Collections.enumeration(streamList)), WAVE_FORMAT_44100, frameLength);		
-		
+				Collections.enumeration(streamList)), WAVE_FORMAT_44100,
+				frameLength);
+
 		AudioSystem.write(ins, MpegFileFormatType.WAVE, outWaveFile);
 		for (AudioInputStream in : streamList) {
 			in.close();
 		}
-		LameSoundHelper.INSTANCE.convert(outWaveFile.getAbsolutePath(), 
-				new File(outWaveFile.getParent(), outWaveFile.getName().replaceAll(".wave", ".mp3")).getAbsolutePath());
+		LameSoundHelper.INSTANCE.convert(outWaveFile.getAbsolutePath(),
+				new File(outWaveFile.getParent(), outWaveFile.getName()
+						.replaceAll(".wave", ".mp3")).getAbsolutePath());
 	}
-	
+
 	public static void concatFiles(int seconds, File outWaveFile,
 			List<File> mp3Files) throws UnsupportedAudioFileException,
 			IOException, SoundException {
 		List<AudioInputStream> streamList = new ArrayList<>();
 		Long frameLength = -1l;
 		for (File mp3File : mp3Files) {
-			AudioInputStream in = convertWave(mp3File, WAVE_FORMAT_44100);			
+			AudioInputStream in = convertWave(mp3File, WAVE_FORMAT_44100);
 			if (in == null) {
 				throw new SoundHelper.SoundException(
 						"the file is not support convert:"
@@ -132,13 +140,15 @@ public class SoundHelper {
 		}
 
 		AudioInputStream ins = new AudioInputStream(new SequenceInputStream(
-				Collections.enumeration(streamList)), WAVE_FORMAT_44100, frameLength);
+				Collections.enumeration(streamList)), WAVE_FORMAT_44100,
+				frameLength);
 		AudioSystem.write(ins, MpegFileFormatType.WAVE, outWaveFile);
 		for (AudioInputStream in : streamList) {
 			in.close();
 		}
-		LameSoundHelper.INSTANCE.convert(outWaveFile.getAbsolutePath(), 
-				new File(outWaveFile.getParent(), outWaveFile.getName().replaceAll(".wav", ".mp3")).getAbsolutePath());
+		LameSoundHelper.INSTANCE.convert(outWaveFile.getAbsolutePath(),
+				new File(outWaveFile.getParent(), outWaveFile.getName()
+						.replaceAll(".wav", ".mp3")).getAbsolutePath());
 	}
 
 	public static void concatFiles(int seconds, String sourceWordsFilePath,
@@ -149,8 +159,8 @@ public class SoundHelper {
 			List<String> ss = Files
 					.readAllLines(Paths.get(sourceWordsFilePath));
 			List<File> fs = new ArrayList<File>();
-			ProgressMonitorDemo progressMonitorDemo = ProgressMonitorDemo.createAndShowGUI(
-					"Contcat files", ss.size());
+			ProgressMonitorDemo progressMonitorDemo = ProgressMonitorDemo
+					.createAndShowGUI("Contcat files", ss.size());
 			try {
 				int i = 0;
 				for (String s : ss) {
@@ -161,8 +171,9 @@ public class SoundHelper {
 								seconds,
 								Paths.get(
 										targetDir,
-										String.format("%s_%d.wav", targetFileName,
-												suffics)).toFile(), fs);
+										String.format("%s_%d.wav",
+												targetFileName, suffics))
+										.toFile(), fs);
 						fs.clear();
 						suffics++;
 					}
@@ -222,44 +233,65 @@ public class SoundHelper {
 		line.close();
 	}
 
-	public static void main1(String[] args) throws Exception {
-		File f1 = new File("gtranslator-dictionary/string.mp3");
-		File f2 = new File("gtranslator-dictionary/format.mp3");
-		File f3 = new File("gtranslator-dictionary/index.mp3");
-		File f = new File("gtranslator-dictionary/en.wav");
-		List<File> fs = new ArrayList<File>();
-		fs.add(f1);
-		fs.add(f2);
-		fs.add(f3);
-		// concatFiles(2, f, fs);
-		// play(f3);
+	public static void playWord(String text, boolean doSoundLoad) {
+		String normal = TranslationReceiver.INSTANCE.toNormal(text);
+		if (normal.matches("[a-zA-Z]+")) {
+			String dicDirPath = AppProperties.getInstance()
+					.getDictionaryDirPath();
+			File f = DictionaryHelper.INSTANCE.findFile(true, dicDirPath,
+					normal);
+			try {
+				if (doSoundLoad && !f.exists()) {
+					Map<String, String> words = new HashMap<String, String>();
+					words.put(normal, normal);
+					Set<String> loaded = DictionaryHelper.INSTANCE.loadSound(
+							words, new File(dicDirPath));
+					if (loaded.isEmpty()) {
+						logger.error("the file " + f.getAbsolutePath()
+								+ " not found.");
+						return;
+					}
+				}
+				SoundHelper.play(f);
+			} catch (Exception ex) {
+				logger.error(ex.getMessage());
+			}
+		}
 	}
-		
-	static class Mp3Encoder {
-		private static final AudioFormat.Encoding	MPEG1L3 = new AudioFormat.Encoding("MPEG1L3");
-		private static final AudioFileFormat.Type	MP3 = new AudioFileFormat.Type("MP3", "mp3");
 
+	/*
+	 * public static void main1(String[] args) throws Exception { File f1 = new
+	 * File("gtranslator-dictionary/string.mp3"); File f2 = new
+	 * File("gtranslator-dictionary/format.mp3"); File f3 = new
+	 * File("gtranslator-dictionary/index.mp3"); File f = new
+	 * File("gtranslator-dictionary/en.wav"); List<File> fs = new
+	 * ArrayList<File>(); fs.add(f1); fs.add(f2); fs.add(f3); // concatFiles(2,
+	 * f, fs); // play(f3); }
+	 */
+	static class Mp3Encoder {
 		public static AudioInputStream getConvertedStream(
-		    	AudioInputStream sourceStream,
-		    	AudioFormat.Encoding targetEncoding) throws Exception {
+				AudioInputStream sourceStream,
+				AudioFormat.Encoding targetEncoding) throws Exception {
 			AudioFormat sourceFormat = sourceStream.getFormat();
 
 			AudioInputStream targetStream = null;
-			if (!AudioSystem.isConversionSupported(targetEncoding, sourceFormat)) {
+			if (!AudioSystem
+					.isConversionSupported(targetEncoding, sourceFormat)) {
 				AudioFormat intermediateFormat = new AudioFormat(
-				                                     AudioFormat.Encoding.PCM_SIGNED,
-				                                     sourceFormat.getSampleRate(),
-				                                     16,
-				                                     sourceFormat.getChannels(),
-				                                     2 * sourceFormat.getChannels(), // frameSize
-				                                     sourceFormat.getSampleRate(),
-				                                     false);
-				if (AudioSystem.isConversionSupported(intermediateFormat, sourceFormat)) {
+						AudioFormat.Encoding.PCM_SIGNED,
+						sourceFormat.getSampleRate(), 16,
+						sourceFormat.getChannels(),
+						2 * sourceFormat.getChannels(), // frameSize
+						sourceFormat.getSampleRate(), false);
+				if (AudioSystem.isConversionSupported(intermediateFormat,
+						sourceFormat)) {
 					// intermediate conversion is supported
-					sourceStream = AudioSystem.getAudioInputStream(intermediateFormat, sourceStream);
+					sourceStream = AudioSystem.getAudioInputStream(
+							intermediateFormat, sourceStream);
 				}
 			}
-			targetStream = AudioSystem.getAudioInputStream(targetEncoding, sourceStream);
+			targetStream = AudioSystem.getAudioInputStream(targetEncoding,
+					sourceStream);
 			if (targetStream == null) {
 				throw new Exception("conversion not supported");
 			}

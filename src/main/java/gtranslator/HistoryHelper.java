@@ -70,7 +70,7 @@ public class HistoryHelper {
 	}
 
 	public String getStatistic() {
-		return "" + getWords().size() + "/" + rawHis.size();
+		return "word/phrase: " + getWords().size() + "/" + rawHis.size();
 	}
 
 	public Map<String, String> getWords() {
