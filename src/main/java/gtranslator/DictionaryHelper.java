@@ -5,6 +5,7 @@ import gtranslator.sound.SoundHelper;
 import gtranslator.sound.SoundHelper.SoundException;
 import gtranslator.sound.SoundReceiver;
 import gtranslator.translate.BatchTranslationHelper;
+import gtranslator.ui.ProgressMonitorDemo;
 
 import java.io.File;
 import java.io.FileNotFoundException;

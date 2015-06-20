@@ -1,6 +1,10 @@
 package gtranslator.ui;
 
 import gtranslator.Actions;
+import gtranslator.Actions.ClearHistoryAction;
+import gtranslator.Actions.PlayEngWordWithLoadAction;
+import gtranslator.Actions.StartStopTClipboardAction;
+import gtranslator.Actions.TranslateWordAction;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
@@ -37,8 +41,8 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 		mit.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new Actions.ClearHistoryAction().execute(UIOutput.getInstance()
-						.getSourceText());
+				Actions.findAction(ClearHistoryAction.class).execute(
+						UIOutput.getInstance().getSourceText());
 			}
 		});
 		sourcePopupMenu.add(mit);
@@ -47,7 +51,8 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 		mit.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new Actions.PlayEngWordAction().execute(sourceArea.getText());
+				Actions.findAction(PlayEngWordWithLoadAction.class).execute(
+						sourceArea.getText());
 			}
 		});
 		sourcePopupMenu.add(mit);
@@ -57,9 +62,12 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 				.addActionListener(new java.awt.event.ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						firePropertyChange(
-								Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD_SETUP,
-								null, null);
+						boolean b = "Start".equals(activityClipboardMenuItem
+								.getText());
+						Actions.findAction(StartStopTClipboardAction.class)
+								.execute(!b);
+						Actions.findAction(StartStopTClipboardAction.class)
+								.getObservable().notifyObservers(b);
 					}
 				});
 		sourcePopupMenu.add(activityClipboardMenuItem);
@@ -69,9 +77,12 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 				.addActionListener(new java.awt.event.ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						firePropertyChange(
-								Constants.PROPERTY_CHANGE_MODE_CLIPBOARD_SETUP,
-								null, null);
+						boolean b = "Select".equals(modeClipboardMenuItem
+								.getText());
+						Actions.findAction(Actions.ModeTClipboardAction.class)
+								.execute(b);
+						Actions.findAction(Actions.ModeTClipboardAction.class)
+								.getObservable().notifyObservers(b);
 					}
 				});
 		sourcePopupMenu.add(modeClipboardMenuItem);
@@ -79,12 +90,15 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
+		if (evt.getSource() == this) {
+			return;
+		}
 		switch (evt.getPropertyName()) {
-		case Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD_TRANS:
+		case Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD:
 			boolean b = (boolean) evt.getNewValue();
-			activityClipboardMenuItem.setText(b ? "Start" : "Stop");
+			activityClipboardMenuItem.setText(b ? "Stop" : "Start");
 			break;
-		case Constants.PROPERTY_CHANGE_MODE_CLIPBOARD_TRANS:
+		case Constants.PROPERTY_CHANGE_MODE_CLIPBOARD:
 			b = (boolean) evt.getNewValue();
 			modeClipboardMenuItem.setText(b ? "Copy" : "Select");
 			break;
@@ -94,7 +108,7 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 	private class MouseAdapterExt extends MouseAdapter {
 		public void mouseClicked(MouseEvent e) {
 			String[] ss = { sourceArea.getText(), sourceArea.getText() };
-			new Actions.TranslateWordAction().execute(ss);
+			Actions.findAction(TranslateWordAction.class).execute(ss);
 			targetArea.setText(ss[1]);
 		}
 	}
@@ -102,8 +116,6 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 	private class PopupMenuListenerExt implements PopupMenuListener {
 		@Override
 		public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-			firePropertyChange(Constants.PROPERTY_CHANGE_INIT_CLIPBOARD_SETUP,
-					null, null);
 		}
 
 		@Override

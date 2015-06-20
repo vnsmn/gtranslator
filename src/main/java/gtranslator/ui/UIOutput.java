@@ -139,36 +139,40 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 
 	private class WindowAdapterExt extends WindowAdapter {
 		public void windowClosing(WindowEvent e) {
-			new Actions.DisposeAppAction().execute(null);
+			Actions.findAction(Actions.DisposeAppAction.class).execute(null);
 		}
 	}
 
 	public void setCookie(String s) {
-		firePropertyChange(Constants.PROPERTY_CHANGE_INIT_COOKIE_SETUP, null, s);
+		firePropertyChange(Constants.PROPERTY_CHANGE_COOKIE, null, s);
 	}
 
 	public void setStatistic(String s) {
-		firePropertyChange(Constants.PROPERTY_CHANGE_INIT_STATISTIC_SETUP,
-				null, s);
+		firePropertyChange(Constants.PROPERTY_CHANGE_STATISTIC, null, s);
 	}
 
 	public void setDictionaryDir(String s) {
-		firePropertyChange(Constants.PROPERTY_CHANGE_INIT_DICTIONARY_DIR_SETUP,
-				null, s);
+		firePropertyChange(Constants.PROPERTY_CHANGE_DICTIONARY_DIR, null, s);
 	}
 
 	public void setHistory(boolean b) {
-		firePropertyChange(Constants.PROPERTY_CHANGE_INIT_HISTORY_SETUP, null,
-				b);
+		firePropertyChange(Constants.PROPERTY_CHANGE_HISTORY, null, b);
 	}
 
 	public void setSound(boolean b) {
-		firePropertyChange(Constants.PROPERTY_CHANGE_INIT_SOUND_SETUP, null, b);
+		firePropertyChange(Constants.PROPERTY_CHANGE_SOUND, null, b);
+	}
+	
+	public void setActivityClipboard(boolean b) {
+		firePropertyChange(Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD, null, b);
+	}
+	
+	public void setModeClipboard(boolean b) {
+		firePropertyChange(Constants.PROPERTY_CHANGE_MODE_CLIPBOARD, null, b);
 	}
 
 	@Override
-	public void propertyChange(PropertyChangeEvent evt) {
-		firePropertyChange(evt.getPropertyName(), evt.getOldValue(),
-				evt.getNewValue());
+	public void propertyChange(PropertyChangeEvent evt) {		
+		redirectPropertyChange(evt);
 	}
 }

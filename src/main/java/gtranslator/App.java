@@ -1,15 +1,9 @@
 package gtranslator;
 
-import gtranslator.ClipboardObserver.ActionListener;
-import gtranslator.sound.SoundHelper;
 import gtranslator.translate.TranslationReceiver;
 import gtranslator.ui.UIOutput;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -21,7 +15,7 @@ import org.apache.log4j.Logger;
 
 public class App {
 	private static final Logger logger = Logger.getLogger(App.class);
-	
+
 	private static Thread clipboardThread;
 
 	public static void main(String[] args) {
@@ -35,11 +29,11 @@ public class App {
 			logger.error(ex.getMessage(), ex);
 			System.exit(-1);
 		}
-		
+
 		clipboardThread = new Thread(ClipboardObserver.getInstance());
 		clipboardThread.start();
 	}
-	
+
 	public static void stopClipboardThread() throws InterruptedException {
 		clipboardThread.interrupt();
 		clipboardThread.join(10000);
@@ -115,6 +109,9 @@ public class App {
 		int blockLimit = AppProperties.getInstance().getDictionaryBlockLimit();
 		DictionaryHelper.INSTANCE.setBlockLimit(blockLimit);
 		logger.info(blockLimit);
+		
+		UIOutput.getInstance().setActivityClipboard(true);
+		UIOutput.getInstance().setModeClipboard(false);
 
 		logger.info("********************");
 	}

@@ -1,12 +1,15 @@
 package gtranslator.ui;
 
 import gtranslator.Actions;
+import gtranslator.Actions.*;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -62,7 +65,8 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 			public void actionPerformed(ActionEvent e) {
 				final JCheckBox check = (JCheckBox) e.getSource();
 				check.setText(check.isSelected() ? "Yes" : "No");
-				new Actions.DetailTranslateAction().execute(check.isSelected());
+				Actions.findAction(DetailTranslateAction.class).execute(
+						check.isSelected());
 			}
 		});
 		JPanel panel = new JPanel();
@@ -80,7 +84,8 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 			public void actionPerformed(ActionEvent e) {
 				final JCheckBox check = (JCheckBox) e.getSource();
 				check.setText(check.isSelected() ? "Yes" : "No");
-				new Actions.RewriteHistoryAction().execute(check.isSelected());
+				Actions.findAction(RewriteHistoryAction.class).execute(
+						check.isSelected());
 			}
 		});
 		JPanel panel = new JPanel();
@@ -98,7 +103,8 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 			public void actionPerformed(ActionEvent e) {
 				final JCheckBox check = (JCheckBox) e.getSource();
 				check.setText(check.isSelected() ? "Yes" : "No");
-				new Actions.UseHistoryAction().execute(check.isSelected());
+				Actions.findAction(UseHistoryAction.class).execute(
+						check.isSelected());
 			}
 		});
 		JPanel panel = new JPanel();
@@ -116,8 +122,8 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 			public void actionPerformed(ActionEvent e) {
 				final JCheckBox check = (JCheckBox) e.getSource();
 				check.setText(check.isSelected() ? "Yes" : "No");
-				new Actions.WordPlayOfClipboardAction().execute(check
-						.isSelected());
+				Actions.findAction(WordPlayOfClipboardAction.class).execute(
+						check.isSelected());
 			}
 		});
 		JPanel panel = new JPanel();
@@ -138,7 +144,8 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 		button.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new Actions.CookieAction().execute(cookieField.getText());
+				Actions.findAction(CookieAction.class).execute(
+						cookieField.getText());
 			}
 		});
 		panel.add(button, BorderLayout.WEST);
@@ -156,7 +163,8 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 		button.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new Actions.CookieAction().execute(dictionaryDirField.getText());
+				Actions.findAction(CookieAction.class).execute(
+						dictionaryDirField.getText());
 			}
 		});
 		panel.add(button, BorderLayout.WEST);
@@ -168,8 +176,17 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 		activityClipboardCheckBox
 				.addActionListener(new java.awt.event.ActionListener() {
 					@Override
-					public void actionPerformed(ActionEvent e) {
-						changeActivityClipboard(activityClipboardCheckBox.isSelected());
+					public void actionPerformed(ActionEvent e) {						
+						changeActivityClipboardCheckBox(activityClipboardCheckBox.isSelected());						
+						Actions.findAction(StartStopTClipboardAction.class)
+								.execute(!activityClipboardCheckBox.isSelected());
+					}
+				});
+		Actions.findAction(StartStopTClipboardAction.class).getObservable()
+				.addObserver(new Observer() {
+					@Override
+					public void update(Observable o, Object arg) {
+						changeActivityClipboardCheckBox((Boolean) arg);
 					}
 				});
 		JPanel panel = new JPanel();
@@ -179,6 +196,14 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 		panel.add(activityClipboardCheckBox, BorderLayout.WEST);
 		box.add(panel);
 	}
+	
+	private void changeActivityClipboardCheckBox(boolean b) {
+		activityClipboardCheckBox.setSelected(b);
+		activityClipboardCheckBox.setText(b ? "Start" : "Stop");
+		firePropertyChange(
+				Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD,
+				!b, b);		
+	}
 
 	private void createWidgetsOfModeClipboardTranslate() {
 		modeClipboardCheckBox = new JCheckBox("Select");
@@ -186,7 +211,16 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 				.addActionListener(new java.awt.event.ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						changeModeClipboard(modeClipboardCheckBox.isSelected());
+						changeModeClipboardCheckBox(modeClipboardCheckBox.isSelected());
+						Actions.findAction(ModeTClipboardAction.class).execute(
+								modeClipboardCheckBox.isSelected());
+					}
+				});
+		Actions.findAction(ModeTClipboardAction.class).getObservable()
+				.addObserver(new Observer() {
+					@Override
+					public void update(Observable o, Object arg) {
+						changeModeClipboardCheckBox((Boolean) arg);
 					}
 				});
 		JPanel panel = new JPanel();
@@ -196,64 +230,43 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 		panel.add(modeClipboardCheckBox, BorderLayout.WEST);
 		box.add(panel);
 	}
-
-	private void changeActivityClipboard(Boolean b) {
-		activityClipboardCheckBox.setSelected(b == null ? !activityClipboardCheckBox
-				.isSelected() : b);
-		activityClipboardCheckBox.setText(activityClipboardCheckBox
-				.isSelected() ? "Start" : "Stop");
-		firePropertyChange(Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD_TRANS,
-				!activityClipboardCheckBox.isSelected(),
-				activityClipboardCheckBox.isSelected());
-		new Actions.StartStopTClipboardAction()
-				.execute(activityClipboardCheckBox.isSelected());
-	}
-
-	private void changeModeClipboard(Boolean b) {
-		modeClipboardCheckBox.setSelected(b == null ? !modeClipboardCheckBox
-				.isSelected() : b);
-		modeClipboardCheckBox
-				.setText(modeClipboardCheckBox.isSelected() ? "Copy" : "Select");
-		firePropertyChange(Constants.PROPERTY_CHANGE_MODE_CLIPBOARD_TRANS,
-				!modeClipboardCheckBox.isSelected(),
-				modeClipboardCheckBox.isSelected());
-		new Actions.ModeTClipboardAction().execute(modeClipboardCheckBox
-				.isSelected());
+	
+	private void changeModeClipboardCheckBox(boolean b) {		
+		modeClipboardCheckBox.setSelected(b);
+		modeClipboardCheckBox.setText(b ? "Select" : "Copy");
+		firePropertyChange(
+				Constants.PROPERTY_CHANGE_MODE_CLIPBOARD,
+				!b, b);		
 	}
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
+		if (evt.getSource() == this) {
+			return;
+		}
 		switch (evt.getPropertyName()) {
-		case Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD_SETUP:
-			changeActivityClipboard(null);
+		case Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD:
+			changeActivityClipboardCheckBox((Boolean) evt.getNewValue());
 			break;
-		case Constants.PROPERTY_CHANGE_MODE_CLIPBOARD_SETUP:
-			changeModeClipboard(null);
+		case Constants.PROPERTY_CHANGE_MODE_CLIPBOARD:
+			changeModeClipboardCheckBox((Boolean) evt.getNewValue());
 			break;
-		case Constants.PROPERTY_CHANGE_INIT_CLIPBOARD_SETUP:
-			firePropertyChange(
-					Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD_TRANS,
-					null, activityClipboardCheckBox.isSelected());
-			firePropertyChange(
-					Constants.PROPERTY_CHANGE_MODE_CLIPBOARD_TRANS, null,
-					modeClipboardCheckBox.isSelected());
-			break;
-		case Constants.PROPERTY_CHANGE_INIT_COOKIE_SETUP:
+		case Constants.PROPERTY_CHANGE_COOKIE:
 			cookieField.setText((String) evt.getNewValue());
 			break;
-		case Constants.PROPERTY_CHANGE_INIT_DICTIONARY_DIR_SETUP:
+		case Constants.PROPERTY_CHANGE_DICTIONARY_DIR:
 			dictionaryDirField.setText((String) evt.getNewValue());
 			break;
-		case Constants.PROPERTY_CHANGE_INIT_HISTORY_SETUP:
+		case Constants.PROPERTY_CHANGE_HISTORY:
 			historyCheckBox.setSelected((Boolean) evt.getNewValue());
 			historyCheckBox
 					.setText(historyCheckBox.isSelected() ? "Yes" : "No");
 			break;
-		case Constants.PROPERTY_CHANGE_INIT_SOUND_SETUP:
+		case Constants.PROPERTY_CHANGE_SOUND:
 			soundCheckBox.setSelected((Boolean) evt.getNewValue());
 			soundCheckBox.setText(soundCheckBox.isSelected() ? "Yes" : "No");
 			break;
-		case Constants.PROPERTY_CHANGE_INIT_STATISTIC_SETUP:
+		case Constants.PROPERTY_CHANGE_STATISTIC:
 			statisticLabel.setText((String) evt.getNewValue());
 			break;
 		}

@@ -22,7 +22,7 @@ public class HistoryHelper {
 	private static File rawHisFile;
 	static {
 		String dir = System.getProperty("user.home");
-		rawHisFile = new File(dir, "gtranslator-raw-his.xml");
+		rawHisFile = new File(dir, "gtranslator-history.xml");
 	}
 
 	public interface StatisticListener {

@@ -61,12 +61,12 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 		button.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Thread th = new Thread(new Runnable() {
+				Thread th = new Thread(new Runnable() {					
 					@Override
 					public void run() {
 						button.setEnabled(false);
 						try {
-							new Actions.HistoryDictionaryAction()
+							Actions.findAction(Actions.HistoryDictionaryAction.class)
 									.execute(targetDir.getText());
 						} finally {
 							button.setEnabled(true);
