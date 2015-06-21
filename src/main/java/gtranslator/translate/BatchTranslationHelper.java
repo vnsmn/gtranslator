@@ -1,5 +1,5 @@
 package gtranslator.translate;
-
+/*
 import gtranslator.DictionaryHelper;
 import gtranslator.HistoryHelper;
 import gtranslator.ui.ProgressMonitorDemo;
@@ -28,7 +28,7 @@ import java.util.TreeMap;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 import org.apache.commons.lang3.StringUtils;
-
+*/
 public class BatchTranslationHelper {
 
 	/*

@@ -230,6 +230,20 @@ public class Actions {
 			}
 		}
 	}
+	
+	public static class SetDictionaryPronunciationAction extends Action<String> {
+		@Override
+		public void execute(String s) {
+			UIOutput.getInstance().setWaitCursor();
+			try {
+				AppProperties.getInstance().setDictionaryPronunciation(s);
+			} catch (Exception ex) {
+				logger.error(ex.getMessage());
+			} finally {
+				UIOutput.getInstance().setDefCursor();
+			}
+		}
+	}
 
 	public static class TranslateWordAction extends Action<String[]> {
 		@Override

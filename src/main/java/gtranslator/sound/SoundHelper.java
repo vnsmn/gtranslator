@@ -238,7 +238,9 @@ public class SoundHelper {
 		if (normal.matches("[a-zA-Z]+")) {
 			String dicDirPath = AppProperties.getInstance()
 					.getDictionaryDirPath();
-			File f = DictionaryHelper.INSTANCE.findFile(true, dicDirPath,
+			boolean isBr = SoundReceiver.BR.equalsIgnoreCase(AppProperties
+					.getInstance().getDictionaryPronunciation());
+			File f = DictionaryHelper.INSTANCE.findFile(isBr, dicDirPath,
 					normal);
 			try {
 				if (doSoundLoad && !f.exists()) {

@@ -1,8 +1,10 @@
 package gtranslator.ui;
 
 import gtranslator.Actions;
+import gtranslator.Actions.SetDictionaryPronunciationAction;
 import gtranslator.DictionaryHelper;
 import gtranslator.Actions.DetailTranslateAction;
+import gtranslator.Actions.WordPlayOfClipboardAction;
 import gtranslator.sound.SoundReceiver;
 
 import java.awt.BorderLayout;
@@ -119,6 +121,14 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 	private void createWidgetsOfLanguagePronunciation() {
 		String[] pronunciation = { SoundReceiver.AM, SoundReceiver.BR, "all" };
 		pronunciationLangComboBox = new JComboBox(pronunciation);
+		pronunciationLangComboBox.addActionListener(new java.awt.event.ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				final JComboBox comboBox = (JComboBox) e.getSource();
+				Actions.findAction(SetDictionaryPronunciationAction.class).execute(
+						comboBox.getSelectedItem().toString());
+			}
+		});		
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
