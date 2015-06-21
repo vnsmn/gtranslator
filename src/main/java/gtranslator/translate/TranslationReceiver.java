@@ -3,39 +3,22 @@ package gtranslator.translate;
 import gtranslator.HistoryHelper;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Formatter.BigDecimalLayoutForm;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-
-import javax.json.Json;
-import javax.json.spi.JsonProvider;
-import javax.json.stream.JsonParser;
-import javax.json.stream.JsonParser.Event;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -169,23 +152,21 @@ public class TranslationReceiver {
 			boolean isGetMethod) throws IOException {
 		return translateAndFormat(sentense, isGetMethod, isAddition.get());
 	}
-	
-	public synchronized String formatSimpleFromHistory(String sentense) throws IOException {
-		String normal = toNormal(sentense);
-		if (isHistory.get()) {
-			String rawTranslate = HistoryHelper.INSTANCE.readRaw(normal);
-			if (!StringUtils.isBlank(rawTranslate)) {				
-				defaultGoogleFormater.format(rawTranslate, true);
-				return defaultGoogleFormater.formatSimple(defaultGoogleFormater.getLastVariantWords());
-			} else {
-				return "";
-			}
-		}
-		return "";
-	}
 
 	public synchronized String translateAndFormat(String sentense,
 			boolean isGetMethod, boolean isAddition) throws IOException {
+		return defaultGoogleFormater.format(translate(sentense, isGetMethod),
+				isAddition);
+	}
+
+	public synchronized String translateAndSimpleFormat(String sentense,
+			boolean isGetMethod) throws IOException {
+		return defaultGoogleFormater.formatSimple(translate(sentense,
+				isGetMethod));
+	}
+
+	protected synchronized String translate(String sentense, boolean isGetMethod)
+			throws IOException {
 		String normal = toNormal(sentense);
 		if (isHistory.get()) {
 			String rawTranslate = HistoryHelper.INSTANCE.readRaw(normal);
@@ -194,17 +175,12 @@ public class TranslationReceiver {
 						: executePost(normal, cookie.get());
 				HistoryHelper.INSTANCE.writeRaw(normal, rawTranslate);
 			}
-			String translate = defaultGoogleFormater.format(rawTranslate, isAddition);
-			if (normal.matches("[a-zA-Z]+")) {
-				defaultGoogleFormater.format(rawTranslate, isAddition);
-			}
-			return translate;
+			return rawTranslate;
 		} else {
-			String rawTranslate = isGetMethod ? executeGet(normal, cookie.get())
+			return isGetMethod ? executeGet(normal, cookie.get())
 					: executePost(normal, cookie.get());
-			return defaultGoogleFormater.format(rawTranslate, isAddition);
 		}
-	}	
+	}
 
 	public String toNormal(String s) {
 		String s1 = s;
@@ -223,7 +199,7 @@ public class TranslationReceiver {
 		try {
 			return s1.substring(i, j + 1).replaceAll("[ ]+", " ").toLowerCase();
 		} catch (StringIndexOutOfBoundsException ex) {
-			logger.error(ex.getMessage() + " : " + s);			
+			logger.error(ex.getMessage() + " : " + s);
 			return "";
 		}
 	}
@@ -258,10 +234,10 @@ public class TranslationReceiver {
 		DefaultGoogleFormater f = new DefaultGoogleFormater();
 		s = f.format(s, true);
 		System.out.println(s);
-		s = f.formatSimple(f.getLastVariantWords());
-		//s = new DictGoogleFormater().format(s, true);
-		//s = new WordGoogleFormater().format(s, true);
-		//s = new PhraseGoogleFormater().format(s, true);
+		// s = f.formatSimple(f.getLastVariantWords());
+		// s = new DictGoogleFormater().format(s, true);
+		// s = new WordGoogleFormater().format(s, true);
+		// s = new PhraseGoogleFormater().format(s, true);
 		System.out.println(s);
 	}
 }

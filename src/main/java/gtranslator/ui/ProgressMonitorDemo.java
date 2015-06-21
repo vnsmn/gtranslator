@@ -23,24 +23,33 @@ public class ProgressMonitorDemo implements PropertyChangeListener {
 	}
 
 	public static ProgressMonitorDemo createAndShowGUI(String title, int max) {
-		ProgressMonitorDemo progressMonitorDemo = new ProgressMonitorDemo(title, max);
+		ProgressMonitorDemo progressMonitorDemo = new ProgressMonitorDemo(
+				title, max);
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException ex) {
+			ex.printStackTrace();
+			Thread.currentThread().interrupt();
+		}
 		return progressMonitorDemo;
 	}
 
 	public ProgressMonitorDemo(String title, int max) {
-			progressMonitor = new ProgressMonitor(null, title, "",
-				0, max);
+		progressMonitor = new ProgressMonitor(null, title, "", 0, max);
 		progressMonitor.setProgress(0);
 	}
-	
+
 	public synchronized void nextProgress(int progress) {
 		progressMonitor.setProgress(progress);
+		progressMonitor.setNote(String.format("Progress: %d-%d-%d%s", progress,
+				progressMonitor.getMaximum(),
+				Math.round((100d / progressMonitor.getMaximum()) * progress), "%"));
 	}
-	
-	public synchronized void close() {		
+
+	public synchronized void close() {
 		progressMonitor.close();
 	}
-	
+
 	public synchronized boolean isCanceled() {
 		return progressMonitor.isCanceled();
 	}

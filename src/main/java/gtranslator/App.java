@@ -1,5 +1,7 @@
 package gtranslator;
 
+import gtranslator.Actions.ModeTClipboardAction;
+import gtranslator.Actions.StartStopTClipboardAction;
 import gtranslator.translate.TranslationReceiver;
 import gtranslator.ui.UIOutput;
 
@@ -93,25 +95,45 @@ public class App {
 		UIOutput.getInstance().setDictionaryDir(dirPath);
 		logger.info(dirPath);
 
-		logger.info("----- dictionary.pause.seconds -----");
-		int pauseSeconds = AppProperties.getInstance()
-				.getDictionaryPauseSeconds();
-		DictionaryHelper.INSTANCE.setPauseSeconds(pauseSeconds);
-		logger.info(pauseSeconds);
-
-		logger.info("----- dictionary.defis.seconds -----");
-		int defisSeconds = AppProperties.getInstance()
-				.getDictionaryDefisSeconds();
-		DictionaryHelper.INSTANCE.setDefisSeconds(defisSeconds);
-		logger.info(defisSeconds);
-
+		// logger.info("----- dictionary.pause.seconds -----");
+		// int pauseSeconds = AppProperties.getInstance()
+		// .getDictionaryPauseSeconds();
+		// DictionaryHelper.INSTANCE.setPauseSeconds(pauseSeconds);
+		// logger.info(pauseSeconds);
+		//
+		// logger.info("----- dictionary.defis.seconds -----");
+		// int defisSeconds = AppProperties.getInstance()
+		// .getDictionaryDefisSeconds();
+		// DictionaryHelper.INSTANCE.setDefisSeconds(defisSeconds);
+		// logger.info(defisSeconds);
+		//
 		logger.info("----- dictionary.block.limit -----");
 		int blockLimit = AppProperties.getInstance().getDictionaryBlockLimit();
-		DictionaryHelper.INSTANCE.setBlockLimit(blockLimit);
+		UIOutput.getInstance().setDictionaryBlockLimit(blockLimit);
 		logger.info(blockLimit);
-		
-		UIOutput.getInstance().setActivityClipboard(true);
-		UIOutput.getInstance().setModeClipboard(false);
+
+		logger.info("----- dictionary.result.dir -----");
+		String resultDir = AppProperties.getInstance().getDictionaryResultDir();
+		UIOutput.getInstance().setDictionaryResultDir(resultDir);
+		logger.info(resultDir);
+
+		logger.info("----- dictionary.pronunciation -----");
+		String pronunciation = AppProperties.getInstance()
+				.getDictionaryPronunciation();
+		UIOutput.getInstance().setDictionaryPronunciation(pronunciation);
+		logger.info(resultDir);
+
+		logger.info("----- clipboard.active -----");
+		boolean isStart = AppProperties.getInstance().getClipboardActive();
+		Actions.findAction(StartStopTClipboardAction.class).execute(!isStart);
+		UIOutput.getInstance().setActivityClipboard(isStart);
+		logger.info(isStart);
+
+		logger.info("----- clipboard.mode -----");
+		boolean isSelect = AppProperties.getInstance().getClipboardMode();
+		UIOutput.getInstance().setModeClipboard(isSelect);
+		Actions.findAction(ModeTClipboardAction.class).execute(isSelect);
+		logger.info(isSelect);
 
 		logger.info("********************");
 	}

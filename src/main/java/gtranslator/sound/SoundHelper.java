@@ -82,11 +82,12 @@ public class SoundHelper {
 	}
 
 	public static void concatFiles(int seconds, int secondsDefis,
-			File outWaveFile, TreeMap<File, File> mp3Files)
+			File outWaveFile, TreeMap<File, File> soundFiles)
 			throws UnsupportedAudioFileException, IOException, SoundException {
 		List<AudioInputStream> streamList = new ArrayList<>();
 		Long frameLength = -1l;
-		for (Entry<File, File> mp3File : mp3Files.entrySet()) {
+		streamList.add(createEmptyWaveFile(2));
+		for (Entry<File, File> mp3File : soundFiles.entrySet()) {
 			AudioInputStream in = convertWave(mp3File.getKey(),
 					WAVE_FORMAT_44100);
 			if (in == null) {
@@ -108,7 +109,6 @@ public class SoundHelper {
 			streamList.add(createEmptyWaveFile(seconds));
 			// frameLength += in.getFrameLength();
 		}
-
 		AudioInputStream ins = new AudioInputStream(new SequenceInputStream(
 				Collections.enumeration(streamList)), WAVE_FORMAT_44100,
 				frameLength);
@@ -122,83 +122,83 @@ public class SoundHelper {
 						.replaceAll(".wave", ".mp3")).getAbsolutePath());
 	}
 
-	public static void concatFiles(int seconds, File outWaveFile,
-			List<File> mp3Files) throws UnsupportedAudioFileException,
-			IOException, SoundException {
-		List<AudioInputStream> streamList = new ArrayList<>();
-		Long frameLength = -1l;
-		for (File mp3File : mp3Files) {
-			AudioInputStream in = convertWave(mp3File, WAVE_FORMAT_44100);
-			if (in == null) {
-				throw new SoundHelper.SoundException(
-						"the file is not support convert:"
-								+ mp3File.getAbsolutePath());
-			}
-			streamList.add(in);
-			streamList.add(createEmptyWaveFile(seconds));
-			// frameLength += in.getFrameLength();
-		}
+	// public static void concatFiles(int seconds, File outWaveFile,
+	// List<File> mp3Files) throws UnsupportedAudioFileException,
+	// IOException, SoundException {
+	// List<AudioInputStream> streamList = new ArrayList<>();
+	// Long frameLength = -1l;
+	// for (File mp3File : mp3Files) {
+	// AudioInputStream in = convertWave(mp3File, WAVE_FORMAT_44100);
+	// if (in == null) {
+	// throw new SoundHelper.SoundException(
+	// "the file is not support convert:"
+	// + mp3File.getAbsolutePath());
+	// }
+	// streamList.add(in);
+	// streamList.add(createEmptyWaveFile(seconds));
+	// // frameLength += in.getFrameLength();
+	// }
+	//
+	// AudioInputStream ins = new AudioInputStream(new SequenceInputStream(
+	// Collections.enumeration(streamList)), WAVE_FORMAT_44100,
+	// frameLength);
+	// AudioSystem.write(ins, MpegFileFormatType.WAVE, outWaveFile);
+	// for (AudioInputStream in : streamList) {
+	// in.close();
+	// }
+	// LameSoundHelper.INSTANCE.convert(outWaveFile.getAbsolutePath(),
+	// new File(outWaveFile.getParent(), outWaveFile.getName()
+	// .replaceAll(".wav", ".mp3")).getAbsolutePath());
+	// }
+	//
+	// public static void concatFiles(int seconds, String sourceWordsFilePath,
+	// String sourceMp3DirPath, String targetDir, String targetFileName,
+	// int blockLimit) throws SoundException {
+	// int suffics = 0;
+	// try {
+	// List<String> ss = Files
+	// .readAllLines(Paths.get(sourceWordsFilePath));
+	// List<File> fs = new ArrayList<File>();
+	// ProgressMonitorDemo progressMonitorDemo = ProgressMonitorDemo
+	// .createAndShowGUI("Contcat files", ss.size());
+	// try {
+	// int i = 0;
+	// for (String s : ss) {
+	// String word = s.split("[=]")[0];
+	// fs.add(new File(sourceMp3DirPath, word + ".mp3"));
+	// if (fs.size() >= blockLimit) {
+	// concatFiles(
+	// seconds,
+	// Paths.get(
+	// targetDir,
+	// String.format("%s_%d.wav",
+	// targetFileName, suffics))
+	// .toFile(), fs);
+	// fs.clear();
+	// suffics++;
+	// }
+	// progressMonitorDemo.nextProgress(i++);
+	// if (progressMonitorDemo.isCanceled()) {
+	// Thread.currentThread().stop();
+	// }
+	// }
+	// } finally {
+	// progressMonitorDemo.close();
+	// }
+	// if (fs.size() > 0) {
+	// concatFiles(
+	// seconds,
+	// Paths.get(
+	// targetDir,
+	// String.format("%s_%d.wav", targetFileName,
+	// suffics)).toFile(), fs);
+	// }
+	// } catch (Exception ex) {
+	// throw new SoundException(ex.getMessage());
+	// }
+	// }
 
-		AudioInputStream ins = new AudioInputStream(new SequenceInputStream(
-				Collections.enumeration(streamList)), WAVE_FORMAT_44100,
-				frameLength);
-		AudioSystem.write(ins, MpegFileFormatType.WAVE, outWaveFile);
-		for (AudioInputStream in : streamList) {
-			in.close();
-		}
-		LameSoundHelper.INSTANCE.convert(outWaveFile.getAbsolutePath(),
-				new File(outWaveFile.getParent(), outWaveFile.getName()
-						.replaceAll(".wav", ".mp3")).getAbsolutePath());
-	}
-
-	public static void concatFiles(int seconds, String sourceWordsFilePath,
-			String sourceMp3DirPath, String targetDir, String targetFileName,
-			int blockLimit) throws SoundException {
-		int suffics = 0;
-		try {
-			List<String> ss = Files
-					.readAllLines(Paths.get(sourceWordsFilePath));
-			List<File> fs = new ArrayList<File>();
-			ProgressMonitorDemo progressMonitorDemo = ProgressMonitorDemo
-					.createAndShowGUI("Contcat files", ss.size());
-			try {
-				int i = 0;
-				for (String s : ss) {
-					String word = s.split("[=]")[0];
-					fs.add(new File(sourceMp3DirPath, word + ".mp3"));
-					if (fs.size() >= blockLimit) {
-						concatFiles(
-								seconds,
-								Paths.get(
-										targetDir,
-										String.format("%s_%d.wav",
-												targetFileName, suffics))
-										.toFile(), fs);
-						fs.clear();
-						suffics++;
-					}
-					progressMonitorDemo.nextProgress(i++);
-					if (progressMonitorDemo.isCanceled()) {
-						Thread.currentThread().stop();
-					}
-				}
-			} finally {
-				progressMonitorDemo.close();
-			}
-			if (fs.size() > 0) {
-				concatFiles(
-						seconds,
-						Paths.get(
-								targetDir,
-								String.format("%s_%d.wav", targetFileName,
-										suffics)).toFile(), fs);
-			}
-		} catch (Exception ex) {
-			throw new SoundException(ex.getMessage());
-		}
-	}
-
-	public static void play(File mp3File) throws SoundException {
+	public static void playFile(File mp3File) throws SoundException {
 		AudioInputStream in;
 		try {
 			in = convertWave(mp3File, WAVE_FORMAT_44100);
@@ -233,8 +233,8 @@ public class SoundHelper {
 		line.close();
 	}
 
-	public static void playWord(String text, boolean doSoundLoad) {
-		String normal = TranslationReceiver.INSTANCE.toNormal(text);
+	public static void playEngWord(String engWord, boolean doSoundLoad) {
+		String normal = TranslationReceiver.INSTANCE.toNormal(engWord);
 		if (normal.matches("[a-zA-Z]+")) {
 			String dicDirPath = AppProperties.getInstance()
 					.getDictionaryDirPath();
@@ -242,8 +242,8 @@ public class SoundHelper {
 					normal);
 			try {
 				if (doSoundLoad && !f.exists()) {
-					Map<String, String> words = new HashMap<String, String>();
-					words.put(normal, normal);
+					List<String> words = new ArrayList<>();
+					words.add(normal);
 					Set<String> loaded = DictionaryHelper.INSTANCE.loadSound(
 							words, new File(dicDirPath));
 					if (loaded.isEmpty()) {
@@ -252,7 +252,7 @@ public class SoundHelper {
 						return;
 					}
 				}
-				SoundHelper.play(f);
+				SoundHelper.playFile(f);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			}
@@ -268,36 +268,36 @@ public class SoundHelper {
 	 * ArrayList<File>(); fs.add(f1); fs.add(f2); fs.add(f3); // concatFiles(2,
 	 * f, fs); // play(f3); }
 	 */
-	static class Mp3Encoder {
-		public static AudioInputStream getConvertedStream(
-				AudioInputStream sourceStream,
-				AudioFormat.Encoding targetEncoding) throws Exception {
-			AudioFormat sourceFormat = sourceStream.getFormat();
-
-			AudioInputStream targetStream = null;
-			if (!AudioSystem
-					.isConversionSupported(targetEncoding, sourceFormat)) {
-				AudioFormat intermediateFormat = new AudioFormat(
-						AudioFormat.Encoding.PCM_SIGNED,
-						sourceFormat.getSampleRate(), 16,
-						sourceFormat.getChannels(),
-						2 * sourceFormat.getChannels(), // frameSize
-						sourceFormat.getSampleRate(), false);
-				if (AudioSystem.isConversionSupported(intermediateFormat,
-						sourceFormat)) {
-					// intermediate conversion is supported
-					sourceStream = AudioSystem.getAudioInputStream(
-							intermediateFormat, sourceStream);
-				}
-			}
-			targetStream = AudioSystem.getAudioInputStream(targetEncoding,
-					sourceStream);
-			if (targetStream == null) {
-				throw new Exception("conversion not supported");
-			}
-			return targetStream;
-		}
-	}
+	// static class Mp3Encoder {
+	// public static AudioInputStream getConvertedStream(
+	// AudioInputStream sourceStream,
+	// AudioFormat.Encoding targetEncoding) throws Exception {
+	// AudioFormat sourceFormat = sourceStream.getFormat();
+	//
+	// AudioInputStream targetStream = null;
+	// if (!AudioSystem
+	// .isConversionSupported(targetEncoding, sourceFormat)) {
+	// AudioFormat intermediateFormat = new AudioFormat(
+	// AudioFormat.Encoding.PCM_SIGNED,
+	// sourceFormat.getSampleRate(), 16,
+	// sourceFormat.getChannels(),
+	// 2 * sourceFormat.getChannels(), // frameSize
+	// sourceFormat.getSampleRate(), false);
+	// if (AudioSystem.isConversionSupported(intermediateFormat,
+	// sourceFormat)) {
+	// // intermediate conversion is supported
+	// sourceStream = AudioSystem.getAudioInputStream(
+	// intermediateFormat, sourceStream);
+	// }
+	// }
+	// targetStream = AudioSystem.getAudioInputStream(targetEncoding,
+	// sourceStream);
+	// if (targetStream == null) {
+	// throw new Exception("conversion not supported");
+	// }
+	// return targetStream;
+	// }
+	// }
 
 	/*
 	 * public static void createEmptyFile() throws Exception { double sampleRate

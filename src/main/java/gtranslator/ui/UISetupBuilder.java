@@ -180,15 +180,11 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 						changeActivityClipboardCheckBox(activityClipboardCheckBox.isSelected());						
 						Actions.findAction(StartStopTClipboardAction.class)
 								.execute(!activityClipboardCheckBox.isSelected());
+						firePropertyChange(Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD, 
+								!activityClipboardCheckBox.isSelected(),
+								activityClipboardCheckBox.isSelected());
 					}
-				});
-		Actions.findAction(StartStopTClipboardAction.class).getObservable()
-				.addObserver(new Observer() {
-					@Override
-					public void update(Observable o, Object arg) {
-						changeActivityClipboardCheckBox((Boolean) arg);
-					}
-				});
+				});		
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
@@ -200,9 +196,6 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 	private void changeActivityClipboardCheckBox(boolean b) {
 		activityClipboardCheckBox.setSelected(b);
 		activityClipboardCheckBox.setText(b ? "Start" : "Stop");
-		firePropertyChange(
-				Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD,
-				!b, b);		
 	}
 
 	private void createWidgetsOfModeClipboardTranslate() {
@@ -214,15 +207,11 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 						changeModeClipboardCheckBox(modeClipboardCheckBox.isSelected());
 						Actions.findAction(ModeTClipboardAction.class).execute(
 								modeClipboardCheckBox.isSelected());
+						firePropertyChange(Constants.PROPERTY_CHANGE_MODE_CLIPBOARD, 
+								!modeClipboardCheckBox.isSelected(),
+								modeClipboardCheckBox.isSelected());
 					}
-				});
-		Actions.findAction(ModeTClipboardAction.class).getObservable()
-				.addObserver(new Observer() {
-					@Override
-					public void update(Observable o, Object arg) {
-						changeModeClipboardCheckBox((Boolean) arg);
-					}
-				});
+				});		
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
@@ -234,9 +223,6 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 	private void changeModeClipboardCheckBox(boolean b) {		
 		modeClipboardCheckBox.setSelected(b);
 		modeClipboardCheckBox.setText(b ? "Select" : "Copy");
-		firePropertyChange(
-				Constants.PROPERTY_CHANGE_MODE_CLIPBOARD,
-				!b, b);		
 	}
 
 	@Override

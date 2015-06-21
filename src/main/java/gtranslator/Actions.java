@@ -6,7 +6,6 @@ import gtranslator.ui.UIOutput;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Observable;
 
 import org.apache.log4j.Logger;
 
@@ -15,18 +14,7 @@ public class Actions {
 	private static Map<String, Action<?>> actions = new HashMap<>();
 
 	public static abstract class Action<T> {
-		private Observable observable = new Observable() {
-			public void notifyObservers(Object arg) {
-		        super.setChanged();
-		        super.notifyObservers(arg);
-		    }
-		};
-
 		public abstract void execute(T arg);
-
-		public Observable getObservable() {
-			return observable;
-		}		
 	}
 
 	public static <T> Action<T> findAction(Class<? extends Action<T>> clazz) {
@@ -36,7 +24,7 @@ public class Actions {
 			if (act == null) {
 				try {
 					act = clazz.newInstance();
-					actions.put(clazz.getName(),  act);
+					actions.put(clazz.getName(), act);
 				} catch (Exception ex) {
 					logger.error(ex);
 					System.exit(-1);
@@ -46,17 +34,40 @@ public class Actions {
 		return act;
 	}
 
-	public static class HistoryDictionaryAction extends Action<String> {
+	public static class DictionaryInput {
+		public String path;
+		public String resultDir;
+		public DictionaryHelper.SOURCE_TYPE sourceType;
+		public boolean isAmPronunciation;
+		public boolean isBrPronunciation;
+		public boolean isRusTransled;
+		public boolean isMultiRusTransled;
+	}
+
+	public static class DictionaryAction extends Action<DictionaryInput> {
 		@Override
-		public void execute(String arg) {
+		public void execute(DictionaryInput dic) {
 			UIOutput.getInstance().setWaitCursor();
 			try {
 				HistoryHelper.INSTANCE.save();
-				DictionaryHelper.INSTANCE.createDictionary(
-						HistoryHelper.INSTANCE.getWords(), AppProperties
-								.getInstance().getDictionaryDirPath());
+				if (dic.sourceType == DictionaryHelper.SOURCE_TYPE.HISTORY) {
+					DictionaryHelper.INSTANCE.createDictionaryFromHistory(
+							dic.resultDir, dic.isAmPronunciation,
+							dic.isBrPronunciation, dic.isRusTransled,
+							dic.isMultiRusTransled);
+				} else if (dic.sourceType == DictionaryHelper.SOURCE_TYPE.DICTIONARY) {
+					DictionaryHelper.INSTANCE.createDictionaryFromDict(
+							dic.path, dic.resultDir, dic.isAmPronunciation,
+							dic.isBrPronunciation, dic.isRusTransled,
+							dic.isMultiRusTransled);
+				} else if (dic.sourceType == DictionaryHelper.SOURCE_TYPE.TEXT) {
+					DictionaryHelper.INSTANCE.createDictionaryFromText(
+							dic.path, dic.resultDir, dic.isAmPronunciation,
+							dic.isBrPronunciation, dic.isRusTransled,
+							dic.isMultiRusTransled);
+				}
 			} catch (Exception ex) {
-				logger.error(ex.getMessage());
+				logger.error(ex);
 			} finally {
 				UIOutput.getInstance().setDefCursor();
 			}
@@ -85,7 +96,7 @@ public class Actions {
 		public void execute(String engWord) {
 			UIOutput.getInstance().setWaitCursor();
 			try {
-				SoundHelper.playWord(engWord, false);
+				SoundHelper.playEngWord(engWord, false);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
@@ -100,7 +111,7 @@ public class Actions {
 		public void execute(String engWord) {
 			UIOutput.getInstance().setWaitCursor();
 			try {
-				SoundHelper.playWord(engWord, true);
+				SoundHelper.playEngWord(engWord, true);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
@@ -130,7 +141,6 @@ public class Actions {
 			UIOutput.getInstance().setWaitCursor();
 			try {
 				ClipboardObserver.getInstance().setSelected(b);
-				getObservable().notifyObservers(b);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
@@ -206,7 +216,7 @@ public class Actions {
 							new ClipboardObserver.ActionListener() {
 								@Override
 								public void execute(String s) {
-									SoundHelper.playWord(s, true);
+									SoundHelper.playEngWord(s, true);
 								}
 							});
 				} else {
@@ -228,6 +238,9 @@ public class Actions {
 			try {
 				ss[1] = TranslationReceiver.INSTANCE.translateAndFormat(ss[0],
 						false);
+				if (ClipboardObserver.getInstance().isSupportSoundWord()) {					
+					SoundHelper.playEngWord(TranslationReceiver.INSTANCE.toNormal(ss[0]), true);
+				}
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {

@@ -64,10 +64,10 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 					public void actionPerformed(ActionEvent e) {
 						boolean b = "Start".equals(activityClipboardMenuItem
 								.getText());
+						activityClipboardMenuItem.setText(b ? "Stop" : "Start");
 						Actions.findAction(StartStopTClipboardAction.class)
 								.execute(!b);
-						Actions.findAction(StartStopTClipboardAction.class)
-								.getObservable().notifyObservers(b);
+						firePropertyChange(Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD, !b, b);
 					}
 				});
 		sourcePopupMenu.add(activityClipboardMenuItem);
@@ -79,10 +79,10 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 					public void actionPerformed(ActionEvent e) {
 						boolean b = "Select".equals(modeClipboardMenuItem
 								.getText());
+						modeClipboardMenuItem.setText(b ? "Copy" : "Select");
 						Actions.findAction(Actions.ModeTClipboardAction.class)
 								.execute(b);
-						Actions.findAction(Actions.ModeTClipboardAction.class)
-								.getObservable().notifyObservers(b);
+						firePropertyChange(Constants.PROPERTY_CHANGE_MODE_CLIPBOARD, !b, b);
 					}
 				});
 		sourcePopupMenu.add(modeClipboardMenuItem);

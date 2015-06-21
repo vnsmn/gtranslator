@@ -2,7 +2,7 @@ package gtranslator.translate;
 
 import gtranslator.DictionaryHelper;
 import gtranslator.HistoryHelper;
-import gtranslator.ProgressMonitorDemo;
+import gtranslator.ui.ProgressMonitorDemo;
 import gtranslator.sound.RusGoogleSoundReceiver;
 import gtranslator.sound.SoundHelper;
 import gtranslator.sound.SoundHelper.SoundException;

@@ -1,6 +1,7 @@
 package gtranslator;
 
 import gtranslator.translate.DefaultGoogleFormater;
+import gtranslator.translate.TranslationReceiver;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -84,8 +85,7 @@ public class HistoryHelper {
 				val = toNormal((String) ent.getValue());
 				if (key.matches("[a-zA-Z]+")) {
 					formater.format(val, true);
-					String s = formater.formatSimple(formater
-							.getLastVariantWords());
+					String s = formater.formatSimple(val);
 					words.put(key, s);
 				}
 			} catch (Exception ex) {

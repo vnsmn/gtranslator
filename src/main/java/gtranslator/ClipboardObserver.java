@@ -121,4 +121,8 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 	public synchronized void setActionListener(ActionListener l) {
 		actionListener = l;
 	}
+	
+	public synchronized boolean isSupportSoundWord() {
+		return actionListener != null;
+	}
 }

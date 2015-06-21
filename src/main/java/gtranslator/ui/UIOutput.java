@@ -170,6 +170,18 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 	public void setModeClipboard(boolean b) {
 		firePropertyChange(Constants.PROPERTY_CHANGE_MODE_CLIPBOARD, null, b);
 	}
+	
+	public void setDictionaryResultDir(String s) {
+		firePropertyChange(Constants.PROPERTY_CHANGE_DICTIONARY_RESULT_DIR, null, s);
+	}
+	
+	public void setDictionaryBlockLimit(int i) {
+		firePropertyChange(Constants.PROPERTY_CHANGE_DICTIONARY_BLOCK_LIMIT, null, i);
+	}
+	
+	public void setDictionaryPronunciation(String s) {
+		firePropertyChange(Constants.PROPERTY_CHANGE_DICTIONARY_PRONUNCIATION, null, s);
+	}
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {		

@@ -1,5 +1,8 @@
 package gtranslator;
 
+import gtranslator.exception.GTranslatorException;
+import gtranslator.sound.SoundReceiver;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -12,25 +15,83 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 public class AppProperties {
-	private static final Logger logger = Logger.getLogger(AppProperties.class);
-	private static AppProperties instance;
-	private Properties properties;
-
-	private static final String DICTIONARY_TARGET_DIR = "dictionary.target.dir";
-	private static final String DICTIONARY_PAUSE_SECONDS = "dictionary.pause.seconds";
-	private static final String DICTIONARY_DEFIS_SECONDS = "dictionary.defis.seconds";
-	private static final String DICTIONARY_BLOCK_LIMIT = "dictionary.block.limit";
-	private static final String HISTORY = "history";
+	private static final String CLIPBOARD_ACTIVE = "clipboard.active";
+	private static final String CLIPBOARD_MODE = "clipboard.mode";
 	private static final String COOKIE = "cookie";
 
-	private AppProperties() {
-	}
+	private static final String DICTIONARY_BLOCK_LIMIT = "dictionary.block.limit";
+	private static final String DICTIONARY_DEFIS_SECONDS = "dictionary.defis.seconds";
+	private static final String DICTIONARY_PAUSE_SECONDS = "dictionary.pause.seconds";
+	private static final String DICTIONARY_PRONUNCIATION = "dictionary.pronunciation";
+	private static final String DICTIONARY_RESULT_DIR = "dictionary.result.dir";
+	private static final String DICTIONARY_TARGET_DIR = "dictionary.target.dir";
+	private static final String HISTORY = "history";
+
+	private static AppProperties instance;
+	private static final Logger logger = Logger.getLogger(AppProperties.class);
 
 	public static AppProperties getInstance() {
 		if (instance == null) {
 			instance = new AppProperties();
 		}
 		return instance;
+	}
+
+	private Properties properties;
+
+	private AppProperties() {
+	}
+
+	private void check(String s, String type) {
+		String format = "check error: type-%s, arg-%s";
+		switch (type) {
+		case CLIPBOARD_ACTIVE:
+			if (!s.matches("(start|stop)+")) {
+				throw new GTranslatorException(format, type, s);
+			}
+			break;
+		case CLIPBOARD_MODE:
+			if (!s.matches("(copy|select)+")) {
+				throw new GTranslatorException(format, type, s);
+			}
+			break;
+		case DICTIONARY_PRONUNCIATION:
+			if (!s.equalsIgnoreCase(SoundReceiver.AM)
+					&& !s.equalsIgnoreCase(SoundReceiver.BR)) {
+				throw new GTranslatorException(format, type, s);
+			}
+			break;
+		}
+	}
+
+	public boolean getClipboardActive() {
+		String s = properties.getProperty(CLIPBOARD_ACTIVE, "start")
+				.replaceAll("\n", "");
+		check(s, CLIPBOARD_ACTIVE);
+		return s.equals("start");
+	}
+
+	public boolean getClipboardMode() {
+		String s = properties.getProperty(CLIPBOARD_MODE, "copy").replaceAll(
+				"\n", "");
+		check(s, CLIPBOARD_MODE);
+		return s.equalsIgnoreCase("select");
+	}
+
+	public String getCookie() {
+		return properties.getProperty(COOKIE, "").replaceAll("\n", "");
+	}
+
+	public int getDictionaryBlockLimit() {
+		String s = properties.getProperty(DICTIONARY_BLOCK_LIMIT, "")
+				.replaceAll("\n", "");
+		return StringUtils.isBlank(s) ? 10 : Integer.parseInt(s);
+	}
+
+	public int getDictionaryDefisSeconds() {
+		String s = properties.getProperty(DICTIONARY_DEFIS_SECONDS, "")
+				.replaceAll("\n", "");
+		return StringUtils.isBlank(s) ? 1 : Integer.parseInt(s);
 	}
 
 	public String getDictionaryDirPath() {
@@ -43,8 +104,28 @@ public class AppProperties {
 		return dirPath;
 	}
 
-	public void setDictionaryDirPath(String s) {
-		properties.setProperty(DICTIONARY_TARGET_DIR, s);
+	public int getDictionaryPauseSeconds() {
+		String s = properties.getProperty(DICTIONARY_PAUSE_SECONDS, "")
+				.replaceAll("\n", "");
+		return StringUtils.isBlank(s) ? 1 : Integer.parseInt(s);
+	}
+
+	public String getDictionaryPronunciation() {
+		String pronunciation = properties.getProperty(DICTIONARY_PRONUNCIATION,
+				SoundReceiver.BR).replaceAll("\n", "");
+		check(pronunciation, DICTIONARY_PRONUNCIATION);
+		return pronunciation;
+	}
+
+	public String getDictionaryResultDir() {
+		String dirPath = properties.getProperty(DICTIONARY_RESULT_DIR)
+				.replaceAll("\n", "");
+		if (StringUtils.isBlank(dirPath)) {
+			dirPath = System.getProperty("user.home")
+					+ "/gtranslator-dictionary/results/dic1";
+			setDictionaryResultDirPath(dirPath);
+		}
+		return dirPath;
 	}
 
 	public boolean isHistory() {
@@ -55,52 +136,6 @@ public class AppProperties {
 			logger.error(ex);
 			return true;
 		}
-	}
-
-	public void setHistory(boolean b) {
-		properties.put(HISTORY, Boolean.toString(b));
-	}
-
-	public int getDictionaryPauseSeconds() {
-		String s = properties.getProperty(DICTIONARY_PAUSE_SECONDS, "")
-				.replaceAll("\n", "");
-		return StringUtils.isBlank(s) ? 1 : Integer.parseInt(s);
-	}
-
-	public void setDictionaryPauseSeconds(int i) {
-		properties.setProperty(DICTIONARY_PAUSE_SECONDS, Integer.toString(i));
-	}
-
-	public int getDictionaryDefisSeconds() {
-		String s = properties.getProperty(DICTIONARY_DEFIS_SECONDS, "")
-				.replaceAll("\n", "");
-		return StringUtils.isBlank(s) ? 1 : Integer.parseInt(s);
-	}
-
-	public void setDictionaryDefisSeconds(int i) {
-		properties.setProperty(DICTIONARY_DEFIS_SECONDS, Integer.toString(i));
-	}
-
-	public int getDictionaryBlockLimit() {
-		String s = properties.getProperty(DICTIONARY_BLOCK_LIMIT, "")
-				.replaceAll("\n", "");
-		return StringUtils.isBlank(s) ? 10 : Integer.parseInt(s);
-	}
-
-	public void setDictionaryBlockLimit(int i) {
-		properties.setProperty(DICTIONARY_BLOCK_LIMIT, Integer.toString(i));
-	}
-
-	public String getCookie() {
-		return properties.getProperty(COOKIE, "").replaceAll("\n", "");
-	}
-
-	public void setCookie(String s) {
-		properties.setProperty(COOKIE, s);
-	}
-
-	public void save() {
-		throw new java.lang.UnsupportedOperationException();
 	}
 
 	public void load(String propPath) throws IOException, ParseException {
@@ -134,5 +169,50 @@ public class AppProperties {
 		}
 		return StringUtils.isBlank(s) ? false : s.toLowerCase().matches(
 				"(y|yes|true|on)");
+	}
+
+	public void save() {
+		throw new java.lang.UnsupportedOperationException();
+	}
+
+	public void setClipboardActive(boolean b) {
+		properties.setProperty(CLIPBOARD_ACTIVE, b ? "start" : "copy");
+	}
+
+	public void setClipboardMode(boolean b) {
+		properties.setProperty(CLIPBOARD_MODE, b ? "copy" : "select");
+	}
+
+	public void setCookie(String s) {
+		properties.setProperty(COOKIE, s);
+	}
+
+	public void setDictionaryBlockLimit(int i) {
+		properties.setProperty(DICTIONARY_BLOCK_LIMIT, Integer.toString(i));
+	}
+
+	public void setDictionaryDefisSeconds(int i) {
+		properties.setProperty(DICTIONARY_DEFIS_SECONDS, Integer.toString(i));
+	}
+
+	public void setDictionaryDirPath(String s) {
+		properties.setProperty(DICTIONARY_TARGET_DIR, s);
+	}
+
+	public void setDictionaryPauseSeconds(int i) {
+		properties.setProperty(DICTIONARY_PAUSE_SECONDS, Integer.toString(i));
+	}
+
+	public void setDictionaryPronunciation(String s) {
+		check(s, DICTIONARY_PRONUNCIATION);
+		properties.setProperty(DICTIONARY_PRONUNCIATION, s);
+	}
+
+	public void setDictionaryResultDirPath(String s) {
+		properties.setProperty(DICTIONARY_RESULT_DIR, s);
+	}
+
+	public void setHistory(boolean b) {
+		properties.put(HISTORY, Boolean.toString(b));
 	}
 }

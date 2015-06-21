@@ -3,7 +3,6 @@ package gtranslator.translate;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -14,10 +13,8 @@ import javax.json.stream.JsonParser;
 import javax.json.stream.JsonParser.Event;
 
 public class DefaultGoogleFormater {
-	private List<List<String>> lastVariantWords = new ArrayList<>();
 
 	protected Tree parse(String s) {
-		lastVariantWords.clear();
 		while (s.indexOf(",,") != -1) {
 			s = s.replaceAll(",,", ",[],");
 		}
@@ -54,6 +51,11 @@ public class DefaultGoogleFormater {
 	}
 
 	public String format(String jsonText, boolean isAddition) {
+		return format(jsonText, isAddition, null);
+	}
+
+	protected String format(String jsonText, boolean isAddition,
+			List<List<String>> variantWords) {
 		Tree root = parse(jsonText);
 		StringBuilder sb = new StringBuilder();
 		Iterator<Tree> itHt = root.first(Tree.class).first(Tree.class)
@@ -61,7 +63,9 @@ public class DefaultGoogleFormater {
 		while (itHt.hasNext()) {
 			String s = itHt.next().first();
 			sb.append(s);
-			lastVariantWords.add(Arrays.asList(s));
+			if (variantWords != null) {
+				variantWords.add(Arrays.asList(s));
+			}
 		}
 		if (!isAddition) {
 			return sb.toString();
@@ -87,7 +91,9 @@ public class DefaultGoogleFormater {
 					wds.add(wd);
 					sb.append("\n");
 				}
-				lastVariantWords.add(wds);
+				if (variantWords != null) {
+					variantWords.add(wds);
+				}
 			}
 		}
 		t = root.first(Tree.class);
@@ -110,7 +116,7 @@ public class DefaultGoogleFormater {
 				List<String> wds = new ArrayList<String>();
 				Iterator<Tree> it2 = t1.first(Tree.class).iterator(Tree.class);
 				while (it2.hasNext()) {
-					Iterator<String> it3 = it2.next().iterator(String.class);					
+					Iterator<String> it3 = it2.next().iterator(String.class);
 					while (it3.hasNext()) {
 						sb.append("  ");
 						String wd = it3.next();
@@ -119,20 +125,20 @@ public class DefaultGoogleFormater {
 						sb.append("\n");
 					}
 				}
-				lastVariantWords.add(wds);
+				if (variantWords != null) {
+					variantWords.add(wds);
+				}
 			}
 		}
 		return sb.toString();
 	}
 
-	public List<List<String>> getLastVariantWords() {
-		return Collections.unmodifiableList(lastVariantWords);
-	}
-
-	public String formatSimple(List<List<String>> words) {
+	public String formatSimple(String jsonText) {
+		List<List<String>> variantWords = new ArrayList<>();
+		format(jsonText, true, variantWords);
 		Set<String> dublicates = new HashSet<String>();
 		StringBuilder sb = new StringBuilder();
-		for (List<String> l : words) {
+		for (List<String> l : variantWords) {
 			for (String s : l) {
 				if (dublicates.contains(s)) {
 					break;
@@ -141,7 +147,7 @@ public class DefaultGoogleFormater {
 					sb.append(";");
 				}
 				sb.append(s);
-				dublicates.add(s);				
+				dublicates.add(s);
 				break;
 			}
 		}

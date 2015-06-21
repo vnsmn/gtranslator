@@ -1,6 +1,9 @@
 package gtranslator.ui;
 
 import gtranslator.Actions;
+import gtranslator.DictionaryHelper;
+import gtranslator.Actions.DetailTranslateAction;
+import gtranslator.sound.SoundReceiver;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -11,6 +14,8 @@ import java.beans.PropertyChangeListener;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
@@ -19,26 +24,36 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 	Box box;
 	Border lineBorder;
 
-	JTextField targetDir;
+	JTextField resultDir;
 	JTextField wordsPath;
+	JTextField limitTextField;
+	JComboBox pronunciationLangComboBox;
+	JComboBox sourceTypeComboBox;
+	JCheckBox rusCheckBox;
+	JCheckBox multiRusCheckBox;
 
 	public void build(JPanel panel) {
 		box = Box.createVerticalBox();
 		panel.add(box, BorderLayout.NORTH);
 		lineBorder = BorderFactory.createLineBorder(Color.GRAY);
 
-		createWidgetsOfTextTargetDir();
+		createWidgetsOfResultDir();
 		createWidgetsOfWordsPath();
-		createWidgetsOfActionTranslatedHistory();
+		createWidgetsOfLimitPath();
+		createWidgetsOfLanguagePronunciation();
+		createWidgetsOfSourceType();
+		createWidgetsOfRus();
+		createWidgetsOfMultiRus();
+		createWidgetsOfPerform();
 	}
 
-	private void createWidgetsOfTextTargetDir() {
-		targetDir = new JTextField();
+	private void createWidgetsOfResultDir() {
+		resultDir = new JTextField();
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
-				"Target dir of result"));
-		panel.add(targetDir, BorderLayout.NORTH);
+				"Dir of result"));
+		panel.add(resultDir, BorderLayout.NORTH);
 		box.add(panel);
 	}
 
@@ -47,27 +62,47 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
-				"Path to words file"));
+				"Path of file to words file"));
 		panel.add(wordsPath, BorderLayout.NORTH);
 		box.add(panel);
 	}
 
-	private void createWidgetsOfActionTranslatedHistory() {
+	private void createWidgetsOfLimitPath() {
+		limitTextField = new JTextField();
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
-		panel.add(wordsPath, BorderLayout.NORTH);
+		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
+				"Block limit"));
+		panel.add(limitTextField, BorderLayout.NORTH);
 		box.add(panel);
-		final JButton button = new JButton("words");
+	}
+
+	private void createWidgetsOfPerform() {
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		box.add(panel);
+		final JButton button = new JButton("run");
 		button.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Thread th = new Thread(new Runnable() {					
+				Thread th = new Thread(new Runnable() {
 					@Override
 					public void run() {
 						button.setEnabled(false);
 						try {
-							Actions.findAction(Actions.HistoryDictionaryAction.class)
-									.execute(targetDir.getText());
+							Actions.DictionaryInput dic = new Actions.DictionaryInput();
+							dic.path = wordsPath.getText();
+							dic.resultDir = resultDir.getText();
+							dic.sourceType = DictionaryHelper.SOURCE_TYPE.valueOf(sourceTypeComboBox.getSelectedItem().toString()); 
+							dic.isAmPronunciation = SoundReceiver.AM.equalsIgnoreCase(pronunciationLangComboBox.getSelectedItem().toString())
+									|| "all".equalsIgnoreCase(pronunciationLangComboBox.getSelectedItem().toString());
+							dic.isBrPronunciation = SoundReceiver.BR.equalsIgnoreCase(pronunciationLangComboBox.getSelectedItem().toString())
+									|| "all".equalsIgnoreCase(pronunciationLangComboBox.getSelectedItem().toString());
+							dic.isRusTransled = rusCheckBox.isSelected();							
+							dic.isMultiRusTransled = multiRusCheckBox.isSelected();
+							Actions.findAction(
+									Actions.DictionaryAction.class)
+									.execute(dic);
 						} finally {
 							button.setEnabled(true);
 						}
@@ -81,9 +116,83 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 		box.add(panel);
 	}
 
+	private void createWidgetsOfLanguagePronunciation() {
+		String[] pronunciation = { SoundReceiver.AM, SoundReceiver.BR, "all" };
+		pronunciationLangComboBox = new JComboBox(pronunciation);
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
+				"Pronunciation"));
+		panel.add(pronunciationLangComboBox, BorderLayout.NORTH);
+		box.add(panel);
+	}
+
+	private void createWidgetsOfSourceType() {
+		String[] types = { DictionaryHelper.SOURCE_TYPE.HISTORY.name(),
+				DictionaryHelper.SOURCE_TYPE.DICTIONARY.name(),
+				DictionaryHelper.SOURCE_TYPE.TEXT.name() };
+		sourceTypeComboBox = new JComboBox(types);
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
+				"Type source"));
+		panel.add(sourceTypeComboBox, BorderLayout.NORTH);
+		box.add(panel);
+	}
+	
+	private void createWidgetsOfRus() {
+		rusCheckBox = new JCheckBox("Yes");
+		rusCheckBox.setSelected(true);
+		rusCheckBox.addActionListener(new java.awt.event.ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				final JCheckBox check = (JCheckBox) e.getSource();
+				check.setText(check.isSelected() ? "Yes" : "No");
+			}
+		});
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
+				"Is rus?"));
+		panel.add(rusCheckBox, BorderLayout.WEST);
+		box.add(panel);
+	}
+	
+	private void createWidgetsOfMultiRus() {
+		multiRusCheckBox = new JCheckBox("No");
+		multiRusCheckBox.setSelected(false);
+		multiRusCheckBox.addActionListener(new java.awt.event.ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				final JCheckBox check = (JCheckBox) e.getSource();
+				check.setText(check.isSelected() ? "Yes" : "No");
+			}
+		});
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
+				"Is multi rus?"));
+		panel.add(multiRusCheckBox, BorderLayout.WEST);
+		box.add(panel);
+	}
+
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
-		// TODO Auto-generated method stub
-		
+		if (evt.getSource() == this) {
+			return;
+		}
+		switch (evt.getPropertyName()) {
+		case Constants.PROPERTY_CHANGE_DICTIONARY_RESULT_DIR:
+			resultDir.setText(evt.getNewValue().toString());
+			break;
+		case Constants.PROPERTY_CHANGE_DICTIONARY_BLOCK_LIMIT:
+			limitTextField.setText(evt.getNewValue().toString());
+			break;
+		case Constants.PROPERTY_CHANGE_DICTIONARY_PRONUNCIATION:
+			pronunciationLangComboBox.setSelectedItem(evt.getNewValue()
+					.toString());
+			break;
+		}
+
 	}
 }
