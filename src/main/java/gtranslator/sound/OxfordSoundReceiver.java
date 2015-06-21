@@ -72,8 +72,7 @@ public class OxfordSoundReceiver implements SoundReceiver {
 				saveMissedFiles();
 				throw new SoundReceiverException(ex.getMessage() + ". url: "
 						+ String.format(REQUEST, word, word), ex);
-			}
-			isloaded = false;
+			}			
 		} else {
 			isloaded = true;
 		}
