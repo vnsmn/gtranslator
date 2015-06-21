@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 
 public class BatchTranslationHelper {
 
+	/*
 	public static final BatchTranslationHelper INSTANCE = new BatchTranslationHelper();
 
 	@SuppressWarnings("unchecked")
@@ -219,4 +220,5 @@ public class BatchTranslationHelper {
 				targetSoundFileName, blockLimit, seconds, secondsDefis,
 				isAllTranslated, doLoadSound, isRus);
 	}
+	*/
 }
