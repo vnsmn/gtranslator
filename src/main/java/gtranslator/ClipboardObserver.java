@@ -10,7 +10,12 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+
+import javax.swing.JRadioButton;
 
 import org.apache.log4j.Logger;
 
@@ -20,21 +25,24 @@ import org.apache.log4j.Logger;
 public class ClipboardObserver implements Runnable, ClipboardOwner {
 	private boolean isLostData = true;
 	private AtomicBoolean isPause = new AtomicBoolean(false);
-	private AtomicBoolean isSelected = new AtomicBoolean(false);
-	private AtomicBoolean isUsingHistory = new AtomicBoolean(false);
+	private AtomicReference<MODE> mode = new AtomicReference<>(MODE.COPY);	
 	private static ClipboardObserver instance;
 
+	public enum MODE {
+		SELECT, COPY, TEXT
+	}
+
 	private ActionListener actionListener;
-	
+
 	static final Logger logger = Logger.getLogger(ClipboardObserver.class);
 
 	public interface ActionListener {
 		void execute(String text);
 	}
-	
+
 	private ClipboardObserver() {
 	}
-	
+
 	public static ClipboardObserver getInstance() {
 		if (instance == null) {
 			instance = new ClipboardObserver();
@@ -55,35 +63,46 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 				.getSystemClipboard();
 		Clipboard selClipboard = Toolkit.getDefaultToolkit()
 				.getSystemSelection();
+		Object clipText = null;
 		while (!Thread.interrupted()) {
 			try {
-				if (isLostData && !isPause.get()) {
+				if ((isLostData || mode.get() == MODE.TEXT)
+						&& !isPause.get()) {
 					synchronized (this) {
-						Clipboard clipboard = isSelected.get() ? selClipboard
+						Clipboard clipboard = mode.get() == MODE.SELECT
+								|| mode.get() == MODE.TEXT ? selClipboard
 								: copyClipboard;
 						Transferable clipData = clipboard.getContents(null);
 						if (clipData
 								.isDataFlavorSupported(DataFlavor.stringFlavor)) {
 							Object text = clipData
-									.getTransferData(DataFlavor.stringFlavor);
-							StringSelection st = new StringSelection(
-									text.toString());
+									.getTransferData(DataFlavor.stringFlavor);							
 							UIOutput.getInstance().setSourceText(
 									text.toString());
 							String translate = TranslationReceiver.INSTANCE
 									.translateAndFormat(text.toString(), false);
-							UIOutput.getInstance().setTargetText(
-									translate);
-							UIOutput.getInstance().selectTranslatePanel();
+							UIOutput.getInstance().setTargetText(translate);
+							if (mode.get() != MODE.TEXT) {
+								UIOutput.getInstance().selectTranslatePanel();
+							}
 							if (actionListener != null) {
 								try {
-									actionListener.execute(text.toString());
+									actionListener.execute(clipText.toString());
 								} catch (Exception ex) {
 									logger.error(ex.getMessage());
 								}
 							}
-							clipboard.setContents(st, this);
-							isLostData = false;
+							if (mode.get() == MODE.TEXT) {
+								if (!text.equals(clipText)) {
+									clipText = text;
+								}								
+								Thread.sleep(1000);
+							} else {
+								StringSelection st = new StringSelection(
+										text.toString());
+								clipboard.setContents(st, this);
+								isLostData = false;
+							}
 						}
 					}
 				}
@@ -113,15 +132,15 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 		isLostData = true;
 	}
 
-	public synchronized void setSelected(boolean b) {
-		isSelected.set(b);
+	public synchronized void setMode(MODE mode) {
+		this.mode.set(mode);
 		isLostData = true;
 	}
 
 	public synchronized void setActionListener(ActionListener l) {
 		actionListener = l;
 	}
-	
+
 	public synchronized boolean isSupportSoundWord() {
 		return actionListener != null;
 	}

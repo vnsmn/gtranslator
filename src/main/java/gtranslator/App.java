@@ -145,10 +145,10 @@ public class App {
 		logger.info(isStart);
 
 		logger.info("----- clipboard.mode -----");
-		boolean isSelect = AppProperties.getInstance().getClipboardMode();
-		UIOutput.getInstance().setModeClipboard(isSelect);
-		Actions.findAction(ModeTClipboardAction.class).execute(isSelect);
-		logger.info(isSelect);
+		String mode = AppProperties.getInstance().getClipboardMode();
+		UIOutput.getInstance().setModeClipboard(ClipboardObserver.MODE.valueOf(mode));
+		Actions.findAction(ModeTClipboardAction.class).execute(ClipboardObserver.MODE.valueOf(mode));
+		logger.info(mode);
 
 		logger.info("********************");
 	}

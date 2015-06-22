@@ -1,22 +1,35 @@
 package gtranslator.ui;
 
 import gtranslator.Actions;
-import gtranslator.Actions.*;
+import gtranslator.Actions.CookieAction;
+import gtranslator.Actions.DetailTranslateAction;
+import gtranslator.Actions.ModeTClipboardAction;
+import gtranslator.Actions.RewriteHistoryAction;
+import gtranslator.Actions.StartStopTClipboardAction;
+import gtranslator.Actions.UseHistoryAction;
+import gtranslator.Actions.WordPlayOfClipboardAction;
+import gtranslator.ClipboardObserver;
+import gtranslator.ClipboardObserver.MODE;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 
@@ -25,12 +38,12 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 	Border lineBorder;
 
 	private JCheckBox activityClipboardCheckBox;
-	private JCheckBox modeClipboardCheckBox;
 	private JTextField cookieField;
 	private JTextField dictionaryDirField;
 	private JCheckBox historyCheckBox;
 	private JCheckBox soundCheckBox;
 	private JLabel statisticLabel;
+	private Map<MODE, JRadioButton> modeWidgets = new HashMap<>();
 
 	public void build(JPanel panel) {
 		box = Box.createVerticalBox();
@@ -44,7 +57,7 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 		createWidgetsOfUseHistory();
 		createWidgetsOfWordPlayOfClipboardHistory();
 		createWidgetsOfActivityClipboardTranslate();
-		createWidgetsOfModeClipboardTranslate();
+		createWidgetsOfModeClipboard();
 		createWidgetOfCookie();
 	}
 
@@ -172,19 +185,22 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 	}
 
 	private void createWidgetsOfActivityClipboardTranslate() {
-		activityClipboardCheckBox = new JCheckBox("Stop");
+		activityClipboardCheckBox = new JCheckBox("Start");
 		activityClipboardCheckBox
 				.addActionListener(new java.awt.event.ActionListener() {
 					@Override
-					public void actionPerformed(ActionEvent e) {						
-						changeActivityClipboardCheckBox(activityClipboardCheckBox.isSelected());						
+					public void actionPerformed(ActionEvent e) {
+						changeActivityClipboardCheckBox(activityClipboardCheckBox
+								.isSelected());
 						Actions.findAction(StartStopTClipboardAction.class)
-								.execute(!activityClipboardCheckBox.isSelected());
-						firePropertyChange(Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD, 
+								.execute(
+										!activityClipboardCheckBox.isSelected());
+						firePropertyChange(
+								Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD,
 								!activityClipboardCheckBox.isSelected(),
 								activityClipboardCheckBox.isSelected());
 					}
-				});		
+				});
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
@@ -192,37 +208,57 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 		panel.add(activityClipboardCheckBox, BorderLayout.WEST);
 		box.add(panel);
 	}
-	
+
 	private void changeActivityClipboardCheckBox(boolean b) {
 		activityClipboardCheckBox.setSelected(b);
 		activityClipboardCheckBox.setText(b ? "Start" : "Stop");
 	}
 
-	private void createWidgetsOfModeClipboardTranslate() {
-		modeClipboardCheckBox = new JCheckBox("Select");
-		modeClipboardCheckBox
-				.addActionListener(new java.awt.event.ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						changeModeClipboardCheckBox(modeClipboardCheckBox.isSelected());
-						Actions.findAction(ModeTClipboardAction.class).execute(
-								modeClipboardCheckBox.isSelected());
-						firePropertyChange(Constants.PROPERTY_CHANGE_MODE_CLIPBOARD, 
-								!modeClipboardCheckBox.isSelected(),
-								modeClipboardCheckBox.isSelected());
-					}
-				});		
-		JPanel panel = new JPanel();
-		panel.setLayout(new BorderLayout());
+	private void createWidgetsOfModeClipboard() {
+		ActionListener actionListener = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				MODE mode = MODE.valueOf(e.getActionCommand());
+				Actions.findAction(ModeTClipboardAction.class).execute(mode);
+				UISetupBuilder.this.firePropertyChange(Constants.PROPERTY_CHANGE_MODE_CLIPBOARD,
+						null, mode);
+			}
+		};
+
+		JRadioButton textButton = new JRadioButton("Select without lost focus");
+		textButton.setMnemonic(KeyEvent.VK_C);
+		textButton.setActionCommand(ClipboardObserver.MODE.TEXT.name());
+		textButton.addActionListener(actionListener);
+		modeWidgets.put(MODE.TEXT, textButton);		
+		
+		JRadioButton selButton = new JRadioButton("Select with lost focus");
+		selButton.setMnemonic(KeyEvent.VK_B);
+		selButton.setActionCommand(ClipboardObserver.MODE.SELECT.name());
+		selButton.setSelected(true);
+		selButton.addActionListener(actionListener);
+		modeWidgets.put(MODE.SELECT, selButton);
+
+
+		JRadioButton copyButton = new JRadioButton("Copy");
+		copyButton.setMnemonic(KeyEvent.VK_D);
+		copyButton.setActionCommand(ClipboardObserver.MODE.COPY.name());
+		copyButton.addActionListener(actionListener);
+		modeWidgets.put(MODE.COPY, copyButton);
+
+		// Group the radio buttons.
+		ButtonGroup group = new ButtonGroup();
+		group.add(selButton);
+		group.add(textButton);
+		group.add(copyButton);
+
+		JPanel panel = new JPanel(new GridLayout(0, 1));
 		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
-				"Is mode of copy/select of clipboard?"));
-		panel.add(modeClipboardCheckBox, BorderLayout.WEST);
+				"Mode clipboard"));
+		
+		panel.add(textButton);
+		panel.add(selButton);		
+		panel.add(copyButton);
 		box.add(panel);
-	}
-	
-	private void changeModeClipboardCheckBox(boolean b) {		
-		modeClipboardCheckBox.setSelected(b);
-		modeClipboardCheckBox.setText(b ? "Select" : "Copy");
 	}
 
 	@Override
@@ -235,7 +271,8 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 			changeActivityClipboardCheckBox((Boolean) evt.getNewValue());
 			break;
 		case Constants.PROPERTY_CHANGE_MODE_CLIPBOARD:
-			changeModeClipboardCheckBox((Boolean) evt.getNewValue());
+			JRadioButton button = modeWidgets.get((MODE) evt.getNewValue());
+			button.setSelected(true);
 			break;
 		case Constants.PROPERTY_CHANGE_COOKIE:
 			cookieField.setText((String) evt.getNewValue());

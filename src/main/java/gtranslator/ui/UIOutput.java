@@ -1,6 +1,7 @@
 package gtranslator.ui;
 
 import gtranslator.Actions;
+import gtranslator.ClipboardObserver;
 
 import java.awt.BorderLayout;
 import java.awt.Cursor;
@@ -193,8 +194,8 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 		firePropertyChange(Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD, null, b);
 	}
 	
-	public void setModeClipboard(boolean b) {
-		firePropertyChange(Constants.PROPERTY_CHANGE_MODE_CLIPBOARD, null, b);
+	public void setModeClipboard(ClipboardObserver.MODE mode) {
+		firePropertyChange(Constants.PROPERTY_CHANGE_MODE_CLIPBOARD, null, mode);
 	}
 	
 	public void setDictionaryResultDir(String s) {

@@ -51,7 +51,7 @@ public class AppProperties {
 			}
 			break;
 		case CLIPBOARD_MODE:
-			if (!s.matches("(copy|select)+")) {
+			if (!s.toLowerCase().matches("(copy|select|text)+")) {
 				throw new GTranslatorException(format, type, s);
 			}
 			break;
@@ -71,11 +71,11 @@ public class AppProperties {
 		return s.equals("start");
 	}
 
-	public boolean getClipboardMode() {
+	public String getClipboardMode() {
 		String s = properties.getProperty(CLIPBOARD_MODE, "copy").replaceAll(
-				"\n", "");
+				"\n", "").toUpperCase();
 		check(s, CLIPBOARD_MODE);
-		return s.equalsIgnoreCase("select");
+		return s;
 	}
 
 	public String getCookie() {
@@ -179,8 +179,9 @@ public class AppProperties {
 		properties.setProperty(CLIPBOARD_ACTIVE, b ? "start" : "copy");
 	}
 
-	public void setClipboardMode(boolean b) {
-		properties.setProperty(CLIPBOARD_MODE, b ? "copy" : "select");
+	public void setClipboardMode(String s) {
+		check(s, CLIPBOARD_MODE);
+		properties.setProperty(CLIPBOARD_MODE, s);
 	}
 
 	public void setCookie(String s) {

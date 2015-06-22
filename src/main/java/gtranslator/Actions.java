@@ -135,12 +135,12 @@ public class Actions {
 		}
 	}
 
-	public static class ModeTClipboardAction extends Action<Boolean> {
+	public static class ModeTClipboardAction extends Action<ClipboardObserver.MODE> {
 		@Override
-		public void execute(Boolean b) {
+		public void execute(ClipboardObserver.MODE mode) {
 			UIOutput.getInstance().showWaitCursor();
 			try {
-				ClipboardObserver.getInstance().setSelected(b);
+				ClipboardObserver.getInstance().setMode(mode);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
