@@ -34,6 +34,8 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 
 	private UIOutput(int weigth, int height) {
 		frame = new JFrame();
+		frame.setIconImage(
+				new ImageIcon(this.getClass().getClassLoader().getResource("fish.png")).getImage());
 		frame.setTitle("gtranslator");
 		frame.addWindowListener(new WindowAdapterExt());
 		tabbedPane = new JTabbedPane();		
