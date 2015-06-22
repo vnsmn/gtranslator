@@ -6,6 +6,7 @@ import gtranslator.translate.TranslationReceiver;
 import gtranslator.ui.UIOutput;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -20,9 +21,23 @@ public class App {
 
 	private static Thread clipboardThread;
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InvocationTargetException, InterruptedException {
 		logger.info("hi");
 
+//		javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+//			@Override
+//			public void run() {
+//				try {
+//					loadProperties(args);
+//					applyProperties();
+//					loadHistory();
+//				} catch (IOException | ParseException | java.text.ParseException ex) {
+//					logger.error(ex.getMessage(), ex);
+//					System.exit(-1);
+//				}				
+//			}		
+//		});
+		
 		try {
 			loadProperties(args);
 			applyProperties();

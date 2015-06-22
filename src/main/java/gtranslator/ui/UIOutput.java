@@ -5,12 +5,16 @@ import gtranslator.Actions;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -24,11 +28,14 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 	private JTextArea sourceArea;
 	private JTextArea targetArea;
 	private JTabbedPane tabbedPane;
+	private JPanel glass;
+	private int cnt = 0;
 
 	private UIOutput(int weigth, int height) {
 		frame = new JFrame();
+		frame.setTitle("gtranslator");
 		frame.addWindowListener(new WindowAdapterExt());
-		tabbedPane = new JTabbedPane();
+		tabbedPane = new JTabbedPane();		
 		Font font = new Font("Serif", Font.ITALIC, 10);
 		tabbedPane.setFont(font);
 		frame.setSize(weigth, height);
@@ -83,8 +90,35 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 		addPropertyChangeListener(uiDicBuilder);
 
 		// frame.pack(); если размер устанавливается внутренними компонентами
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);		
+		ImageIcon loading = new ImageIcon(this.getClass().getClassLoader().getResource("loading.gif"));
+		Image img = loading.getImage().getScaledInstance(30, 30, Image.SCALE_DEFAULT);
+		loading.setImage(img);
+		glass = (JPanel)frame.getGlassPane();
+		JLabel label = new JLabel("loading... ", loading, JLabel.CENTER);
+		label.setOpaque(false);
+		glass.setLayout(new GridBagLayout());
+		glass.add(label);
+		glass.setOpaque(false);
 		frame.setVisible(true);
+	}
+	
+	public void showWaitCursor() {
+		cnt++;		
+		glass.setVisible(true);
+		frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+	}
+	
+	public void hideWaitCursor() {
+		if (--cnt <= 0) {
+			closeWaitCursor();			
+		}
+	}
+	
+	public void closeWaitCursor() {
+		cnt = 0;
+		glass.setVisible(false);
+		frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 	}
 
 	public void show() {
@@ -113,15 +147,7 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 	public void selectTranslatePanel() {
 		tabbedPane.setSelectedIndex(0);
 	}
-
-	public void setWaitCursor() {
-		frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-	}
-
-	public void setDefCursor() {
-		frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-	}
-
+	
 	public static UIOutput getInstance() {
 		synchronized (UIOutput.class) {
 			if (INSTANCE == null) {
