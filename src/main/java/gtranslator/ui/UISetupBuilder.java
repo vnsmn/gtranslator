@@ -190,11 +190,8 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 				.addActionListener(new java.awt.event.ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						changeActivityClipboardCheckBox(activityClipboardCheckBox
-								.isSelected());
 						Actions.findAction(StartStopTClipboardAction.class)
-								.execute(
-										!activityClipboardCheckBox.isSelected());
+								.execute(!activityClipboardCheckBox.isSelected());
 						firePropertyChange(
 								Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD,
 								!activityClipboardCheckBox.isSelected(),
@@ -207,11 +204,6 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 				"Do start/stop clipboard?"));
 		panel.add(activityClipboardCheckBox, BorderLayout.WEST);
 		box.add(panel);
-	}
-
-	private void changeActivityClipboardCheckBox(boolean b) {
-		activityClipboardCheckBox.setSelected(b);
-		activityClipboardCheckBox.setText(b ? "Start" : "Stop");
 	}
 
 	private void createWidgetsOfModeClipboard() {
@@ -268,7 +260,7 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 		}
 		switch (evt.getPropertyName()) {
 		case Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD:
-			changeActivityClipboardCheckBox((Boolean) evt.getNewValue());
+			activityClipboardCheckBox.setSelected((Boolean) evt.getNewValue());
 			break;
 		case Constants.PROPERTY_CHANGE_MODE_CLIPBOARD:
 			JRadioButton button = modeWidgets.get((MODE) evt.getNewValue());
