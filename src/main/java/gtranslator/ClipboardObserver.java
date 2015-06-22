@@ -87,7 +87,7 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 							}
 							if (actionListener != null) {
 								try {
-									actionListener.execute(clipText.toString());
+									actionListener.execute(text.toString());
 								} catch (Exception ex) {
 									logger.error(ex.getMessage());
 								}
