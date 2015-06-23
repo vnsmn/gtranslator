@@ -68,6 +68,7 @@ public class TranslationReceiver {
 				+ createParameters(params);
 		URL url = new URL(request);
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		conn.setConnectTimeout(15000);
 		conn.setDoOutput(false);
 		conn.setRequestMethod("GET");
 		conn.setRequestProperty("Accept",
@@ -105,6 +106,7 @@ public class TranslationReceiver {
 		URL url = new URL(request);
 
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		conn.setConnectTimeout(15000);
 		conn.setDoOutput(true);
 		conn.setRequestMethod("POST");
 		conn.setRequestProperty("Content-Type",

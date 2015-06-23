@@ -67,6 +67,9 @@ public class OxfordSoundReceiver implements SoundReceiver {
 				logger.info(refAm);
 				isloaded = !fBr.exists() ? writeSound(fBr, word, refBr) : true;
 				isloaded |= !fAm.exists() ? writeSound(fAm, word, refAm) : true;
+			} catch (java.net.SocketTimeoutException ex) {
+				throw new SoundReceiverException(ex.getMessage() + ". url: "
+						+ String.format(REQUEST, word, word), ex);
 			} catch (IOException ex) {
 				missedProperies.put(word, word);
 				saveMissedFiles();
@@ -94,6 +97,7 @@ public class OxfordSoundReceiver implements SoundReceiver {
 		}
 		URL url = new URL(request);
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		conn.setConnectTimeout(15000);
 		conn.setDoOutput(false);
 		conn.setRequestMethod("GET");
 		conn.setRequestProperty(
