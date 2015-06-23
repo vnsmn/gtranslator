@@ -10,6 +10,7 @@ import gtranslator.Actions.TranslateWordAction;
 import gtranslator.Actions.WordPlayOfClipboardAction;
 import gtranslator.ClipboardObserver.MODE;
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -22,25 +23,28 @@ import java.util.Map;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JTextArea;
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
 public class UITransBuilder extends UIBuilder implements PropertyChangeListener {
-	private JCheckBoxMenuItem[] activityClipboardMenuItems = {null, null};
-	private JCheckBoxMenuItem[] soundMenuItems = {null, null};
-	private JCheckBoxMenuItem[] detailClipboardItems = {null, null};
+	private JCheckBoxMenuItem[] activityClipboardMenuItems = { null, null };
+	private JCheckBoxMenuItem[] soundMenuItems = { null, null };
+	private JCheckBoxMenuItem[] detailClipboardItems = { null, null };
 	private JTextArea sourceArea;
 	private JTextArea targetArea;
 	private JFrame frame;
 	@SuppressWarnings("unchecked")
 	private Map<MODE, JRadioButtonMenuItem>[] modeWidgets = new HashMap[] {
-			new HashMap<>(), new HashMap<>()};
+			new HashMap<>(), new HashMap<>() };
 
 	public void build(JFrame frame, JTextArea sourceArea, JTextArea targetArea,
 			JPopupMenu sourcePopupMenu, JPopupMenu targetPopupMenu) {
@@ -77,31 +81,39 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 			}
 		});
 		sourcePopupMenu.add(mit);
-		
+
 		soundMenuItems[index] = new JCheckBoxMenuItem("Sound");
-		soundMenuItems[index].addActionListener(new java.awt.event.ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {	
-				boolean b = ((JMenuItem)e.getSource()).isSelected();
-				Actions.findAction(WordPlayOfClipboardAction.class).execute(b);
-				soundMenuItems[0].setSelected(b);
-				soundMenuItems[1].setSelected(b);
-				firePropertyChange(Constants.PROPERTY_CHANGE_SOUND, null, b);
-			}
-		});
+		soundMenuItems[index]
+				.addActionListener(new java.awt.event.ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						boolean b = ((JMenuItem) e.getSource()).isSelected();
+						Actions.findAction(WordPlayOfClipboardAction.class)
+								.execute(b);
+						soundMenuItems[0].setSelected(b);
+						soundMenuItems[1].setSelected(b);
+						firePropertyChange(Constants.PROPERTY_CHANGE_SOUND,
+								null, b);
+					}
+				});
 		sourcePopupMenu.add(soundMenuItems[index]);
-		
-		detailClipboardItems[index] = new JCheckBoxMenuItem("Detail translation");
-		detailClipboardItems[index].addActionListener(new java.awt.event.ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				boolean b = ((JMenuItem)e.getSource()).isSelected();
-				Actions.findAction(DetailTranslateAction.class).execute(b);				
-				detailClipboardItems[0].setSelected(b);
-				detailClipboardItems[1].setSelected(b);
-				firePropertyChange(Constants.PROPERTY_CHANGE_DETAIL_CLIPBOARD, null, b);
-			}
-		});
+
+		detailClipboardItems[index] = new JCheckBoxMenuItem(
+				"Detail translation");
+		detailClipboardItems[index]
+				.addActionListener(new java.awt.event.ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						boolean b = ((JMenuItem) e.getSource()).isSelected();
+						Actions.findAction(DetailTranslateAction.class)
+								.execute(b);
+						detailClipboardItems[0].setSelected(b);
+						detailClipboardItems[1].setSelected(b);
+						firePropertyChange(
+								Constants.PROPERTY_CHANGE_DETAIL_CLIPBOARD,
+								null, b);
+					}
+				});
 		sourcePopupMenu.add(detailClipboardItems[index]);
 
 		activityClipboardMenuItems[index] = new JCheckBoxMenuItem("Start");
@@ -109,16 +121,19 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 				.addActionListener(new java.awt.event.ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						boolean b = ((JCheckBoxMenuItem) e.getSource()).isSelected();
+						boolean b = ((JCheckBoxMenuItem) e.getSource())
+								.isSelected();
 						Actions.findAction(StartStopTClipboardAction.class)
 								.execute(!b);
-						firePropertyChange(Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD, !b, b);
+						firePropertyChange(
+								Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD,
+								!b, b);
 						activityClipboardMenuItems[0].setSelected(b);
 						activityClipboardMenuItems[1].setSelected(b);
 					}
 				});
 		sourcePopupMenu.add(activityClipboardMenuItems[index]);
-		
+
 		ActionListener actionListener = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -127,35 +142,36 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 				firePropertyChange(Constants.PROPERTY_CHANGE_MODE_CLIPBOARD,
 						null, mode);
 			}
-		};		
-		
+		};
+
 		ButtonGroup group = new ButtonGroup();
-		
-		JMenu menu = new JMenu("Clipboard modes");	
-	    menu.setMnemonic(KeyEvent.VK_O);
 
-	    JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem("Select without lost focus");
-	    menuItem.setActionCommand(MODE.TEXT.name());
-	    menuItem.addActionListener(actionListener);
-	    group.add(menuItem);
-	    menu.add(menuItem);
-	    modeWidgets[index].put(MODE.TEXT, menuItem);
+		JMenu menu = new JMenu("Clipboard modes");
+		menu.setMnemonic(KeyEvent.VK_O);
 
-	    menuItem = new JRadioButtonMenuItem("Select with lost focus");
-	    menuItem.setActionCommand(MODE.SELECT.name());
-	    menuItem.addActionListener(actionListener);
-	    group.add(menuItem);
-	    menu.add(menuItem);
-	    modeWidgets[index].put(MODE.SELECT, menuItem);
+		JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem(
+				"Select without lost focus");
+		menuItem.setActionCommand(MODE.TEXT.name());
+		menuItem.addActionListener(actionListener);
+		group.add(menuItem);
+		menu.add(menuItem);
+		modeWidgets[index].put(MODE.TEXT, menuItem);
 
-	    menuItem = new JRadioButtonMenuItem("Copy");
-	    menuItem.setActionCommand(MODE.COPY.name());
-	    menuItem.addActionListener(actionListener);
-	    group.add(menuItem);
-	    menu.add(menuItem);
-	    modeWidgets[index].put(MODE.COPY, menuItem);	   
-	    
-	    sourcePopupMenu.add(menu);
+		menuItem = new JRadioButtonMenuItem("Select with lost focus");
+		menuItem.setActionCommand(MODE.SELECT.name());
+		menuItem.addActionListener(actionListener);
+		group.add(menuItem);
+		menu.add(menuItem);
+		modeWidgets[index].put(MODE.SELECT, menuItem);
+
+		menuItem = new JRadioButtonMenuItem("Copy");
+		menuItem.setActionCommand(MODE.COPY.name());
+		menuItem.addActionListener(actionListener);
+		group.add(menuItem);
+		menu.add(menuItem);
+		modeWidgets[index].put(MODE.COPY, menuItem);
+
+		sourcePopupMenu.add(menu);
 	}
 
 	@Override
@@ -171,7 +187,8 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 			}
 			break;
 		case Constants.PROPERTY_CHANGE_MODE_CLIPBOARD:
-			JRadioButtonMenuItem button = modeWidgets[0].get((MODE) evt.getNewValue());
+			JRadioButtonMenuItem button = modeWidgets[0].get((MODE) evt
+					.getNewValue());
 			button.setSelected(true);
 			button = modeWidgets[1].get((MODE) evt.getNewValue());
 			button.setSelected(true);
@@ -193,15 +210,25 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 
 	private class SourceMouseAdapter extends MouseAdapter {
 		public void mouseClicked(MouseEvent e) {
-			String[] ss = { sourceArea.getText(), sourceArea.getText() };
-			Actions.findAction(TranslateWordAction.class).execute(ss);
-			targetArea.setText(ss[1]);
+			if (e.getClickCount() == 2) {
+				String[] ss = { sourceArea.getText(), sourceArea.getText() };
+				Actions.findAction(TranslateWordAction.class).execute(ss);
+				targetArea.setText(ss[1]);
+			}
 		}
 	}
-	
+
 	private class TargetMouseAdapter extends MouseAdapter {
 		public void mouseClicked(MouseEvent e) {
 			if (e.getClickCount() == 2) {
+				JComponent component = (JComponent) frame.getContentPane()
+						.getComponent(0);
+				if (frame.isAlwaysOnTop()) {
+					component.setBorder(null);
+				} else {
+					component.setBorder(new LineBorder(Color.lightGray, 2));
+				}
+				frame.setAlwaysOnTop(!frame.isAlwaysOnTop());
 			}
 		}
 	}
@@ -218,5 +245,5 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 		@Override
 		public void popupMenuCanceled(PopupMenuEvent e) {
 		}
-	}	
+	}
 }
