@@ -82,9 +82,9 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 							String translate = TranslationReceiver.INSTANCE
 									.translateAndFormat(text.toString(), false);
 							UIOutput.getInstance().setTargetText(translate);
-							if (mode.get() != MODE.TEXT) {
+							if (mode.get() == MODE.COPY) {
 								UIOutput.getInstance().selectTranslatePanel();
-							}
+							}							
 							if (actionListener != null) {
 								try {
 									actionListener.execute(text.toString());
@@ -103,6 +103,7 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 								clipboard.setContents(st, this);
 								isLostData = false;
 							}
+							UIOutput.getInstance().restore();
 						}
 					}
 				}

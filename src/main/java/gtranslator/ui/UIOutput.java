@@ -34,11 +34,11 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 
 	private UIOutput(int weigth, int height) {
 		frame = new JFrame();
-		frame.setIconImage(
-				new ImageIcon(this.getClass().getClassLoader().getResource("fish.png")).getImage());
+		frame.setIconImage(new ImageIcon(this.getClass().getClassLoader()
+				.getResource("fish.png")).getImage());
 		frame.setTitle("gtranslator");
 		frame.addWindowListener(new WindowAdapterExt());
-		tabbedPane = new JTabbedPane();		
+		tabbedPane = new JTabbedPane();
 		Font font = new Font("Serif", Font.ITALIC, 10);
 		tabbedPane.setFont(font);
 		frame.setSize(weigth, height);
@@ -66,7 +66,8 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 		JPopupMenu sourcePopupMenu = new JPopupMenu("Translate");
 		sourceArea.setComponentPopupMenu(sourcePopupMenu);
 		UITransBuilder uiTransBuilder = new UITransBuilder();
-		uiTransBuilder.build(sourceArea, targetArea, sourcePopupMenu, targetPopupMenu);
+		uiTransBuilder.build(frame, sourceArea, targetArea, sourcePopupMenu,
+				targetPopupMenu);
 
 		JPanel setupPanel = new JPanel();
 		setupPanel.setLayout(new BorderLayout());
@@ -95,11 +96,13 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 		addPropertyChangeListener(uiDicBuilder);
 
 		// frame.pack(); если размер устанавливается внутренними компонентами
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);		
-		ImageIcon loading = new ImageIcon(this.getClass().getClassLoader().getResource("loading.gif"));
-		Image img = loading.getImage().getScaledInstance(30, 30, Image.SCALE_DEFAULT);
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		ImageIcon loading = new ImageIcon(this.getClass().getClassLoader()
+				.getResource("loading.gif"));
+		Image img = loading.getImage().getScaledInstance(30, 30,
+				Image.SCALE_DEFAULT);
 		loading.setImage(img);
-		glass = (JPanel)frame.getGlassPane();
+		glass = (JPanel) frame.getGlassPane();
 		JLabel label = new JLabel("loading... ", loading, JLabel.CENTER);
 		label.setOpaque(false);
 		glass.setLayout(new GridBagLayout());
@@ -107,19 +110,19 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 		glass.setOpaque(false);
 		frame.setVisible(true);
 	}
-	
+
 	public void showWaitCursor() {
-		cnt++;		
+		cnt++;
 		glass.setVisible(true);
 		frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 	}
-	
+
 	public void hideWaitCursor() {
 		if (--cnt <= 0) {
-			closeWaitCursor();			
+			closeWaitCursor();
 		}
 	}
-	
+
 	public void closeWaitCursor() {
 		cnt = 0;
 		glass.setVisible(false);
@@ -131,6 +134,14 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 			frame.setState(JFrame.NORMAL);
 		}
 		frame.setVisible(true);
+	}
+
+	public void restore() {
+		if (!frame.isAlwaysOnTop()) {
+			frame.setVisible(false);
+			frame.setVisible(true);
+			frame.toFront();
+		}
 	}
 
 	public void hide() {
@@ -152,7 +163,7 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 	public void selectTranslatePanel() {
 		tabbedPane.setSelectedIndex(0);
 	}
-	
+
 	public static UIOutput getInstance() {
 		synchronized (UIOutput.class) {
 			if (INSTANCE == null) {
@@ -193,29 +204,33 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 	public void setSound(boolean b) {
 		firePropertyChange(Constants.PROPERTY_CHANGE_SOUND, null, b);
 	}
-	
+
 	public void setActivityClipboard(boolean b) {
-		firePropertyChange(Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD, null, b);
+		firePropertyChange(Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD, null,
+				b);
 	}
-	
+
 	public void setModeClipboard(ClipboardObserver.MODE mode) {
 		firePropertyChange(Constants.PROPERTY_CHANGE_MODE_CLIPBOARD, null, mode);
 	}
-	
+
 	public void setDictionaryResultDir(String s) {
-		firePropertyChange(Constants.PROPERTY_CHANGE_DICTIONARY_RESULT_DIR, null, s);
+		firePropertyChange(Constants.PROPERTY_CHANGE_DICTIONARY_RESULT_DIR,
+				null, s);
 	}
-	
+
 	public void setDictionaryBlockLimit(int i) {
-		firePropertyChange(Constants.PROPERTY_CHANGE_DICTIONARY_BLOCK_LIMIT, null, i);
+		firePropertyChange(Constants.PROPERTY_CHANGE_DICTIONARY_BLOCK_LIMIT,
+				null, i);
 	}
-	
+
 	public void setDictionaryPronunciation(String s) {
-		firePropertyChange(Constants.PROPERTY_CHANGE_DICTIONARY_PRONUNCIATION, null, s);
+		firePropertyChange(Constants.PROPERTY_CHANGE_DICTIONARY_PRONUNCIATION,
+				null, s);
 	}
 
 	@Override
-	public void propertyChange(PropertyChangeEvent evt) {		
+	public void propertyChange(PropertyChangeEvent evt) {
 		redirectPropertyChange(evt);
 	}
 }

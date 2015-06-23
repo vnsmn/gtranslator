@@ -20,8 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.ButtonGroup;
-import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -36,20 +36,23 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 	private JCheckBoxMenuItem[] detailClipboardItems = {null, null};
 	private JTextArea sourceArea;
 	private JTextArea targetArea;
+	private JFrame frame;
 	@SuppressWarnings("unchecked")
 	private Map<MODE, JRadioButtonMenuItem>[] modeWidgets = new HashMap[] {
 			new HashMap<>(), new HashMap<>()};
 
-	public void build(JTextArea sourceArea, JTextArea targetArea,
+	public void build(JFrame frame, JTextArea sourceArea, JTextArea targetArea,
 			JPopupMenu sourcePopupMenu, JPopupMenu targetPopupMenu) {
 		this.sourceArea = sourceArea;
 		this.targetArea = targetArea;
+		this.frame = frame;
 
 		createPopupMenu(sourceArea, targetArea, sourcePopupMenu, 0);
 		createPopupMenu(sourceArea, targetArea, targetPopupMenu, 1);
 
 		sourcePopupMenu.addPopupMenuListener(new PopupMenuListenerExt());
-		sourceArea.addMouseListener(new MouseAdapterExt());
+		sourceArea.addMouseListener(new SourceMouseAdapter());
+		targetArea.addMouseListener(new TargetMouseAdapter());
 	}
 
 	private void createPopupMenu(JTextArea sourceArea, JTextArea targetArea,
@@ -187,11 +190,18 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 		}
 	}
 
-	private class MouseAdapterExt extends MouseAdapter {
+	private class SourceMouseAdapter extends MouseAdapter {
 		public void mouseClicked(MouseEvent e) {
 			String[] ss = { sourceArea.getText(), sourceArea.getText() };
 			Actions.findAction(TranslateWordAction.class).execute(ss);
 			targetArea.setText(ss[1]);
+		}
+	}
+	
+	private class TargetMouseAdapter extends MouseAdapter {
+		public void mouseClicked(MouseEvent e) {
+			if (e.getClickCount() == 2) {
+			}
 		}
 	}
 
