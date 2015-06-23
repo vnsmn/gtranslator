@@ -7,6 +7,7 @@ import gtranslator.Actions.ModeTClipboardAction;
 import gtranslator.Actions.PlayEngWordWithLoadAction;
 import gtranslator.Actions.StartStopTClipboardAction;
 import gtranslator.Actions.TranslateWordAction;
+import gtranslator.Actions.WordPlayOfClipboardAction;
 import gtranslator.ClipboardObserver.MODE;
 
 import java.awt.event.ActionEvent;
@@ -80,12 +81,12 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 		soundMenuItems[index] = new JCheckBoxMenuItem("Sound");
 		soundMenuItems[index].addActionListener(new java.awt.event.ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				Actions.findAction(PlayEngWordWithLoadAction.class).execute(
-						sourceArea.getText());
-				soundMenuItems[0].setSelected(((JMenuItem)e.getSource()).isSelected());
-				soundMenuItems[1].setSelected(((JMenuItem)e.getSource()).isSelected());
-				firePropertyChange(Constants.PROPERTY_CHANGE_SOUND, null, ((JMenuItem)e.getSource()).isSelected());
+			public void actionPerformed(ActionEvent e) {	
+				boolean b = ((JMenuItem)e.getSource()).isSelected();
+				Actions.findAction(WordPlayOfClipboardAction.class).execute(b);
+				soundMenuItems[0].setSelected(b);
+				soundMenuItems[1].setSelected(b);
+				firePropertyChange(Constants.PROPERTY_CHANGE_SOUND, null, b);
 			}
 		});
 		sourcePopupMenu.add(soundMenuItems[index]);
