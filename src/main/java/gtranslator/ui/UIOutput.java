@@ -55,6 +55,8 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 		JScrollPane targetScrollPane = new JScrollPane();
 		targetScrollPane.add(targetArea);
 		targetScrollPane.setViewportView(targetArea);
+		JPopupMenu targetPopupMenu = new JPopupMenu("Translate");
+		targetArea.setComponentPopupMenu(targetPopupMenu);
 
 		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
 				sourceScrollPane, targetScrollPane);
@@ -64,7 +66,7 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 		JPopupMenu sourcePopupMenu = new JPopupMenu("Translate");
 		sourceArea.setComponentPopupMenu(sourcePopupMenu);
 		UITransBuilder uiTransBuilder = new UITransBuilder();
-		uiTransBuilder.build(sourceArea, targetArea, sourcePopupMenu);
+		uiTransBuilder.build(sourceArea, targetArea, sourcePopupMenu, targetPopupMenu);
 
 		JPanel setupPanel = new JPanel();
 		setupPanel.setLayout(new BorderLayout());

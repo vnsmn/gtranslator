@@ -42,6 +42,7 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 	private JTextField dictionaryDirField;
 	private JCheckBox historyCheckBox;
 	private JCheckBox soundCheckBox;
+	private JCheckBox detailClipboardCheckBox;
 	private JLabel statisticLabel;
 	private Map<MODE, JRadioButton> modeWidgets = new HashMap<>();
 
@@ -72,21 +73,22 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 	}
 
 	private void createWidgetsOfDetailTranslate() {
-		JCheckBox checkBox = new JCheckBox("No");
-		checkBox.addActionListener(new java.awt.event.ActionListener() {
+		detailClipboardCheckBox = new JCheckBox("No");
+		detailClipboardCheckBox.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				final JCheckBox check = (JCheckBox) e.getSource();
 				check.setText(check.isSelected() ? "Yes" : "No");
 				Actions.findAction(DetailTranslateAction.class).execute(
 						check.isSelected());
+				firePropertyChange(Constants.PROPERTY_CHANGE_DETAIL_CLIPBOARD, null, check.isSelected());
 			}
 		});
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
 				"Is detail translation?"));
-		panel.add(checkBox, BorderLayout.WEST);
+		panel.add(detailClipboardCheckBox, BorderLayout.WEST);
 		box.add(panel);
 	}
 
@@ -137,6 +139,7 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 				check.setText(check.isSelected() ? "Yes" : "No");
 				Actions.findAction(WordPlayOfClipboardAction.class).execute(
 						check.isSelected());
+				firePropertyChange(Constants.PROPERTY_CHANGE_SOUND, null, check.isSelected());
 			}
 		});
 		JPanel panel = new JPanel();
@@ -284,6 +287,10 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 		case Constants.PROPERTY_CHANGE_STATISTIC:
 			statisticLabel.setText((String) evt.getNewValue());
 			break;
+		case Constants.PROPERTY_CHANGE_DETAIL_CLIPBOARD:
+			detailClipboardCheckBox.setSelected((Boolean) evt.getNewValue());
+			soundCheckBox.setText(detailClipboardCheckBox.isSelected() ? "Yes" : "No");
+			break;			
 		}
 	}
 }

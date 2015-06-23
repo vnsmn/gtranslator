@@ -2,6 +2,7 @@ package gtranslator.ui;
 
 import gtranslator.Actions;
 import gtranslator.Actions.ClearHistoryAction;
+import gtranslator.Actions.DetailTranslateAction;
 import gtranslator.Actions.ModeTClipboardAction;
 import gtranslator.Actions.PlayEngWordWithLoadAction;
 import gtranslator.Actions.StartStopTClipboardAction;
@@ -19,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.ButtonGroup;
+import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -29,24 +31,29 @@ import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
 public class UITransBuilder extends UIBuilder implements PropertyChangeListener {
-	private JCheckBoxMenuItem activityClipboardMenuItem;
+	private JCheckBoxMenuItem[] activityClipboardMenuItems = {null, null};
+	private JCheckBoxMenuItem[] soundMenuItems = {null, null};
+	private JCheckBoxMenuItem[] detailClipboardItems = {null, null};
 	private JTextArea sourceArea;
 	private JTextArea targetArea;
-	private Map<MODE, JRadioButtonMenuItem> modeWidgets = new HashMap<>();
+	@SuppressWarnings("unchecked")
+	private Map<MODE, JRadioButtonMenuItem>[] modeWidgets = new HashMap[] {
+			new HashMap<>(), new HashMap<>()};
 
 	public void build(JTextArea sourceArea, JTextArea targetArea,
-			JPopupMenu sourcePopupMenu) {
+			JPopupMenu sourcePopupMenu, JPopupMenu targetPopupMenu) {
 		this.sourceArea = sourceArea;
 		this.targetArea = targetArea;
 
-		createPopupMenu(sourceArea, targetArea, sourcePopupMenu);
+		createPopupMenu(sourceArea, targetArea, sourcePopupMenu, 0);
+		createPopupMenu(sourceArea, targetArea, targetPopupMenu, 1);
 
 		sourcePopupMenu.addPopupMenuListener(new PopupMenuListenerExt());
 		sourceArea.addMouseListener(new MouseAdapterExt());
 	}
 
 	private void createPopupMenu(JTextArea sourceArea, JTextArea targetArea,
-			JPopupMenu sourcePopupMenu) {
+			JPopupMenu sourcePopupMenu, int index) {
 		JMenuItem mit = new JMenuItem("Delete word from history");
 		mit.addActionListener(new java.awt.event.ActionListener() {
 			@Override
@@ -66,9 +73,35 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 			}
 		});
 		sourcePopupMenu.add(mit);
+		
+		soundMenuItems[index] = new JCheckBoxMenuItem("Sound");
+		soundMenuItems[index].addActionListener(new java.awt.event.ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Actions.findAction(PlayEngWordWithLoadAction.class).execute(
+						sourceArea.getText());
+				soundMenuItems[0].setSelected(((JMenuItem)e.getSource()).isSelected());
+				soundMenuItems[1].setSelected(((JMenuItem)e.getSource()).isSelected());
+				firePropertyChange(Constants.PROPERTY_CHANGE_SOUND, null, ((JMenuItem)e.getSource()).isSelected());
+			}
+		});
+		sourcePopupMenu.add(soundMenuItems[index]);
+		
+		detailClipboardItems[index] = new JCheckBoxMenuItem("Detail translation");
+		detailClipboardItems[index].addActionListener(new java.awt.event.ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				boolean b = ((JMenuItem)e.getSource()).isSelected();
+				Actions.findAction(DetailTranslateAction.class).execute(b);				
+				detailClipboardItems[0].setSelected(b);
+				detailClipboardItems[1].setSelected(b);
+				firePropertyChange(Constants.PROPERTY_CHANGE_DETAIL_CLIPBOARD, null, b);
+			}
+		});
+		sourcePopupMenu.add(detailClipboardItems[index]);
 
-		activityClipboardMenuItem = new JCheckBoxMenuItem("Start");
-		activityClipboardMenuItem
+		activityClipboardMenuItems[index] = new JCheckBoxMenuItem("Start");
+		activityClipboardMenuItems[index]
 				.addActionListener(new java.awt.event.ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -76,9 +109,11 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 						Actions.findAction(StartStopTClipboardAction.class)
 								.execute(!b);
 						firePropertyChange(Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD, !b, b);
+						activityClipboardMenuItems[0].setSelected(b);
+						activityClipboardMenuItems[1].setSelected(b);
 					}
 				});
-		sourcePopupMenu.add(activityClipboardMenuItem);
+		sourcePopupMenu.add(activityClipboardMenuItems[index]);
 		
 		ActionListener actionListener = new ActionListener() {
 			@Override
@@ -100,21 +135,21 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 	    menuItem.addActionListener(actionListener);
 	    group.add(menuItem);
 	    menu.add(menuItem);
-	    modeWidgets.put(MODE.TEXT, menuItem);	    
+	    modeWidgets[index].put(MODE.TEXT, menuItem);
 
 	    menuItem = new JRadioButtonMenuItem("Select with lost focus");
 	    menuItem.setActionCommand(MODE.SELECT.name());
 	    menuItem.addActionListener(actionListener);
 	    group.add(menuItem);
 	    menu.add(menuItem);
-	    modeWidgets.put(MODE.SELECT, menuItem);
+	    modeWidgets[index].put(MODE.SELECT, menuItem);
 
 	    menuItem = new JRadioButtonMenuItem("Copy");
 	    menuItem.setActionCommand(MODE.COPY.name());
 	    menuItem.addActionListener(actionListener);
 	    group.add(menuItem);
 	    menu.add(menuItem);
-	    modeWidgets.put(MODE.COPY, menuItem);	   
+	    modeWidgets[index].put(MODE.COPY, menuItem);	   
 	    
 	    sourcePopupMenu.add(menu);
 	}
@@ -127,11 +162,27 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 		switch (evt.getPropertyName()) {
 		case Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD:
 			boolean b = (boolean) evt.getNewValue();
-			activityClipboardMenuItem.setSelected(b);
+			for (JMenuItem it : activityClipboardMenuItems) {
+				it.setSelected(b);
+			}
 			break;
 		case Constants.PROPERTY_CHANGE_MODE_CLIPBOARD:
-			JRadioButtonMenuItem button = modeWidgets.get((MODE) evt.getNewValue());
+			JRadioButtonMenuItem button = modeWidgets[0].get((MODE) evt.getNewValue());
 			button.setSelected(true);
+			button = modeWidgets[1].get((MODE) evt.getNewValue());
+			button.setSelected(true);
+			break;
+		case Constants.PROPERTY_CHANGE_SOUND:
+			boolean sb = (boolean) evt.getNewValue();
+			for (JMenuItem it : soundMenuItems) {
+				it.setSelected(sb);
+			}
+			break;
+		case Constants.PROPERTY_CHANGE_DETAIL_CLIPBOARD:
+			boolean db = (boolean) evt.getNewValue();
+			for (JMenuItem it : detailClipboardItems) {
+				it.setSelected(db);
+			}
 			break;
 		}
 	}
@@ -156,5 +207,5 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 		@Override
 		public void popupMenuCanceled(PopupMenuEvent e) {
 		}
-	}
+	}	
 }
