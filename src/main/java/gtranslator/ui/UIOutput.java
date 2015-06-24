@@ -1,6 +1,7 @@
 package gtranslator.ui;
 
 import gtranslator.Actions;
+import gtranslator.Actions.PauseTClipboardAction;
 import gtranslator.ClipboardObserver;
 
 import java.awt.BorderLayout;
@@ -22,6 +23,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 public class UIOutput extends UIBuilder implements PropertyChangeListener {
 	private JFrame frame;
@@ -109,6 +112,18 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 		glass.add(label);
 		glass.setOpaque(false);
 		frame.setVisible(true);
+		
+		tabbedPane.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {				
+				JTabbedPane pane = (JTabbedPane) e.getSource();
+				if (pane.getSelectedIndex() == 0) {
+					Actions.findAction(PauseTClipboardAction.class).execute(false);
+				} else {
+					Actions.findAction(PauseTClipboardAction.class).execute(true);
+				}
+			}
+		});
 	}
 
 	public void showWaitCursor() {

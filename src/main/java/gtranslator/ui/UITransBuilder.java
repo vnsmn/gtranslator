@@ -124,7 +124,7 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 						boolean b = ((JCheckBoxMenuItem) e.getSource())
 								.isSelected();
 						Actions.findAction(StartStopTClipboardAction.class)
-								.execute(!b);
+								.execute(b);
 						firePropertyChange(
 								Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD,
 								!b, b);

@@ -194,7 +194,7 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						Actions.findAction(StartStopTClipboardAction.class)
-								.execute(!activityClipboardCheckBox.isSelected());
+								.execute(activityClipboardCheckBox.isSelected());
 						firePropertyChange(
 								Constants.PROPERTY_CHANGE_ACTIVITY_CLIPBOARD,
 								!activityClipboardCheckBox.isSelected(),

@@ -120,13 +120,13 @@ public class Actions {
 		}
 	}
 
-	public static class StartStopTClipboardAction extends Action<Boolean> {
+	public static class PauseTClipboardAction extends Action<Boolean> {
 
 		@Override
 		public void execute(Boolean b) {
 			UIOutput.getInstance().showWaitCursor();
 			try {
-				ClipboardObserver.getInstance().setPause(b);
+				ClipboardObserver.getInstance().setPause(b);			
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
@@ -135,7 +135,22 @@ public class Actions {
 		}
 	}
 
-	public static class ModeTClipboardAction extends Action<ClipboardObserver.MODE> {
+	public static class StartStopTClipboardAction extends Action<Boolean> {
+		@Override
+		public void execute(Boolean b) {
+			UIOutput.getInstance().showWaitCursor();
+			try {
+				ClipboardObserver.getInstance().setStart(b);
+			} catch (Exception ex) {
+				logger.error(ex.getMessage());
+			} finally {
+				UIOutput.getInstance().hideWaitCursor();
+			}
+		}
+	}
+
+	public static class ModeTClipboardAction extends
+			Action<ClipboardObserver.MODE> {
 		@Override
 		public void execute(ClipboardObserver.MODE mode) {
 			UIOutput.getInstance().showWaitCursor();
@@ -235,7 +250,7 @@ public class Actions {
 			}
 		}
 	}
-	
+
 	public static class SetDictionaryPronunciationAction extends Action<String> {
 		@Override
 		public void execute(String s) {
@@ -257,8 +272,9 @@ public class Actions {
 			try {
 				ss[1] = TranslationReceiver.INSTANCE.translateAndFormat(ss[0],
 						false);
-				if (ClipboardObserver.getInstance().isSupportSoundWord()) {					
-					SoundHelper.playEngWord(TranslationReceiver.INSTANCE.toNormal(ss[0]), true);
+				if (ClipboardObserver.getInstance().isSupportSoundWord()) {
+					SoundHelper.playEngWord(
+							TranslationReceiver.INSTANCE.toNormal(ss[0]), true);
 				}
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());

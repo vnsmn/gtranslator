@@ -110,18 +110,6 @@ public class App {
 		UIOutput.getInstance().setDictionaryDir(dirPath);
 		logger.info(dirPath);
 
-		// logger.info("----- dictionary.pause.seconds -----");
-		// int pauseSeconds = AppProperties.getInstance()
-		// .getDictionaryPauseSeconds();
-		// DictionaryHelper.INSTANCE.setPauseSeconds(pauseSeconds);
-		// logger.info(pauseSeconds);
-		//
-		// logger.info("----- dictionary.defis.seconds -----");
-		// int defisSeconds = AppProperties.getInstance()
-		// .getDictionaryDefisSeconds();
-		// DictionaryHelper.INSTANCE.setDefisSeconds(defisSeconds);
-		// logger.info(defisSeconds);
-		//
 		logger.info("----- dictionary.block.limit -----");
 		int blockLimit = AppProperties.getInstance().getDictionaryBlockLimit();
 		UIOutput.getInstance().setDictionaryBlockLimit(blockLimit);
@@ -140,7 +128,7 @@ public class App {
 
 		logger.info("----- clipboard.active -----");
 		boolean isStart = AppProperties.getInstance().getClipboardActive();
-		Actions.findAction(StartStopTClipboardAction.class).execute(!isStart);
+		Actions.findAction(StartStopTClipboardAction.class).execute(isStart);
 		UIOutput.getInstance().setActivityClipboard(isStart);
 		logger.info(isStart);
 

@@ -25,6 +25,7 @@ import org.apache.log4j.Logger;
 public class ClipboardObserver implements Runnable, ClipboardOwner {
 	private boolean isLostData = true;
 	private AtomicBoolean isPause = new AtomicBoolean(false);
+	private AtomicBoolean isStart = new AtomicBoolean(false);
 	private AtomicReference<MODE> mode = new AtomicReference<>(MODE.COPY);	
 	private static ClipboardObserver instance;
 
@@ -67,7 +68,7 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 		while (!Thread.interrupted()) {
 			try {
 				if ((isLostData || mode.get() == MODE.TEXT)
-						&& !isPause.get()) {
+						&& !isPause.get() && isStart.get()) {
 					synchronized (this) {
 						Clipboard clipboard = mode.get() == MODE.SELECT
 								|| mode.get() == MODE.TEXT ? selClipboard
@@ -130,6 +131,11 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 
 	public synchronized void setPause(boolean b) {
 		isPause.set(b);
+		isLostData = true;
+	}
+	
+	public synchronized void setStart(boolean b) {
+		isStart.set(b);
 		isLostData = true;
 	}
 
