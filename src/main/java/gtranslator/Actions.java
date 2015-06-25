@@ -42,6 +42,7 @@ public class Actions {
 		public boolean isBrPronunciation;
 		public boolean isRusTransled;
 		public boolean isMultiRusTransled;
+		public boolean isSort = true;
 	}
 
 	public static class DictionaryAction extends Action<DictionaryInput> {
@@ -54,17 +55,20 @@ public class Actions {
 					DictionaryHelper.INSTANCE.createDictionaryFromHistory(
 							dic.resultDir, dic.isAmPronunciation,
 							dic.isBrPronunciation, dic.isRusTransled,
-							dic.isMultiRusTransled);
+							dic.isMultiRusTransled,
+							dic.isSort);
 				} else if (dic.sourceType == DictionaryHelper.SOURCE_TYPE.DICTIONARY) {
 					DictionaryHelper.INSTANCE.createDictionaryFromDict(
 							dic.path, dic.resultDir, dic.isAmPronunciation,
 							dic.isBrPronunciation, dic.isRusTransled,
-							dic.isMultiRusTransled);
+							dic.isMultiRusTransled,
+							dic.isSort);
 				} else if (dic.sourceType == DictionaryHelper.SOURCE_TYPE.TEXT) {
 					DictionaryHelper.INSTANCE.createDictionaryFromText(
 							dic.path, dic.resultDir, dic.isAmPronunciation,
 							dic.isBrPronunciation, dic.isRusTransled,
-							dic.isMultiRusTransled);
+							dic.isMultiRusTransled,
+							dic.isSort);
 				}
 			} catch (Exception ex) {
 				logger.error(ex);

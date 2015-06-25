@@ -33,6 +33,7 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 	JComboBox sourceTypeComboBox;
 	JCheckBox rusCheckBox;
 	JCheckBox multiRusCheckBox;
+	JCheckBox sortCheckBox;
 
 	public void build(JPanel panel) {
 		box = Box.createVerticalBox();
@@ -44,9 +45,26 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 		createWidgetsOfLimitPath();
 		createWidgetsOfLanguagePronunciation();
 		createWidgetsOfSourceType();
+		createWidgetsOfSort();
 		createWidgetsOfRus();
 		createWidgetsOfMultiRus();
 		createWidgetsOfPerform();
+	}
+
+	private void createWidgetsOfSort() {
+		sortCheckBox = new JCheckBox("Sort");
+		sortCheckBox.setSelected(true);
+		sortCheckBox.addActionListener(new java.awt.event.ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+			}
+		});
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
+				"Do dic sort?"));
+		panel.add(sortCheckBox, BorderLayout.WEST);
+		box.add(panel);		
 	}
 
 	private void createWidgetsOfResultDir() {
@@ -102,6 +120,7 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 									|| "all".equalsIgnoreCase(pronunciationLangComboBox.getSelectedItem().toString());
 							dic.isRusTransled = rusCheckBox.isSelected();							
 							dic.isMultiRusTransled = multiRusCheckBox.isSelected();
+							dic.isSort = sortCheckBox.isSelected();
 							Actions.findAction(
 									Actions.DictionaryAction.class)
 									.execute(dic);

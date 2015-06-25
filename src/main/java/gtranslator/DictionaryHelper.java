@@ -4,9 +4,9 @@ import gtranslator.exception.SoundReceiverException;
 import gtranslator.sound.OxfordSoundReceiver;
 import gtranslator.sound.RusGoogleSoundReceiver;
 import gtranslator.sound.SoundHelper;
+import gtranslator.sound.SoundHelper.FileEntry;
 import gtranslator.sound.SoundHelper.SoundException;
 import gtranslator.sound.SoundReceiver;
-import gtranslator.translate.BatchTranslationHelper;
 import gtranslator.translate.TranslationReceiver;
 import gtranslator.ui.ProgressMonitorDemo;
 
@@ -20,13 +20,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.TreeMap;
 
 import javax.sound.sampled.UnsupportedAudioFileException;
 
@@ -47,11 +44,14 @@ public class DictionaryHelper {
 
 	public synchronized void createDictionaryFromHistory(String resultDir,
 			boolean isAmPronunciation, boolean isBrPronunciation,
-			boolean isRusTransled, boolean isMultiRusTransled) throws Exception {
+			boolean isRusTransled, boolean isMultiRusTransled, boolean isSort)
+			throws Exception {
 		Map<String, String> words = HistoryHelper.INSTANCE.getWords();
 		List<String> sortWords = new ArrayList<>();
 		sortWords.addAll(words.keySet());
-		Collections.sort(sortWords);
+		if (isSort) {
+			Collections.sort(sortWords);
+		}
 		createDictionary(sortWords, resultDir, isAmPronunciation,
 				isBrPronunciation, isRusTransled, isMultiRusTransled);
 	}
@@ -59,7 +59,7 @@ public class DictionaryHelper {
 	public synchronized void createDictionaryFromText(String textFilePath,
 			String resultDir, boolean isAmPronunciation,
 			boolean isBrPronunciation, boolean isRusTransled,
-			boolean isMultiRusTransled) throws Exception {
+			boolean isMultiRusTransled, boolean isSort) throws Exception {
 		String engText = readTextFromFile(textFilePath).replaceAll("[ ]+", " ")
 				.trim().toLowerCase();
 		List<String> sortWords = new ArrayList<>();
@@ -71,7 +71,9 @@ public class DictionaryHelper {
 				dublicate.add(s);
 			}
 		}
-		Collections.sort(sortWords);
+		if (isSort) {
+			Collections.sort(sortWords);
+		}
 		createDictionary(sortWords, resultDir, isAmPronunciation,
 				isBrPronunciation, isRusTransled, isMultiRusTransled);
 	}
@@ -79,7 +81,7 @@ public class DictionaryHelper {
 	public synchronized void createDictionaryFromDict(String dicFilePath,
 			String resultDir, boolean isAmPronunciation,
 			boolean isBrPronunciation, boolean isRusTransled,
-			boolean isMultiRusTransled) throws Exception {
+			boolean isMultiRusTransled, boolean isSort) throws Exception {
 		String text = readTextFromFile(dicFilePath);
 		List<String> sortWords = new ArrayList<>();
 		Set<String> dublicate = new HashSet<>();
@@ -89,9 +91,11 @@ public class DictionaryHelper {
 			if (!dublicate.contains(s) && !StringUtils.isBlank(s)) {
 				sortWords.add(s);
 				dublicate.add(s);
-			}			
+			}
 		}
-		Collections.sort(sortWords);
+		if (isSort) {
+			Collections.sort(sortWords);
+		}
 		createDictionary(sortWords, resultDir, isAmPronunciation,
 				isBrPronunciation, isRusTransled, isMultiRusTransled);
 	}
@@ -137,27 +141,28 @@ public class DictionaryHelper {
 		words = wordsToString(sortWords, loadedEngSoundWords, false);
 		writeTextToFile(words, new File(resultDir, "words-sound.txt"));
 
-		TreeMap<File, File> brFs = new TreeMap<>();
-		TreeMap<File, File> amFs = new TreeMap<>();
+		List<FileEntry> brFs = new ArrayList<>();
+		List<FileEntry> amFs = new ArrayList<>();
 
 		ProgressMonitorDemo progressMonitorDemo = ProgressMonitorDemo
-				.createAndShowGUI("Generate sound files ...", loadedEngSoundWords.size());
-		int i = 0;		
-		sortWords.clear();
-		sortWords.addAll(loadedEngSoundWords);
-		Collections.sort(sortWords);
+				.createAndShowGUI("Generate sound files ...",
+						loadedEngSoundWords.size());
+		int i = 0;
+		List soundSortWords = new ArrayList<>(sortWords);
+		soundSortWords.retainAll(loadedEngSoundWords);
 		int seconds = AppProperties.getInstance().getDictionaryPauseSeconds();
 		int secondsDefis = AppProperties.getInstance()
 				.getDictionaryDefisSeconds();
 		int limit = AppProperties.getInstance().getDictionaryBlockLimit();
 		int fromIndex = 0;
-		int toIndex = limit;		
+		int toIndex = limit;
 		try {
-			while (fromIndex < sortWords.size()) {
-				if (toIndex > sortWords.size()) {
-					toIndex = sortWords.size();
+			while (fromIndex < soundSortWords.size()) {
+				if (toIndex > soundSortWords.size()) {
+					toIndex = soundSortWords.size();
 				}
-				List<String> partSortList = sortWords.subList(fromIndex, toIndex);
+				List<String> partSortList = soundSortWords.subList(fromIndex,
+						toIndex);
 				for (String eng : partSortList) {
 					File rusFile = null;
 					if (isRusTransled) {
@@ -179,32 +184,38 @@ public class DictionaryHelper {
 					File amDir = new File(dicDir, SoundReceiver.AM_SOUND_DIR);
 					String engFileName = eng + ".mp3";
 					if (isBrPronunciation) {
-						brFs.put(new File(brDir, engFileName), rusFile);
+						brFs.add(new FileEntry(new File(brDir, engFileName),
+								rusFile));
 					}
 					if (isAmPronunciation) {
-						amFs.put(new File(amDir, engFileName), rusFile);
+						amFs.add(new FileEntry(new File(amDir, engFileName),
+								rusFile));
 					}
 					progressMonitorDemo.nextProgress(i++);
 					if (progressMonitorDemo.isCanceled()) {
 						Thread.currentThread().stop();
 					}
-				}				
+				}
 				if (isBrPronunciation) {
-					File outWaveFile = new File(resultDir, String.format("word-sound-br-%d-%d.wave", fromIndex, toIndex));
-					SoundHelper.concatFiles(seconds, secondsDefis, outWaveFile, brFs);
+					File outWaveFile = new File(resultDir, String.format(
+							"word-sound-br-%d-%d.wave", fromIndex, toIndex));
+					SoundHelper.concatFiles(seconds, secondsDefis, outWaveFile,
+							brFs);
 				}
 				if (isAmPronunciation) {
-					File outWaveFile = new File(resultDir, String.format("word-sound-am-%d-%d.wave", fromIndex, toIndex));
-					SoundHelper.concatFiles(seconds, secondsDefis, outWaveFile, amFs);
+					File outWaveFile = new File(resultDir, String.format(
+							"word-sound-am-%d-%d.wave", fromIndex, toIndex));
+					SoundHelper.concatFiles(seconds, secondsDefis, outWaveFile,
+							amFs);
 				}
 				brFs.clear();
 				amFs.clear();
 				fromIndex = toIndex;
-				toIndex = toIndex + limit;				
+				toIndex = toIndex + limit;
 			}
 		} finally {
 			progressMonitorDemo.close();
-		}		
+		}
 	}
 
 	public File findFile(boolean isBr, String targetDirPath, String word) {

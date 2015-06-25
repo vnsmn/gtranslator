@@ -3,23 +3,16 @@ package gtranslator.sound;
 import gtranslator.AppProperties;
 import gtranslator.DictionaryHelper;
 import gtranslator.translate.TranslationReceiver;
-import gtranslator.ui.ProgressMonitorDemo;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.SequenceInputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.TreeMap;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -81,23 +74,33 @@ public class SoundHelper {
 				.getAudioInputStream(audioFormat, mp3In) : null;
 	}
 
+	public static class FileEntry {
+		public File engFile;
+		public File rusFile;
+
+		public FileEntry(File engFile, File rusFile) {
+			this.engFile = engFile;
+			this.rusFile = rusFile;
+		}
+	}
+
 	public static void concatFiles(int seconds, int secondsDefis,
-			File outWaveFile, TreeMap<File, File> soundFiles)
+			File outWaveFile, List<FileEntry> soundFiles)
 			throws UnsupportedAudioFileException, IOException, SoundException {
 		List<AudioInputStream> streamList = new ArrayList<>();
 		Long frameLength = -1l;
 		streamList.add(createEmptyWaveFile(2));
-		for (Entry<File, File> mp3File : soundFiles.entrySet()) {
-			AudioInputStream in = convertWave(mp3File.getKey(),
+		for (FileEntry mp3File : soundFiles) {
+			AudioInputStream in = convertWave(mp3File.engFile,
 					WAVE_FORMAT_44100);
 			if (in == null) {
 				throw new SoundHelper.SoundException(
 						"the file is not support convert:"
-								+ mp3File.getKey().getAbsolutePath());
+								+ mp3File.engFile.getAbsolutePath());
 			}
 			streamList.add(in);
-			if (mp3File.getValue() != null) {
-				AudioInputStream rusIn = convertWave(mp3File.getValue(),
+			if (mp3File.rusFile != null) {
+				AudioInputStream rusIn = convertWave(mp3File.rusFile,
 						WAVE_FORMAT_16000);
 				if (rusIn != null) {
 					streamList.add(createEmptyWaveFile(secondsDefis));
