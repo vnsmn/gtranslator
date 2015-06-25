@@ -232,7 +232,7 @@ public class Actions {
 								@Override
 								public void execute(String s) {
 									UIOutput.getInstance().showWaitCursor();
-									try {
+									try {										
 										SoundHelper.playEngWord(s, true);
 									} finally {
 										UIOutput.getInstance().hideWaitCursor();
@@ -272,10 +272,6 @@ public class Actions {
 			try {
 				ss[1] = TranslationReceiver.INSTANCE.translateAndFormat(ss[0],
 						false);
-				if (ClipboardObserver.getInstance().isSupportSoundWord()) {
-					SoundHelper.playEngWord(
-							TranslationReceiver.INSTANCE.toNormal(ss[0]), true);
-				}
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
