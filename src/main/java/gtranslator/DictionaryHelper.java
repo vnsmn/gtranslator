@@ -1,12 +1,13 @@
 package gtranslator;
 
 import gtranslator.exception.SoundReceiverException;
+import gtranslator.sound.GoogleSoundReceiver;
 import gtranslator.sound.OxfordSoundReceiver;
-import gtranslator.sound.RusGoogleSoundReceiver;
 import gtranslator.sound.SoundHelper;
 import gtranslator.sound.SoundHelper.FileEntry;
 import gtranslator.sound.SoundHelper.SoundException;
 import gtranslator.sound.SoundReceiver;
+import gtranslator.sound.SoundReceiver.LANG;
 import gtranslator.translate.TranslationReceiver;
 import gtranslator.ui.ProgressMonitorDemo;
 
@@ -173,23 +174,34 @@ public class DictionaryHelper {
 									.split("[;]")[0];
 						}
 						rusFile = new File(
-								RusGoogleSoundReceiver.INSTANCE.getFilePath(
-										dicDir.getAbsolutePath(), rus));
+								GoogleSoundReceiver.INSTANCE.getFilePath(
+										dicDir.getAbsolutePath(), rus, LANG.RUS));
 						if (!rusFile.exists()) {
-							RusGoogleSoundReceiver.INSTANCE.createSoundFile(
-									dicDir, rus);
+							GoogleSoundReceiver.INSTANCE.createSoundFile(
+									dicDir, rus, LANG.RUS);
 						}
 					}
 					File brDir = new File(dicDir, SoundReceiver.BR_SOUND_DIR);
 					File amDir = new File(dicDir, SoundReceiver.AM_SOUND_DIR);
+					File enDir = new File(dicDir, SoundReceiver.EN_SOUND_DIR);
 					String engFileName = eng + ".mp3";
 					if (isBrPronunciation) {
-						brFs.add(new FileEntry(new File(brDir, engFileName),
-								rusFile));
+						File engFile = new File(brDir, engFileName);
+						File sEngFile = new File(enDir, engFileName);
+						if (engFile.exists()) {
+							brFs.add(new FileEntry(engFile, null, rusFile));
+						} else {
+							brFs.add(new FileEntry(null, sEngFile, rusFile));
+						}
 					}
 					if (isAmPronunciation) {
-						amFs.add(new FileEntry(new File(amDir, engFileName),
-								rusFile));
+						File engFile = new File(amDir, engFileName);
+						File sEngFile = new File(enDir, engFileName);
+						if (engFile.exists()) {
+							amFs.add(new FileEntry(engFile, null, rusFile));
+						} else {
+							amFs.add(new FileEntry(null, sEngFile, rusFile));
+						}
 					}
 					progressMonitorDemo.nextProgress(i++);
 					if (progressMonitorDemo.isCanceled()) {
@@ -257,6 +269,9 @@ public class DictionaryHelper {
 			for (String s : words) {
 				try {
 					if (soundReceiver.createSoundFile(dirFile, s)) {
+						loaded.add(s);
+					} else if (GoogleSoundReceiver.INSTANCE.createSoundFile(
+							dirFile, s, LANG.ENG)) {
 						loaded.add(s);
 					}
 					progressMonitorDemo.nextProgress(i++);

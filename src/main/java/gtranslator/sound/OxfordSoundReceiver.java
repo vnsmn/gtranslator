@@ -2,6 +2,7 @@ package gtranslator.sound;
 
 import gtranslator.DictionaryHelper;
 import gtranslator.exception.SoundReceiverException;
+import gtranslator.sound.SoundReceiver.LANG;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,8 +41,14 @@ public class OxfordSoundReceiver implements SoundReceiver {
 				logger.error(ex);
 			}
 	}
+	
+	@Override
+	public boolean createSoundFile(File dicDir, String phrase)
+			throws SoundReceiverException {
+		return createSoundFile(dicDir, phrase, LANG.ENG);
+	}	
 
-	public boolean createSoundFile(File dicDir, String word)
+	public boolean createSoundFile(File dicDir, String word, LANG lang)
 			throws SoundReceiverException {
 		File dirBr = new File(dicDir, BR_SOUND_DIR);
 		File dirAm = new File(dicDir, AM_SOUND_DIR);

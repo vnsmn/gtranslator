@@ -77,9 +77,11 @@ public class SoundHelper {
 	public static class FileEntry {
 		public File engFile;
 		public File rusFile;
+		public File synthEngFile;
 
-		public FileEntry(File engFile, File rusFile) {
+		public FileEntry(File engFile, File synthEngFile, File rusFile) {
 			this.engFile = engFile;
+			this.synthEngFile = synthEngFile;
 			this.rusFile = rusFile;
 		}
 	}
@@ -91,8 +93,16 @@ public class SoundHelper {
 		Long frameLength = -1l;
 		streamList.add(createEmptyWaveFile(2));
 		for (FileEntry mp3File : soundFiles) {
-			AudioInputStream in = convertWave(mp3File.engFile,
+			AudioInputStream in = null;			
+			if (mp3File.engFile != null) {
+				in = convertWave(mp3File.engFile,
 					WAVE_FORMAT_44100);
+			} else if (mp3File.synthEngFile != null) {
+				in = convertWave(mp3File.synthEngFile,
+						WAVE_FORMAT_16000);
+				in = AudioSystem.getAudioInputStream(WAVE_FORMAT_44100,						
+						in);
+			}
 			if (in == null) {
 				throw new SoundHelper.SoundException(
 						"the file is not support convert:"

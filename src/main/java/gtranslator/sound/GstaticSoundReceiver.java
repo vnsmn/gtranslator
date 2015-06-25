@@ -20,7 +20,7 @@ public class GstaticSoundReceiver implements SoundReceiver {
 	private final static String REQUEST = "http://ssl.gstatic.com/dictionary/static/sounds/de/0/";
 
 	@Override
-	public boolean createSoundFile(File dicDir, String word)
+	public boolean createSoundFile(File dicDir, String word, LANG lang)
 			throws SoundReceiverException {
 		File soundDir = new File(dicDir, AM_SOUND_DIR);
 		if (!soundDir.exists()) {
@@ -56,5 +56,11 @@ public class GstaticSoundReceiver implements SoundReceiver {
 			logger.error(ex.getMessage());
 		}
 		return size > 0;
+	}
+
+	@Override
+	public boolean createSoundFile(File dicDir, String phrase)
+			throws SoundReceiverException {
+		return createSoundFile(dicDir, phrase, LANG.ENG);
 	}
 }
