@@ -184,9 +184,11 @@ public class DictionaryHelper {
 			resultDir.mkdirs();
 		}
 		Set<String> loadedEngSoundWords = loadSound(sortWords, dicDir);
-		String words = wordsToString(sortWords, dicMap, loadedEngSoundWords, isRusTransled, true);
+		String words = wordsToString(sortWords, dicMap, loadedEngSoundWords,
+				isRusTransled, true);
 		writeTextToFile(words, new File(resultDir, prefix + "words.txt"));
-		words = wordsToString(sortWords, dicMap, loadedEngSoundWords, isRusTransled, false);
+		words = wordsToString(sortWords, dicMap, loadedEngSoundWords,
+				isRusTransled, false);
 		writeTextToFile(words, new File(resultDir, prefix + "words-sound.txt"));
 
 		List<FileEntry> brFs = new ArrayList<>();
@@ -302,9 +304,10 @@ public class DictionaryHelper {
 				sb.append("=");
 			}
 			if (isRus) {
-				sb.append(dicMap.containsKey(eng) ? dicMap.get(eng)
-						: TranslationReceiver.INSTANCE
-								.translateAndSimpleFormat(eng, false));
+				sb.append(dicMap.containsKey(eng)
+						&& !StringUtils.isBlank(dicMap.get(eng)) ? dicMap
+						.get(eng) : TranslationReceiver.INSTANCE
+						.translateAndSimpleFormat(eng, false));
 			}
 		}
 		return sb.toString();
