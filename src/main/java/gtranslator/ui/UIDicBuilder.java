@@ -38,6 +38,7 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 	private JTextField prefixTextField;
 	private JTextField pauseSecondsTextField;
 	private JTextField defisSecondsTextField;
+	private JCheckBox phonCheckBox;
 
 	public void build(JPanel panel) {
 		box = Box.createVerticalBox();
@@ -54,9 +55,21 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 		createWidgetsOfPauseSeconds();
 		createWidgetsOfDefisSeconds();
 		createWidgetsOfSynthes();
+		createWidgetsOfPhon();
 		createWidgetsOfRus();
 		createWidgetsOfMultiRus();
 		createWidgetsOfPerform();
+	}
+
+	private void createWidgetsOfPhon() {
+		phonCheckBox = new JCheckBox("Phonetics");
+		phonCheckBox.setSelected(false);
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
+				"Do use phonetics?"));
+		panel.add(phonCheckBox, BorderLayout.WEST);
+		box.add(panel);
 	}
 
 	private void createWidgetsOfSynthes() {
@@ -184,6 +197,7 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 							dic.setPauseSeconds(pauseSecondsTextField.getText());
 							dic.setDefisSeconds(defisSecondsTextField.getText());
 							dic.isSynthes = synthesCheckBox.isSelected();
+							dic.isPhonetics = phonCheckBox.isSelected();
 							Actions.findAction(Actions.DictionaryAction.class)
 									.execute(dic);
 						} finally {

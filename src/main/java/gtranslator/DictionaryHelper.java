@@ -8,6 +8,8 @@ import gtranslator.sound.SoundHelper.FileEntry;
 import gtranslator.sound.SoundHelper.SoundException;
 import gtranslator.sound.SoundReceiver;
 import gtranslator.sound.SoundReceiver.LANG;
+import gtranslator.translate.OxfordPhonReceiver;
+import gtranslator.translate.OxfordPhonReceiver.PHONE;
 import gtranslator.translate.TranslationReceiver;
 import gtranslator.ui.ProgressMonitorDemo;
 
@@ -57,6 +59,7 @@ public class DictionaryHelper {
 		public boolean isMultiRusTransled;
 		public boolean isSort = true;
 		public boolean isSynthes;
+		public boolean isPhonetics;
 
 		public void setPrefix(String prefix) {
 			this.prefix = StringUtils.isBlank(prefix) ? "" : prefix.trim()
@@ -87,7 +90,7 @@ public class DictionaryHelper {
 		createDictionary(sortWords, input.resultDir, input.isAmPronunciation,
 				input.isBrPronunciation, input.isRusTransled,
 				input.isMultiRusTransled, input.prefix, input.pauseSeconds,
-				input.defisSeconds, input.isSynthes);
+				input.defisSeconds, input.isSynthes, input.isPhonetics);
 	}
 
 	public synchronized void createDictionaryFromText(DictionaryInput input)
@@ -109,7 +112,7 @@ public class DictionaryHelper {
 		createDictionary(sortWords, input.resultDir, input.isAmPronunciation,
 				input.isBrPronunciation, input.isRusTransled,
 				input.isMultiRusTransled, input.prefix, input.pauseSeconds,
-				input.defisSeconds, input.isSynthes);
+				input.defisSeconds, input.isSynthes, input.isPhonetics);
 	}
 
 	public synchronized void createDictionaryFromDict(DictionaryInput input)
@@ -133,7 +136,8 @@ public class DictionaryHelper {
 		createDictionary(sortWords, input.resultDir, input.isAmPronunciation,
 				input.isBrPronunciation, input.isRusTransled,
 				input.isMultiRusTransled, dicMap, input.prefix,
-				input.pauseSeconds, input.defisSeconds, input.isSynthes);
+				input.pauseSeconds, input.defisSeconds, input.isSynthes,
+				input.isPhonetics);
 	}
 
 	private String readTextFromFile(String textFilePath) throws IOException {
@@ -160,21 +164,22 @@ public class DictionaryHelper {
 			String resultDirPath, boolean isAmPronunciation,
 			boolean isBrPronunciation, boolean isRusTransled,
 			boolean isMultiRusTransled, String prefix, int pauseSeconds,
-			int defisSeconds, boolean isSynthes) throws IOException,
-			UnsupportedAudioFileException, SoundException,
+			int defisSeconds, boolean isSynthes, boolean isPhonetics)
+			throws IOException, UnsupportedAudioFileException, SoundException,
 			SoundReceiverException {
 		createDictionary(sortWords, resultDirPath, isAmPronunciation,
 				isBrPronunciation, isRusTransled, isMultiRusTransled,
 				Collections.emptyMap(), prefix, pauseSeconds, defisSeconds,
-				isSynthes);
+				isSynthes, isPhonetics);
 	}
 
 	private synchronized void createDictionary(List<String> sortWords,
 			String resultDirPath, boolean isAmPronunciation,
 			boolean isBrPronunciation, boolean isRusTransled,
 			boolean isMultiRusTransled, Map<String, String> dicMap,
-			String prefix, int pauseSeconds, int defisSeconds, boolean isSynthes)
-			throws IOException, UnsupportedAudioFileException, SoundException,
+			String prefix, int pauseSeconds, int defisSeconds,
+			boolean isSynthes, boolean isPhonetics) throws IOException,
+			UnsupportedAudioFileException, SoundException,
 			SoundReceiverException {
 		File dicDir = new File(AppProperties.getInstance()
 				.getDictionaryDirPath());
@@ -188,10 +193,12 @@ public class DictionaryHelper {
 		Set<String> loadedEngSoundWords = loadSound(sortWords, dicDir,
 				isSynthes);
 		String words = wordsToString(sortWords, dicMap, loadedEngSoundWords,
-				isRusTransled, true);
+				isRusTransled, true, isAmPronunciation, isBrPronunciation,
+				isPhonetics);
 		writeTextToFile(words, new File(resultDir, prefix + "words.txt"));
 		words = wordsToString(sortWords, dicMap, loadedEngSoundWords,
-				isRusTransled, false);
+				isRusTransled, false, isAmPronunciation, isBrPronunciation,
+				isPhonetics);
 		writeTextToFile(words, new File(resultDir, prefix + "words-sound.txt"));
 
 		List<FileEntry> brFs = new ArrayList<>();
@@ -291,27 +298,55 @@ public class DictionaryHelper {
 
 	public String wordsToString(List<String> sortEngWords,
 			Map<String, String> dicMap, Set<String> loadedSoundWords,
-			boolean isRus, boolean isAllWords) throws IOException {
+			boolean isRus, boolean isAllWords, boolean isAmPronunciation,
+			boolean isBrPronunciation, boolean isPhonetics) throws IOException {
+		ProgressMonitorDemo progressMonitorDemo = ProgressMonitorDemo
+				.createAndShowGUI("Words to string", sortEngWords.size());
+		int i = 0;
 		StringBuffer sb = new StringBuffer();
-		for (String eng : sortEngWords) {
-			if (!isAllWords && !loadedSoundWords.contains(eng)) {
-				continue;
+		try {
+			for (String eng : sortEngWords) {
+				if (!isAllWords && !loadedSoundWords.contains(eng)) {
+					continue;
+				}
+				if (sb.length() > 0) {
+					sb.append("\n");
+				}
+				sb.append(eng);
+				if (isPhonetics) {
+					if (isAmPronunciation
+							&& !StringUtils.isBlank(OxfordPhonReceiver.get(eng,
+									PHONE.AM))) {
+						sb.append("[");
+						sb.append(OxfordPhonReceiver.get(eng, PHONE.AM));
+						sb.append("]");
+					}
+					if (isBrPronunciation
+							&& !StringUtils.isBlank(OxfordPhonReceiver.get(eng,
+									PHONE.BR))) {
+						sb.append("[");
+						sb.append(OxfordPhonReceiver.get(eng, PHONE.BR));
+						sb.append("]");
+					}
+				}
+				if (!loadedSoundWords.contains(eng)) {
+					sb.append("~");
+				} else {
+					sb.append("=");
+				}
+				if (isRus) {
+					sb.append(dicMap.containsKey(eng)
+							&& !StringUtils.isBlank(dicMap.get(eng)) ? dicMap
+							.get(eng) : TranslationReceiver.INSTANCE
+							.translateAndSimpleFormat(eng, false));
+				}
+				progressMonitorDemo.nextProgress(i++);
+				if (progressMonitorDemo.isCanceled()) {
+					Thread.currentThread().stop();
+				}
 			}
-			if (sb.length() > 0) {
-				sb.append("\n");
-			}
-			sb.append(eng);
-			if (!loadedSoundWords.contains(eng)) {
-				sb.append("~");
-			} else {
-				sb.append("=");
-			}
-			if (isRus) {
-				sb.append(dicMap.containsKey(eng)
-						&& !StringUtils.isBlank(dicMap.get(eng)) ? dicMap
-						.get(eng) : TranslationReceiver.INSTANCE
-						.translateAndSimpleFormat(eng, false));
-			}
+		} finally {
+			progressMonitorDemo.close();
 		}
 		return sb.toString();
 	}
