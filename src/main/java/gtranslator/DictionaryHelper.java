@@ -184,9 +184,9 @@ public class DictionaryHelper {
 			resultDir.mkdirs();
 		}
 		Set<String> loadedEngSoundWords = loadSound(sortWords, dicDir);
-		String words = wordsToString(sortWords, loadedEngSoundWords, true);
+		String words = wordsToString(sortWords, dicMap, loadedEngSoundWords, isRusTransled, true);
 		writeTextToFile(words, new File(resultDir, prefix + "words.txt"));
-		words = wordsToString(sortWords, loadedEngSoundWords, false);
+		words = wordsToString(sortWords, dicMap, loadedEngSoundWords, isRusTransled, false);
 		writeTextToFile(words, new File(resultDir, prefix + "words-sound.txt"));
 
 		List<FileEntry> brFs = new ArrayList<>();
@@ -285,8 +285,8 @@ public class DictionaryHelper {
 	}
 
 	public String wordsToString(List<String> sortEngWords,
-			Set<String> loadedSoundWords, boolean isAllWords)
-			throws IOException {
+			Map<String, String> dicMap, Set<String> loadedSoundWords,
+			boolean isRus, boolean isAllWords) throws IOException {
 		StringBuffer sb = new StringBuffer();
 		for (String eng : sortEngWords) {
 			if (!isAllWords && !loadedSoundWords.contains(eng)) {
@@ -301,8 +301,11 @@ public class DictionaryHelper {
 			} else {
 				sb.append("=");
 			}
-			sb.append(TranslationReceiver.INSTANCE.translateAndSimpleFormat(
-					eng, false));
+			if (isRus) {
+				sb.append(dicMap.containsKey(eng) ? dicMap.get(eng)
+						: TranslationReceiver.INSTANCE
+								.translateAndSimpleFormat(eng, false));
+			}
 		}
 		return sb.toString();
 	}
