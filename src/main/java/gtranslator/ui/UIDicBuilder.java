@@ -3,8 +3,7 @@ package gtranslator.ui;
 import gtranslator.Actions;
 import gtranslator.Actions.SetDictionaryPronunciationAction;
 import gtranslator.DictionaryHelper;
-import gtranslator.Actions.DetailTranslateAction;
-import gtranslator.Actions.WordPlayOfClipboardAction;
+import gtranslator.DictionaryHelper.DictionaryInput;
 import gtranslator.sound.SoundReceiver;
 
 import java.awt.BorderLayout;
@@ -26,14 +25,15 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 	Box box;
 	Border lineBorder;
 
-	JTextField resultDir;
-	JTextField wordsPath;
-	JTextField limitTextField;
-	JComboBox pronunciationLangComboBox;
-	JComboBox sourceTypeComboBox;
-	JCheckBox rusCheckBox;
-	JCheckBox multiRusCheckBox;
-	JCheckBox sortCheckBox;
+	private JTextField resultDir;
+	private JTextField wordsPath;
+	private JTextField limitTextField;
+	private JComboBox pronunciationLangComboBox;
+	private JComboBox sourceTypeComboBox;
+	private JCheckBox rusCheckBox;
+	private JCheckBox multiRusCheckBox;
+	private JCheckBox sortCheckBox;
+	private JTextField prefixTextField;
 
 	public void build(JPanel panel) {
 		box = Box.createVerticalBox();
@@ -46,9 +46,20 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 		createWidgetsOfLanguagePronunciation();
 		createWidgetsOfSourceType();
 		createWidgetsOfSort();
+		createWidgetsOfPrefix();
 		createWidgetsOfRus();
 		createWidgetsOfMultiRus();
 		createWidgetsOfPerform();
+	}
+
+	private void createWidgetsOfPrefix() {
+		prefixTextField = new JTextField();
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
+				"Prefix"));
+		panel.add(prefixTextField, BorderLayout.NORTH);
+		box.add(panel);
 	}
 
 	private void createWidgetsOfSort() {
@@ -110,7 +121,7 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 					public void run() {
 						button.setEnabled(false);
 						try {
-							Actions.DictionaryInput dic = new Actions.DictionaryInput();
+							DictionaryInput dic = new DictionaryInput();
 							dic.path = wordsPath.getText();
 							dic.resultDir = resultDir.getText();
 							dic.sourceType = DictionaryHelper.SOURCE_TYPE.valueOf(sourceTypeComboBox.getSelectedItem().toString()); 
@@ -121,6 +132,7 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 							dic.isRusTransled = rusCheckBox.isSelected();							
 							dic.isMultiRusTransled = multiRusCheckBox.isSelected();
 							dic.isSort = sortCheckBox.isSelected();
+							dic.prefix = prefixTextField.getText();
 							Actions.findAction(
 									Actions.DictionaryAction.class)
 									.execute(dic);

@@ -1,5 +1,6 @@
 package gtranslator;
 
+import gtranslator.DictionaryHelper.DictionaryInput;
 import gtranslator.sound.SoundHelper;
 import gtranslator.translate.TranslationReceiver;
 import gtranslator.ui.UIOutput;
@@ -34,17 +35,6 @@ public class Actions {
 		return act;
 	}
 
-	public static class DictionaryInput {
-		public String path;
-		public String resultDir;
-		public DictionaryHelper.SOURCE_TYPE sourceType;
-		public boolean isAmPronunciation;
-		public boolean isBrPronunciation;
-		public boolean isRusTransled;
-		public boolean isMultiRusTransled;
-		public boolean isSort = true;
-	}
-
 	public static class DictionaryAction extends Action<DictionaryInput> {
 		@Override
 		public void execute(DictionaryInput dic) {
@@ -52,23 +42,11 @@ public class Actions {
 			try {
 				HistoryHelper.INSTANCE.save();
 				if (dic.sourceType == DictionaryHelper.SOURCE_TYPE.HISTORY) {
-					DictionaryHelper.INSTANCE.createDictionaryFromHistory(
-							dic.resultDir, dic.isAmPronunciation,
-							dic.isBrPronunciation, dic.isRusTransled,
-							dic.isMultiRusTransled,
-							dic.isSort);
+					DictionaryHelper.INSTANCE.createDictionaryFromHistory(dic);
 				} else if (dic.sourceType == DictionaryHelper.SOURCE_TYPE.DICTIONARY) {
-					DictionaryHelper.INSTANCE.createDictionaryFromDict(
-							dic.path, dic.resultDir, dic.isAmPronunciation,
-							dic.isBrPronunciation, dic.isRusTransled,
-							dic.isMultiRusTransled,
-							dic.isSort);
+					DictionaryHelper.INSTANCE.createDictionaryFromDict(dic);
 				} else if (dic.sourceType == DictionaryHelper.SOURCE_TYPE.TEXT) {
-					DictionaryHelper.INSTANCE.createDictionaryFromText(
-							dic.path, dic.resultDir, dic.isAmPronunciation,
-							dic.isBrPronunciation, dic.isRusTransled,
-							dic.isMultiRusTransled,
-							dic.isSort);
+					DictionaryHelper.INSTANCE.createDictionaryFromText(dic);
 				}
 			} catch (Exception ex) {
 				logger.error(ex);

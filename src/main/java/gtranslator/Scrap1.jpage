@@ -1,4 +1,3 @@
-"test".trim().matches("[a-zA-Z]+")(boolean) true
+"test".trim().matches("[a-zA-Z]+")
 
-
-Syntax error, insert ";" to complete BlockStatements"1   5    7    9   ".replaceAll("[ ]+", " ")  
+"1   5    7    9   ".replaceAll("[ ]+", " ")  
