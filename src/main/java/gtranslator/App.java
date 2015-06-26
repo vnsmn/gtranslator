@@ -125,6 +125,18 @@ public class App {
 				.getDictionaryPronunciation();
 		UIOutput.getInstance().setDictionaryPronunciation(pronunciation);
 		logger.info(resultDir);
+		
+		logger.info("----- dictionary.pause.seconds -----");
+		Integer pauseSeconds = AppProperties.getInstance()
+				.getDictionaryPauseSeconds();
+		UIOutput.getInstance().setDictionaryPauseSeconds(pauseSeconds);
+		logger.info(pauseSeconds);
+		
+		logger.info("----- dictionary.defis.seconds -----");
+		Integer defisSeconds = AppProperties.getInstance()
+				.getDictionaryDefisSeconds();
+		UIOutput.getInstance().setDictionaryDefisSeconds(defisSeconds);
+		logger.info(defisSeconds);
 
 		logger.info("----- clipboard.active -----");
 		boolean isStart = AppProperties.getInstance().getClipboardActive();

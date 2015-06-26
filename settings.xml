@@ -2,6 +2,12 @@
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
 <comment>This is easy!</comment>
+<entry key="dictionary.pause.seconds">
+2
+</entry>
+<entry key="dictionary.defis.seconds">
+1
+</entry>
 <entry key="dictionary.block.limit">
 50
 </entry>

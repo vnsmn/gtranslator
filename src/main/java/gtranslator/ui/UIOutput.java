@@ -243,6 +243,16 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 		firePropertyChange(Constants.PROPERTY_CHANGE_DICTIONARY_PRONUNCIATION,
 				null, s);
 	}
+	
+	public void setDictionaryPauseSeconds(Integer i) {
+		firePropertyChange(Constants.PROPERTY_CHANGE_DICTIONARY_PAUSE_SECONDS,
+				null, i.toString());
+	}
+	
+	public void setDictionaryDefisSeconds(Integer i) {
+		firePropertyChange(Constants.PROPERTY_CHANGE_DICTIONARY_DEFIS_SECONDS,
+				null, i.toString());
+	}
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
