@@ -2,6 +2,7 @@ package gtranslator.sound;
 
 import gtranslator.AppProperties;
 import gtranslator.DictionaryHelper;
+import gtranslator.sound.SoundReceiver.LANG;
 import gtranslator.translate.TranslationReceiver;
 
 import java.io.ByteArrayInputStream;
@@ -93,15 +94,12 @@ public class SoundHelper {
 		Long frameLength = -1l;
 		streamList.add(createEmptyWaveFile(2));
 		for (FileEntry mp3File : soundFiles) {
-			AudioInputStream in = null;			
+			AudioInputStream in = null;
 			if (mp3File.engFile != null) {
-				in = convertWave(mp3File.engFile,
-					WAVE_FORMAT_44100);
+				in = convertWave(mp3File.engFile, WAVE_FORMAT_44100);
 			} else if (mp3File.synthEngFile != null) {
-				in = convertWave(mp3File.synthEngFile,
-						WAVE_FORMAT_16000);
-				in = AudioSystem.getAudioInputStream(WAVE_FORMAT_44100,						
-						in);
+				in = convertWave(mp3File.synthEngFile, WAVE_FORMAT_16000);
+				in = AudioSystem.getAudioInputStream(WAVE_FORMAT_44100, in);
 			}
 			if (in == null) {
 				throw new SoundHelper.SoundException(
@@ -135,115 +133,50 @@ public class SoundHelper {
 						.replaceAll(".wave", ".mp3")).getAbsolutePath());
 	}
 
-	// public static void concatFiles(int seconds, File outWaveFile,
-	// List<File> mp3Files) throws UnsupportedAudioFileException,
-	// IOException, SoundException {
-	// List<AudioInputStream> streamList = new ArrayList<>();
-	// Long frameLength = -1l;
-	// for (File mp3File : mp3Files) {
-	// AudioInputStream in = convertWave(mp3File, WAVE_FORMAT_44100);
-	// if (in == null) {
-	// throw new SoundHelper.SoundException(
-	// "the file is not support convert:"
-	// + mp3File.getAbsolutePath());
-	// }
-	// streamList.add(in);
-	// streamList.add(createEmptyWaveFile(seconds));
-	// // frameLength += in.getFrameLength();
-	// }
-	//
-	// AudioInputStream ins = new AudioInputStream(new SequenceInputStream(
-	// Collections.enumeration(streamList)), WAVE_FORMAT_44100,
-	// frameLength);
-	// AudioSystem.write(ins, MpegFileFormatType.WAVE, outWaveFile);
-	// for (AudioInputStream in : streamList) {
-	// in.close();
-	// }
-	// LameSoundHelper.INSTANCE.convert(outWaveFile.getAbsolutePath(),
-	// new File(outWaveFile.getParent(), outWaveFile.getName()
-	// .replaceAll(".wav", ".mp3")).getAbsolutePath());
-	// }
-	//
-	// public static void concatFiles(int seconds, String sourceWordsFilePath,
-	// String sourceMp3DirPath, String targetDir, String targetFileName,
-	// int blockLimit) throws SoundException {
-	// int suffics = 0;
-	// try {
-	// List<String> ss = Files
-	// .readAllLines(Paths.get(sourceWordsFilePath));
-	// List<File> fs = new ArrayList<File>();
-	// ProgressMonitorDemo progressMonitorDemo = ProgressMonitorDemo
-	// .createAndShowGUI("Contcat files", ss.size());
-	// try {
-	// int i = 0;
-	// for (String s : ss) {
-	// String word = s.split("[=]")[0];
-	// fs.add(new File(sourceMp3DirPath, word + ".mp3"));
-	// if (fs.size() >= blockLimit) {
-	// concatFiles(
-	// seconds,
-	// Paths.get(
-	// targetDir,
-	// String.format("%s_%d.wav",
-	// targetFileName, suffics))
-	// .toFile(), fs);
-	// fs.clear();
-	// suffics++;
-	// }
-	// progressMonitorDemo.nextProgress(i++);
-	// if (progressMonitorDemo.isCanceled()) {
-	// Thread.currentThread().stop();
-	// }
-	// }
-	// } finally {
-	// progressMonitorDemo.close();
-	// }
-	// if (fs.size() > 0) {
-	// concatFiles(
-	// seconds,
-	// Paths.get(
-	// targetDir,
-	// String.format("%s_%d.wav", targetFileName,
-	// suffics)).toFile(), fs);
-	// }
-	// } catch (Exception ex) {
-	// throw new SoundException(ex.getMessage());
-	// }
-	// }
-
-	public static void playFile(File mp3File) throws SoundException {
+	public static void playFile(File mp3File, boolean isSynthes)
+			throws SoundException {
 		AudioInputStream in;
 		try {
-			in = convertWave(mp3File, WAVE_FORMAT_44100);
+			in = isSynthes ? convertWave(mp3File, WAVE_FORMAT_16000)
+					: convertWave(mp3File, WAVE_FORMAT_44100);
 		} catch (UnsupportedAudioFileException | IOException ex) {
 			throw new SoundException(ex.getMessage());
 		}
-		SourceDataLine line = null;
-		DataLine.Info info = new DataLine.Info(SourceDataLine.class,
-				WAVE_FORMAT_44100);
 		try {
-			line = (SourceDataLine) AudioSystem.getLine(info);
-			line.open(in.getFormat());
-		} catch (Exception ex) {
-			throw new SoundException(ex.getMessage());
-		}
-
-		line.start();
-		int EXTERNAL_BUFFER_SIZE = 1024; // 128Kb
-		int nBytesRead = 0;
-		byte[] data = new byte[EXTERNAL_BUFFER_SIZE];
-		while (nBytesRead != -1) {
+			SourceDataLine line = null;
+			DataLine.Info info = new DataLine.Info(SourceDataLine.class,
+					WAVE_FORMAT_44100);
 			try {
-				nBytesRead = in.read(data, 0, data.length);
-			} catch (IOException ex) {
+				line = (SourceDataLine) AudioSystem.getLine(info);
+				line.open(in.getFormat());
+			} catch (Exception ex) {
 				throw new SoundException(ex.getMessage());
 			}
-			if (nBytesRead >= 0) {
-				line.write(data, 0, nBytesRead);
+
+			line.start();
+			int EXTERNAL_BUFFER_SIZE = 1024; // 128Kb
+			int nBytesRead = 0;
+			byte[] data = new byte[EXTERNAL_BUFFER_SIZE];
+			while (nBytesRead != -1) {
+				try {
+					nBytesRead = in.read(data, 0, data.length);
+				} catch (IOException ex) {
+					throw new SoundException(ex.getMessage());
+				}
+				if (nBytesRead >= 0) {
+					line.write(data, 0, nBytesRead);
+				}
+			}
+
+			line.drain();
+			line.close();
+		} finally {
+			try {
+				in.close();
+			} catch (IOException ex) {
+				logger.error(ex);
 			}
 		}
-		line.drain();
-		line.close();
 	}
 
 	public static void playEngWord(String engWord, boolean doSoundLoad) {
@@ -260,14 +193,23 @@ public class SoundHelper {
 					List<String> words = new ArrayList<>();
 					words.add(normal);
 					Set<String> loaded = DictionaryHelper.INSTANCE.loadSound(
-							words, new File(dicDirPath), true);
+							words, new File(dicDirPath), AppProperties
+									.getInstance().isDictionarySynthesizer());
 					if (loaded.isEmpty()) {
 						logger.error("the file " + f.getAbsolutePath()
 								+ " not found.");
 						return;
 					}
 				}
-				SoundHelper.playFile(f);
+				if (!f.exists()
+						&& AppProperties.getInstance()
+								.isDictionarySynthesizer()) {
+					f = new File(GoogleSoundReceiver.INSTANCE.getFilePath(
+							dicDirPath, normal, LANG.ENG));
+					SoundHelper.playFile(f, true);
+				} else {
+					SoundHelper.playFile(f, false);
+				}
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			}

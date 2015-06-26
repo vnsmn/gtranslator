@@ -275,4 +275,15 @@ public class Actions {
 			}
 		}
 	}
+	
+	public static class DictionarySynthesizerAction extends Action<Boolean> {
+		@Override
+		public void execute(Boolean b) {
+			try {
+				AppProperties.getInstance().setDictionarySynthesizer(b);
+			} catch (Exception ex) {
+				logger.error(ex.getMessage());
+			}
+		}
+	}
 }

@@ -137,6 +137,12 @@ public class App {
 				.getDictionaryDefisSeconds();
 		UIOutput.getInstance().setDictionaryDefisSeconds(defisSeconds);
 		logger.info(defisSeconds);
+		
+		logger.info("----- dictionary.synthesizer -----");
+		boolean synthesizer = AppProperties.getInstance()
+				.isDictionarySynthesizer();
+		UIOutput.getInstance().setDictionarySynthesizer(synthesizer);
+		logger.info(synthesizer);
 
 		logger.info("----- clipboard.active -----");
 		boolean isStart = AppProperties.getInstance().getClipboardActive();

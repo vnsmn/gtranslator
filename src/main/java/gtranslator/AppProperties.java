@@ -25,6 +25,7 @@ public class AppProperties {
 	private static final String DICTIONARY_PRONUNCIATION = "dictionary.pronunciation";
 	private static final String DICTIONARY_RESULT_DIR = "dictionary.result.dir";
 	private static final String DICTIONARY_TARGET_DIR = "dictionary.target.dir";
+	private static final String DICTIONARY_SYNTHESIZER = "dictionary.synthesizer";
 	private static final String HISTORY = "history";
 
 	private static AppProperties instance;
@@ -215,5 +216,20 @@ public class AppProperties {
 
 	public void setHistory(boolean b) {
 		properties.put(HISTORY, Boolean.toString(b));
+	}
+	
+	public void setDictionarySynthesizer(boolean b) {
+		properties.put(DICTIONARY_SYNTHESIZER, Boolean.toString(b));
+	}
+	
+	public boolean isDictionarySynthesizer() {
+		String s = properties.getProperty(DICTIONARY_SYNTHESIZER, "true")
+				.replaceAll("\n", "");
+		try {
+			return parseBoolean(s);
+		} catch (java.text.ParseException ex) {
+			logger.error(ex);
+			return true;
+		}
 	}
 }

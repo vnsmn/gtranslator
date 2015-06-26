@@ -112,15 +112,17 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 		glass.add(label);
 		glass.setOpaque(false);
 		frame.setVisible(true);
-		
+
 		tabbedPane.addChangeListener(new ChangeListener() {
 			@Override
-			public void stateChanged(ChangeEvent e) {				
+			public void stateChanged(ChangeEvent e) {
 				JTabbedPane pane = (JTabbedPane) e.getSource();
 				if (pane.getSelectedIndex() == 0) {
-					Actions.findAction(PauseTClipboardAction.class).execute(false);
+					Actions.findAction(PauseTClipboardAction.class).execute(
+							false);
 				} else {
-					Actions.findAction(PauseTClipboardAction.class).execute(true);
+					Actions.findAction(PauseTClipboardAction.class).execute(
+							true);
 				}
 			}
 		});
@@ -243,15 +245,20 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 		firePropertyChange(Constants.PROPERTY_CHANGE_DICTIONARY_PRONUNCIATION,
 				null, s);
 	}
-	
+
 	public void setDictionaryPauseSeconds(Integer i) {
 		firePropertyChange(Constants.PROPERTY_CHANGE_DICTIONARY_PAUSE_SECONDS,
 				null, i.toString());
 	}
-	
+
 	public void setDictionaryDefisSeconds(Integer i) {
 		firePropertyChange(Constants.PROPERTY_CHANGE_DICTIONARY_DEFIS_SECONDS,
 				null, i.toString());
+	}
+
+	public void setDictionarySynthesizer(boolean b) {
+		firePropertyChange(Constants.PROPERTY_CHANGE_DICTIONARY_SYNTHESIZER,
+				null, b);
 	}
 
 	@Override

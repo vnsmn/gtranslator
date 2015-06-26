@@ -1,6 +1,7 @@
 package gtranslator.ui;
 
 import gtranslator.Actions;
+import gtranslator.Actions.DictionarySynthesizerAction;
 import gtranslator.Actions.SetDictionaryPronunciationAction;
 import gtranslator.DictionaryHelper;
 import gtranslator.DictionaryHelper.DictionaryInput;
@@ -60,7 +61,14 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 
 	private void createWidgetsOfSynthes() {
 		synthesCheckBox = new JCheckBox("Synthesier");
-		synthesCheckBox.setSelected(false);		
+		synthesCheckBox.setSelected(false);
+		synthesCheckBox.addActionListener(new java.awt.event.ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JCheckBox check = (JCheckBox) e.getSource();
+				Actions.findAction(DictionarySynthesizerAction.class).execute(check.isSelected());
+			}
+		});
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
@@ -101,11 +109,6 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 	private void createWidgetsOfSort() {
 		sortCheckBox = new JCheckBox("Sort");
 		sortCheckBox.setSelected(true);
-		sortCheckBox.addActionListener(new java.awt.event.ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-			}
-		});
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
@@ -287,6 +290,9 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 		case Constants.PROPERTY_CHANGE_DICTIONARY_DEFIS_SECONDS:
 			defisSecondsTextField.setText(evt.getNewValue().toString());
 			break;
+		case Constants.PROPERTY_CHANGE_DICTIONARY_SYNTHESIZER:
+			synthesCheckBox.setSelected((Boolean) evt.getNewValue());
+			break;			
 		}
 
 	}
