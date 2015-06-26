@@ -56,6 +56,7 @@ public class DictionaryHelper {
 		public boolean isRusTransled;
 		public boolean isMultiRusTransled;
 		public boolean isSort = true;
+		public boolean isSynthes;
 
 		public void setPrefix(String prefix) {
 			this.prefix = StringUtils.isBlank(prefix) ? "" : prefix.trim()
@@ -86,7 +87,7 @@ public class DictionaryHelper {
 		createDictionary(sortWords, input.resultDir, input.isAmPronunciation,
 				input.isBrPronunciation, input.isRusTransled,
 				input.isMultiRusTransled, input.prefix, input.pauseSeconds,
-				input.defisSeconds);
+				input.defisSeconds, input.isSynthes);
 	}
 
 	public synchronized void createDictionaryFromText(DictionaryInput input)
@@ -108,7 +109,7 @@ public class DictionaryHelper {
 		createDictionary(sortWords, input.resultDir, input.isAmPronunciation,
 				input.isBrPronunciation, input.isRusTransled,
 				input.isMultiRusTransled, input.prefix, input.pauseSeconds,
-				input.defisSeconds);
+				input.defisSeconds, input.isSynthes);
 	}
 
 	public synchronized void createDictionaryFromDict(DictionaryInput input)
@@ -132,7 +133,7 @@ public class DictionaryHelper {
 		createDictionary(sortWords, input.resultDir, input.isAmPronunciation,
 				input.isBrPronunciation, input.isRusTransled,
 				input.isMultiRusTransled, dicMap, input.prefix,
-				input.pauseSeconds, input.defisSeconds);
+				input.pauseSeconds, input.defisSeconds, input.isSynthes);
 	}
 
 	private String readTextFromFile(String textFilePath) throws IOException {
@@ -159,19 +160,20 @@ public class DictionaryHelper {
 			String resultDirPath, boolean isAmPronunciation,
 			boolean isBrPronunciation, boolean isRusTransled,
 			boolean isMultiRusTransled, String prefix, int pauseSeconds,
-			int defisSeconds) throws IOException,
+			int defisSeconds, boolean isSynthes) throws IOException,
 			UnsupportedAudioFileException, SoundException,
 			SoundReceiverException {
 		createDictionary(sortWords, resultDirPath, isAmPronunciation,
 				isBrPronunciation, isRusTransled, isMultiRusTransled,
-				Collections.emptyMap(), prefix, pauseSeconds, defisSeconds);
+				Collections.emptyMap(), prefix, pauseSeconds, defisSeconds,
+				isSynthes);
 	}
 
 	private synchronized void createDictionary(List<String> sortWords,
 			String resultDirPath, boolean isAmPronunciation,
 			boolean isBrPronunciation, boolean isRusTransled,
 			boolean isMultiRusTransled, Map<String, String> dicMap,
-			String prefix, int pauseSeconds, int defisSeconds)
+			String prefix, int pauseSeconds, int defisSeconds, boolean isSynthes)
 			throws IOException, UnsupportedAudioFileException, SoundException,
 			SoundReceiverException {
 		File dicDir = new File(AppProperties.getInstance()
@@ -183,7 +185,8 @@ public class DictionaryHelper {
 		if (!resultDir.exists()) {
 			resultDir.mkdirs();
 		}
-		Set<String> loadedEngSoundWords = loadSound(sortWords, dicDir);
+		Set<String> loadedEngSoundWords = loadSound(sortWords, dicDir,
+				isSynthes);
 		String words = wordsToString(sortWords, dicMap, loadedEngSoundWords,
 				isRusTransled, true);
 		writeTextToFile(words, new File(resultDir, prefix + "words.txt"));
@@ -313,8 +316,8 @@ public class DictionaryHelper {
 		return sb.toString();
 	}
 
-	public Set<String> loadSound(List<String> words, File dirFile)
-			throws IOException {
+	public Set<String> loadSound(List<String> words, File dirFile,
+			boolean isSynthes) throws IOException {
 		Set<String> loaded = new HashSet<>();
 		ProgressMonitorDemo progressMonitorDemo = ProgressMonitorDemo
 				.createAndShowGUI("Loading sound", words.size());
@@ -324,8 +327,9 @@ public class DictionaryHelper {
 				try {
 					if (soundReceiver.createSoundFile(dirFile, s)) {
 						loaded.add(s);
-					} else if (GoogleSoundReceiver.INSTANCE.createSoundFile(
-							dirFile, s, LANG.ENG)) {
+					} else if (isSynthes
+							&& GoogleSoundReceiver.INSTANCE.createSoundFile(
+									dirFile, s, LANG.ENG)) {
 						loaded.add(s);
 					}
 					progressMonitorDemo.nextProgress(i++);

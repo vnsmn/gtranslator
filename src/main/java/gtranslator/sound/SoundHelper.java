@@ -260,7 +260,7 @@ public class SoundHelper {
 					List<String> words = new ArrayList<>();
 					words.add(normal);
 					Set<String> loaded = DictionaryHelper.INSTANCE.loadSound(
-							words, new File(dicDirPath));
+							words, new File(dicDirPath), true);
 					if (loaded.isEmpty()) {
 						logger.error("the file " + f.getAbsolutePath()
 								+ " not found.");

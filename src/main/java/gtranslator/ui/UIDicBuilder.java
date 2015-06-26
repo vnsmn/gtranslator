@@ -31,8 +31,9 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 	private JComboBox pronunciationLangComboBox;
 	private JComboBox sourceTypeComboBox;
 	private JCheckBox rusCheckBox;
-	private JCheckBox multiRusCheckBox;
+	private JCheckBox multiRusCheckBox;	
 	private JCheckBox sortCheckBox;
+	private JCheckBox synthesCheckBox;
 	private JTextField prefixTextField;
 	private JTextField pauseSecondsTextField;
 	private JTextField defisSecondsTextField;
@@ -51,9 +52,21 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 		createWidgetsOfPrefix();
 		createWidgetsOfPauseSeconds();
 		createWidgetsOfDefisSeconds();
+		createWidgetsOfSynthes();
 		createWidgetsOfRus();
 		createWidgetsOfMultiRus();
 		createWidgetsOfPerform();
+	}
+
+	private void createWidgetsOfSynthes() {
+		synthesCheckBox = new JCheckBox("Synthesier");
+		synthesCheckBox.setSelected(false);		
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
+				"Do use synthesier?"));
+		panel.add(synthesCheckBox, BorderLayout.WEST);
+		box.add(panel);		
 	}
 
 	private void createWidgetsOfDefisSeconds() {
@@ -167,6 +180,7 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 							dic.setPrefix(prefixTextField.getText());
 							dic.setPauseSeconds(pauseSecondsTextField.getText());
 							dic.setDefisSeconds(defisSecondsTextField.getText());
+							dic.isSynthes = synthesCheckBox.isSelected();
 							Actions.findAction(Actions.DictionaryAction.class)
 									.execute(dic);
 						} finally {
