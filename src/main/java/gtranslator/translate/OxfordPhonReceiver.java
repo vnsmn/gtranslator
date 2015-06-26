@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,14 +42,13 @@ public class OxfordPhonReceiver {
 	}
 
 	private static Map<PHONE, String> getPhons(String request)
-			throws IOException {			
+			throws IOException {
 		Map<PHONE, String> refs = new HashMap<>();
 		Document doc = Jsoup.connect(request).timeout(3000).get();
 		Elements elements = doc
 				.select("div[class=\"top-container\"] div[resource=phonetics][class=\"pron-gs ei-g\"] span[geo=br].pron-g span.prefix:contains(BrE) + span[class=phon]");
 		if (elements.size() > 0) {
-			NEXT:
-			for (Element el : elements) {
+			NEXT: for (Element el : elements) {
 				for (Node n : el.childNodes()) {
 					if (n instanceof TextNode) {
 						refs.put(PHONE.BR, ((TextNode) n).getWholeText());
@@ -62,8 +60,7 @@ public class OxfordPhonReceiver {
 		elements = doc
 				.select("div[class=\"top-container\"] div[resource=phonetics] span[geo=n_am].pron-g span.prefix:contains(NAmE) + span[class=phon]");
 		if (elements.size() > 0) {
-			NEXT:
-			for (Element el : elements) {
+			NEXT: for (Element el : elements) {
 				for (Node n : el.childNodes()) {
 					if (n instanceof TextNode) {
 						refs.put(PHONE.AM, ((TextNode) n).getWholeText());
