@@ -74,7 +74,7 @@ public class OxfordPhonReceiver {
 
 	public synchronized static String get(String word, PHONE phone) {
 		String normal = TranslationReceiver.INSTANCE.toNormal(word);
-		if (!phonProperies.containsKey(normal)) {
+		if (!phonProperies.containsKey(normal)) {			
 			receive(normal);
 		}
 		String s = phonProperies.getProperty(normal);
@@ -89,6 +89,11 @@ public class OxfordPhonReceiver {
 	}
 
 	public synchronized static void receive(String word) {
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException ex) {
+			logger.error(ex.getMessage());
+		}
 		try {
 			Map<PHONE, String> phons = getPhons(String.format(REQUEST, word,
 					word));

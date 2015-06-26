@@ -313,12 +313,7 @@ public class DictionaryHelper {
 					sb.append("\n");
 				}
 				sb.append(eng);
-				if (isPhonetics && (isAmPronunciation || isBrPronunciation)) {
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException ex) {
-						logger.error(ex.getMessage());
-					}
+				if (isPhonetics && (isAmPronunciation || isBrPronunciation)) {					
 					if (isAmPronunciation
 							&& !StringUtils.isBlank(OxfordPhonReceiver.get(eng,
 									PHONE.AM))) {
