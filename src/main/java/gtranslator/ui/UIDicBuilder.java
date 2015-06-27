@@ -39,6 +39,7 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 	private JTextField pauseSecondsTextField;
 	private JTextField defisSecondsTextField;
 	private JCheckBox phonCheckBox;
+	private JCheckBox directCheckBox;
 
 	public void build(JPanel panel) {
 		box = Box.createVerticalBox();
@@ -56,9 +57,21 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 		createWidgetsOfDefisSeconds();
 		createWidgetsOfSynthes();
 		createWidgetsOfPhon();
+		createWidgetsOfDirect();
 		createWidgetsOfRus();
 		createWidgetsOfMultiRus();
 		createWidgetsOfPerform();
+	}
+
+	private void createWidgetsOfDirect() {
+		directCheckBox = new JCheckBox("eng to rus");
+		directCheckBox.setSelected(true);
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
+				"is first-eng second-rus?"));
+		panel.add(directCheckBox, BorderLayout.WEST);
+		box.add(panel);
 	}
 
 	private void createWidgetsOfPhon() {
@@ -196,8 +209,8 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 							dic.setPrefix(prefixTextField.getText());
 							dic.setPauseSeconds(pauseSecondsTextField.getText());
 							dic.setDefisSeconds(defisSecondsTextField.getText());
-							dic.isSynthes = synthesCheckBox.isSelected();
 							dic.isPhonetics = phonCheckBox.isSelected();
+							dic.isFirstEng = directCheckBox.isSelected();
 							Actions.findAction(Actions.DictionaryAction.class)
 									.execute(dic);
 						} finally {
@@ -220,7 +233,7 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 				.addActionListener(new java.awt.event.ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						final JComboBox comboBox = (JComboBox) e.getSource();
+						JComboBox comboBox = (JComboBox) e.getSource();
 						Actions.findAction(
 								SetDictionaryPronunciationAction.class)
 								.execute(comboBox.getSelectedItem().toString());
