@@ -291,8 +291,8 @@ public class OxfordReceiver {
 	public static void main(String... args) throws Exception,
 			URISyntaxException, ParseException {
 		AppProperties.getInstance().load(null);
-		String w = "long";
-		// OxfordReceiver.phonProperties.remove(w);
+		String w = "";
+		//OxfordReceiver.INSTANCE.phonProperties.remove(w);
 		System.out
 				.println(OxfordReceiver.INSTANCE.getPhonetic(w, PHONETICS.AM));
 		System.out.println();
