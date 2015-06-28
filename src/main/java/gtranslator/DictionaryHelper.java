@@ -181,10 +181,10 @@ public class DictionaryHelper {
 		Set<String> loadedEngSoundWords = loadSound(sortWords, dicDir);
 		String words = wordsToString(sortWords, dicMap, loadedEngSoundWords,
 				isRusTransled, true, phonetic, isPhonetics, isFirstEng);
-		writeTextToFile(words, new File(resultDir, prefix + "words.txt"));
+		writeTextToFile(words, new File(resultDir, prefix + "words-" + phonetic.name().toLowerCase() + ".txt"));
 		words = wordsToString(sortWords, dicMap, loadedEngSoundWords,
 				isRusTransled, false, phonetic, isPhonetics, isFirstEng);
-		writeTextToFile(words, new File(resultDir, prefix + "words-sound.txt"));
+		writeTextToFile(words, new File(resultDir, prefix + "words-sound-" + phonetic.name().toLowerCase() + ".txt"));
 
 		List<FileEntry> brFs = new ArrayList<>();
 		List<FileEntry> amFs = new ArrayList<>();
