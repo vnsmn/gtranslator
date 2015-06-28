@@ -1,16 +1,11 @@
 package gtranslator;
 
 import gtranslator.exception.SoundReceiverException;
-import gtranslator.sound.GoogleSoundReceiver;
-import gtranslator.sound.OxfordSoundReceiver;
 import gtranslator.sound.SoundHelper;
 import gtranslator.sound.SoundHelper.FileEntry;
-import gtranslator.sound.SoundHelper.SoundException;
-import gtranslator.sound.SoundReceiver;
-import gtranslator.sound.SoundReceiver.LANG;
-import gtranslator.translate.OxfordPhonReceiver;
-import gtranslator.translate.OxfordPhonReceiver.PHONE;
+import gtranslator.sound.OxfordReceiver;
 import gtranslator.translate.TranslationReceiver;
+import gtranslator.ui.Constants.PHONETICS;
 import gtranslator.ui.ProgressMonitorDemo;
 
 import java.io.ByteArrayOutputStream;
@@ -37,7 +32,6 @@ import org.apache.log4j.Logger;
 public class DictionaryHelper {
 	final public static DictionaryHelper INSTANCE = new DictionaryHelper();
 	static final Logger logger = Logger.getLogger(DictionaryHelper.class);
-	private SoundReceiver soundReceiver = new OxfordSoundReceiver();
 
 	public enum SOURCE_TYPE {
 		HISTORY, DICTIONARY, TEXT
@@ -53,8 +47,7 @@ public class DictionaryHelper {
 		private Integer pauseSeconds;
 		private Integer defisSeconds;
 		public DictionaryHelper.SOURCE_TYPE sourceType;
-		public boolean isAmPronunciation;
-		public boolean isBrPronunciation;
+		public PHONETICS phonetic;
 		public boolean isRusTransled;
 		public boolean isMultiRusTransled;
 		public boolean isSort = true;
@@ -87,10 +80,10 @@ public class DictionaryHelper {
 		if (input.isSort) {
 			Collections.sort(sortWords);
 		}
-		createDictionary(sortWords, input.resultDir, input.isAmPronunciation,
-				input.isBrPronunciation, input.isRusTransled,
-				input.isMultiRusTransled, input.prefix, input.pauseSeconds,
-				input.defisSeconds, input.isPhonetics, input.isFirstEng);
+		createDictionary(sortWords, input.resultDir, input.phonetic,
+				input.isRusTransled, input.isMultiRusTransled, input.prefix,
+				input.pauseSeconds, input.defisSeconds, input.isPhonetics,
+				input.isFirstEng);
 	}
 
 	public synchronized void createDictionaryFromText(DictionaryInput input)
@@ -109,10 +102,10 @@ public class DictionaryHelper {
 		if (input.isSort) {
 			Collections.sort(sortWords);
 		}
-		createDictionary(sortWords, input.resultDir, input.isAmPronunciation,
-				input.isBrPronunciation, input.isRusTransled,
-				input.isMultiRusTransled, input.prefix, input.pauseSeconds,
-				input.defisSeconds, input.isPhonetics, input.isFirstEng);
+		createDictionary(sortWords, input.resultDir, input.phonetic,
+				input.isRusTransled, input.isMultiRusTransled, input.prefix,
+				input.pauseSeconds, input.defisSeconds, input.isPhonetics,
+				input.isFirstEng);
 	}
 
 	public synchronized void createDictionaryFromDict(DictionaryInput input)
@@ -133,11 +126,10 @@ public class DictionaryHelper {
 		if (input.isSort) {
 			Collections.sort(sortWords);
 		}
-		createDictionary(sortWords, input.resultDir, input.isAmPronunciation,
-				input.isBrPronunciation, input.isRusTransled,
-				input.isMultiRusTransled, dicMap, input.prefix,
-				input.pauseSeconds, input.defisSeconds, input.isPhonetics,
-				input.isFirstEng);
+		createDictionary(sortWords, input.resultDir, input.phonetic,
+				input.isRusTransled, input.isMultiRusTransled, dicMap,
+				input.prefix, input.pauseSeconds, input.defisSeconds,
+				input.isPhonetics, input.isFirstEng);
 	}
 
 	private String readTextFromFile(String textFilePath) throws IOException {
@@ -161,26 +153,22 @@ public class DictionaryHelper {
 	}
 
 	private synchronized void createDictionary(List<String> sortWords,
-			String resultDirPath, boolean isAmPronunciation,
-			boolean isBrPronunciation, boolean isRusTransled,
+			String resultDirPath, PHONETICS phonetic, boolean isRusTransled,
 			boolean isMultiRusTransled, String prefix, int pauseSeconds,
 			int defisSeconds, boolean isPhonetics, boolean isFirstEng)
-			throws IOException, UnsupportedAudioFileException, SoundException,
+			throws IOException, UnsupportedAudioFileException,
 			SoundReceiverException {
-		createDictionary(sortWords, resultDirPath, isAmPronunciation,
-				isBrPronunciation, isRusTransled, isMultiRusTransled,
-				Collections.emptyMap(), prefix, pauseSeconds, defisSeconds,
-				isPhonetics, isFirstEng);
+		createDictionary(sortWords, resultDirPath, phonetic, isRusTransled,
+				isMultiRusTransled, Collections.emptyMap(), prefix,
+				pauseSeconds, defisSeconds, isPhonetics, isFirstEng);
 	}
 
 	private synchronized void createDictionary(List<String> sortWords,
-			String resultDirPath, boolean isAmPronunciation,
-			boolean isBrPronunciation, boolean isRusTransled,
+			String resultDirPath, PHONETICS phonetic, boolean isRusTransled,
 			boolean isMultiRusTransled, Map<String, String> dicMap,
 			String prefix, int pauseSeconds, int defisSeconds,
 			boolean isPhonetics, boolean isFirstEng) throws IOException,
-			UnsupportedAudioFileException, SoundException,
-			SoundReceiverException {
+			UnsupportedAudioFileException, SoundReceiverException {
 		File dicDir = new File(AppProperties.getInstance()
 				.getDictionaryDirPath());
 		if (!dicDir.exists()) {
@@ -192,12 +180,10 @@ public class DictionaryHelper {
 		}
 		Set<String> loadedEngSoundWords = loadSound(sortWords, dicDir);
 		String words = wordsToString(sortWords, dicMap, loadedEngSoundWords,
-				isRusTransled, true, isAmPronunciation, isBrPronunciation,
-				isPhonetics, isFirstEng);
+				isRusTransled, true, phonetic, isPhonetics, isFirstEng);
 		writeTextToFile(words, new File(resultDir, prefix + "words.txt"));
 		words = wordsToString(sortWords, dicMap, loadedEngSoundWords,
-				isRusTransled, false, isAmPronunciation, isBrPronunciation,
-				isPhonetics, isFirstEng);
+				isRusTransled, false, phonetic, isPhonetics, isFirstEng);
 		writeTextToFile(words, new File(resultDir, prefix + "words-sound.txt"));
 
 		List<FileEntry> brFs = new ArrayList<>();
@@ -232,34 +218,17 @@ public class DictionaryHelper {
 										.split("[;]")[0];
 							}
 						}
-						rusFile = new File(
-								GoogleSoundReceiver.INSTANCE.getFilePath(
-										dicDir.getAbsolutePath(), rus, LANG.RUS));
-						if (!rusFile.exists()) {
-							GoogleSoundReceiver.INSTANCE.createSoundFile(
-									dicDir, rus, LANG.RUS);
-						}
+						rusFile = SoundHelper.getRusFile(rus);
 					}
-					File brDir = new File(dicDir, SoundReceiver.BR_SOUND_DIR);
-					File amDir = new File(dicDir, SoundReceiver.AM_SOUND_DIR);
-					File enDir = new File(dicDir, SoundReceiver.EN_SOUND_DIR);
-					String engFileName = eng + ".mp3";
-					if (isBrPronunciation) {
-						File engFile = new File(brDir, engFileName);
-						if (!engFile.exists()) {
-							engFile = new File(enDir, engFileName);
-						}
+					File engFile = SoundHelper.getEngFile(eng, phonetic);
+					if (PHONETICS.BR == phonetic) {
 						if (isFirstEng) {
 							brFs.add(new FileEntry(engFile, rusFile));
 						} else {
 							brFs.add(new FileEntry(rusFile, engFile));
 						}
 					}
-					if (isAmPronunciation) {
-						File engFile = new File(amDir, engFileName);
-						if (!engFile.exists()) {
-							engFile = new File(enDir, engFileName);
-						}
+					if (PHONETICS.AM == phonetic) {
 						if (isFirstEng) {
 							amFs.add(new FileEntry(engFile, rusFile));
 						} else {
@@ -271,13 +240,13 @@ public class DictionaryHelper {
 						Thread.currentThread().stop();
 					}
 				}
-				if (isBrPronunciation) {
+				if (PHONETICS.BR == phonetic) {
 					File outWaveFile = new File(resultDir, String.format(prefix
 							+ "word-sound-br-%d-%d.wave", fromIndex, toIndex));
 					SoundHelper.concatFiles(pauseSeconds, defisSeconds,
 							outWaveFile, brFs);
 				}
-				if (isAmPronunciation) {
+				if (PHONETICS.AM == phonetic) {
 					File outWaveFile = new File(resultDir, String.format(prefix
 							+ "word-sound-am-%d-%d.wave", fromIndex, toIndex));
 					SoundHelper.concatFiles(pauseSeconds, defisSeconds,
@@ -293,16 +262,9 @@ public class DictionaryHelper {
 		}
 	}
 
-	public File findFile(boolean isBr, String targetDirPath, String word) {
-		return isBr ? Paths.get(targetDirPath, SoundReceiver.BR_SOUND_DIR,
-				word.concat(".mp3")).toFile() : Paths.get(targetDirPath,
-				SoundReceiver.AM_SOUND_DIR, word.concat(".mp3")).toFile();
-	}
-
 	public String wordsToString(List<String> sortEngWords,
 			Map<String, String> dicMap, Set<String> loadedSoundWords,
-			boolean isRusTransled, boolean isAllWords,
-			boolean isAmPronunciation, boolean isBrPronunciation,
+			boolean isRusTransled, boolean isAllWords, PHONETICS phonetic,
 			boolean isPhonetics, boolean isFirstEng) throws IOException {
 		ProgressMonitorDemo progressMonitorDemo = ProgressMonitorDemo
 				.createAndShowGUI("Words to string", sortEngWords.size());
@@ -318,18 +280,18 @@ public class DictionaryHelper {
 				}
 				String rus = null;
 				String phon = "";
-				if (isPhonetics && (isAmPronunciation || isBrPronunciation)) {
-					if (isAmPronunciation
-							&& !StringUtils.isBlank(OxfordPhonReceiver.get(eng,
-									PHONE.AM))) {
-						phon = "[" + OxfordPhonReceiver.get(eng, PHONE.AM)
-								+ "]";
+				if (isPhonetics) {
+					if (PHONETICS.AM == phonetic
+							&& !StringUtils
+									.isBlank(phon = OxfordReceiver.INSTANCE
+											.getPhonetic(eng, PHONETICS.AM))) {
+						phon = "[" + phon + "]";
 					}
-					if (isBrPronunciation
-							&& !StringUtils.isBlank(OxfordPhonReceiver.get(eng,
-									PHONE.BR))) {
-						phon = "[" + OxfordPhonReceiver.get(eng, PHONE.BR)
-								+ "]";
+					if (PHONETICS.BR == phonetic
+							&& !StringUtils
+									.isBlank(phon = OxfordReceiver.INSTANCE
+											.getPhonetic(eng, PHONETICS.BR))) {
+						phon = "[" + phon + "]";
 					}
 				}
 				if (isRusTransled) {
@@ -361,27 +323,10 @@ public class DictionaryHelper {
 				.createAndShowGUI("Loading sound", words.size());
 		try {
 			int i = 0;
-			boolean isSynthes = AppProperties.getInstance()
-					.isDictionarySynthesizer();
 			for (String s : words) {
-				boolean exists;
-				try {
-					exists = soundReceiver.createSoundFile(dirFile, s);
-				} catch (SoundReceiverException ex) {
-					exists = false;
-					logger.error(ex);
-				}
-				try {
-					if (!exists
-							&& isSynthes
-							&& GoogleSoundReceiver.INSTANCE.createSoundFile(
-									dirFile, s, LANG.ENG)) {
-						exists = true;
-					}
-				} catch (SoundReceiverException ex) {
-					exists = false;
-				}
-				if (exists) {
+				File f = SoundHelper.getEngFile(s, AppProperties.getInstance()
+						.getDictionaryPhonetic());
+				if (f != null) {
 					loaded.add(s);
 				}
 				progressMonitorDemo.nextProgress(i++);

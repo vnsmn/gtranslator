@@ -3,6 +3,7 @@ package gtranslator;
 import gtranslator.Actions.ModeTClipboardAction;
 import gtranslator.Actions.StartStopTClipboardAction;
 import gtranslator.translate.TranslationReceiver;
+import gtranslator.ui.Constants.PHONETICS;
 import gtranslator.ui.UIOutput;
 
 import java.io.IOException;
@@ -21,23 +22,25 @@ public class App {
 
 	private static Thread clipboardThread;
 
-	public static void main(String[] args) throws InvocationTargetException, InterruptedException {
+	public static void main(String[] args) throws InvocationTargetException,
+			InterruptedException {
 		logger.info("hi");
 
-//		javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-//			@Override
-//			public void run() {
-//				try {
-//					loadProperties(args);
-//					applyProperties();
-//					loadHistory();
-//				} catch (IOException | ParseException | java.text.ParseException ex) {
-//					logger.error(ex.getMessage(), ex);
-//					System.exit(-1);
-//				}				
-//			}		
-//		});
-		
+		// javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+		// @Override
+		// public void run() {
+		// try {
+		// loadProperties(args);
+		// applyProperties();
+		// loadHistory();
+		// } catch (IOException | ParseException | java.text.ParseException ex)
+		// {
+		// logger.error(ex.getMessage(), ex);
+		// System.exit(-1);
+		// }
+		// }
+		// });
+
 		try {
 			loadProperties(args);
 			applyProperties();
@@ -121,23 +124,22 @@ public class App {
 		logger.info(resultDir);
 
 		logger.info("----- dictionary.pronunciation -----");
-		String pronunciation = AppProperties.getInstance()
-				.getDictionaryPronunciation();
-		UIOutput.getInstance().setDictionaryPronunciation(pronunciation);
-		logger.info(resultDir);
-		
+		PHONETICS ph = AppProperties.getInstance().getDictionaryPhonetic();
+		UIOutput.getInstance().setDictionaryPhonetic(ph);
+		logger.info(ph.name());
+
 		logger.info("----- dictionary.pause.seconds -----");
 		Integer pauseSeconds = AppProperties.getInstance()
 				.getDictionaryPauseSeconds();
 		UIOutput.getInstance().setDictionaryPauseSeconds(pauseSeconds);
 		logger.info(pauseSeconds);
-		
+
 		logger.info("----- dictionary.defis.seconds -----");
 		Integer defisSeconds = AppProperties.getInstance()
 				.getDictionaryDefisSeconds();
 		UIOutput.getInstance().setDictionaryDefisSeconds(defisSeconds);
 		logger.info(defisSeconds);
-		
+
 		logger.info("----- dictionary.synthesizer -----");
 		boolean synthesizer = AppProperties.getInstance()
 				.isDictionarySynthesizer();
@@ -152,8 +154,10 @@ public class App {
 
 		logger.info("----- clipboard.mode -----");
 		String mode = AppProperties.getInstance().getClipboardMode();
-		UIOutput.getInstance().setModeClipboard(ClipboardObserver.MODE.valueOf(mode));
-		Actions.findAction(ModeTClipboardAction.class).execute(ClipboardObserver.MODE.valueOf(mode));
+		UIOutput.getInstance().setModeClipboard(
+				ClipboardObserver.MODE.valueOf(mode));
+		Actions.findAction(ModeTClipboardAction.class).execute(
+				ClipboardObserver.MODE.valueOf(mode));
 		logger.info(mode);
 
 		logger.info("********************");

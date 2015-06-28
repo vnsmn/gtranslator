@@ -1,5 +1,7 @@
 package gtranslator.ui;
 
+import java.nio.file.Paths;
+
 public class Constants {
 	public final static String PROPERTY_CHANGE_ACTIVITY_CLIPBOARD = "PROPERTY_CHANGE_ACTIVITY_CLIPBOARD";
 	public final static String PROPERTY_CHANGE_MODE_CLIPBOARD = "PROPERTY_CHANGE_MODE_CLIPBOARD";
@@ -15,4 +17,26 @@ public class Constants {
 	public final static String PROPERTY_CHANGE_DICTIONARY_PAUSE_SECONDS = "PROPERTY_CHANGE_DICTIONARY_PAUSE_SECONDS";
 	public final static String PROPERTY_CHANGE_DICTIONARY_DEFIS_SECONDS = "PROPERTY_CHANGE_DICTIONARY_DEFIS_SECONDS";
 	public final static String PROPERTY_CHANGE_DICTIONARY_SYNTHESIZER = "PROPERTY_CHANGE_DICTIONARY_SYNTHESIZER";
+
+	public final static String AM = "am";
+	public final static String BR = "br";
+	public final static String RU = "ru";
+	public final static String EN = "en";
+
+	public final static String AM_SOUND_DIR = Paths.get("sounds", AM)
+			.toString();
+	public final static String BR_SOUND_DIR = Paths.get("sounds", BR)
+			.toString();
+	public final static String RU_SOUND_DIR = Paths.get("sounds", RU)
+			.toString();
+	public final static String EN_SOUND_DIR = Paths.get("sounds", EN)
+			.toString();
+
+	public enum PHONETICS {
+		AM, BR
+	}
+
+	public enum LANG {
+		RUS, ENG
+	}
 }

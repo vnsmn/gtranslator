@@ -1,11 +1,12 @@
 package gtranslator.ui;
 
 import gtranslator.Actions;
+import gtranslator.AppProperties;
 import gtranslator.Actions.DictionarySynthesizerAction;
-import gtranslator.Actions.SetDictionaryPronunciationAction;
+import gtranslator.Actions.SetDictionaryPhoneticAction;
 import gtranslator.DictionaryHelper;
 import gtranslator.DictionaryHelper.DictionaryInput;
-import gtranslator.sound.SoundReceiver;
+import gtranslator.ui.Constants.PHONETICS;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -32,7 +33,7 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 	private JComboBox pronunciationLangComboBox;
 	private JComboBox sourceTypeComboBox;
 	private JCheckBox rusCheckBox;
-	private JCheckBox multiRusCheckBox;	
+	private JCheckBox multiRusCheckBox;
 	private JCheckBox sortCheckBox;
 	private JCheckBox synthesCheckBox;
 	private JTextField prefixTextField;
@@ -49,7 +50,7 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 		createWidgetsOfResultDir();
 		createWidgetsOfWordsPath();
 		createWidgetsOfLimitPath();
-		createWidgetsOfLanguagePronunciation();
+		createWidgetsOfPhonetic();
 		createWidgetsOfSourceType();
 		createWidgetsOfSort();
 		createWidgetsOfPrefix();
@@ -92,7 +93,8 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JCheckBox check = (JCheckBox) e.getSource();
-				Actions.findAction(DictionarySynthesizerAction.class).execute(check.isSelected());
+				Actions.findAction(DictionarySynthesizerAction.class).execute(
+						check.isSelected());
 			}
 		});
 		JPanel panel = new JPanel();
@@ -100,7 +102,7 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
 				"Do use synthesier?"));
 		panel.add(synthesCheckBox, BorderLayout.WEST);
-		box.add(panel);		
+		box.add(panel);
 	}
 
 	private void createWidgetsOfDefisSeconds() {
@@ -192,15 +194,8 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 							dic.sourceType = DictionaryHelper.SOURCE_TYPE
 									.valueOf(sourceTypeComboBox
 											.getSelectedItem().toString());
-							dic.isAmPronunciation = SoundReceiver.AM
-									.equalsIgnoreCase(pronunciationLangComboBox
-											.getSelectedItem().toString())
-									|| "all".equalsIgnoreCase(pronunciationLangComboBox
-											.getSelectedItem().toString());
-							dic.isBrPronunciation = SoundReceiver.BR
-									.equalsIgnoreCase(pronunciationLangComboBox
-											.getSelectedItem().toString())
-									|| "all".equalsIgnoreCase(pronunciationLangComboBox
+							dic.phonetic = PHONETICS
+									.valueOf(pronunciationLangComboBox
 											.getSelectedItem().toString());
 							dic.isRusTransled = rusCheckBox.isSelected();
 							dic.isMultiRusTransled = multiRusCheckBox
@@ -226,23 +221,24 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 		box.add(panel);
 	}
 
-	private void createWidgetsOfLanguagePronunciation() {
-		String[] pronunciation = { SoundReceiver.AM, SoundReceiver.BR, "all" };
-		pronunciationLangComboBox = new JComboBox(pronunciation);
+	private void createWidgetsOfPhonetic() {
+		String[] phonetic = { PHONETICS.AM.name(), PHONETICS.BR.name() };
+		pronunciationLangComboBox = new JComboBox(phonetic);
 		pronunciationLangComboBox
 				.addActionListener(new java.awt.event.ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						JComboBox comboBox = (JComboBox) e.getSource();
-						Actions.findAction(
-								SetDictionaryPronunciationAction.class)
-								.execute(comboBox.getSelectedItem().toString());
+						Actions.findAction(SetDictionaryPhoneticAction.class)
+								.execute(
+										PHONETICS.valueOf(comboBox
+												.getSelectedItem().toString()));
 					}
 				});
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
-		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
-				"Pronunciation"));
+		panel.setBorder(BorderFactory
+				.createTitledBorder(lineBorder, "Phonetic"));
 		panel.add(pronunciationLangComboBox, BorderLayout.NORTH);
 		box.add(panel);
 	}
@@ -308,8 +304,8 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 			limitTextField.setText(evt.getNewValue().toString());
 			break;
 		case Constants.PROPERTY_CHANGE_DICTIONARY_PRONUNCIATION:
-			pronunciationLangComboBox.setSelectedItem(evt.getNewValue()
-					.toString());
+			PHONETICS ph = (PHONETICS) evt.getNewValue();
+			pronunciationLangComboBox.setSelectedItem(ph.name());
 			break;
 		case Constants.PROPERTY_CHANGE_DICTIONARY_PAUSE_SECONDS:
 			pauseSecondsTextField.setText(evt.getNewValue().toString());
@@ -319,7 +315,7 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 			break;
 		case Constants.PROPERTY_CHANGE_DICTIONARY_SYNTHESIZER:
 			synthesCheckBox.setSelected((Boolean) evt.getNewValue());
-			break;			
+			break;
 		}
 
 	}

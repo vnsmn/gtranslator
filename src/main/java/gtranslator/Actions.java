@@ -3,6 +3,7 @@ package gtranslator;
 import gtranslator.DictionaryHelper.DictionaryInput;
 import gtranslator.sound.SoundHelper;
 import gtranslator.translate.TranslationReceiver;
+import gtranslator.ui.Constants.PHONETICS;
 import gtranslator.ui.UIOutput;
 
 import java.util.HashMap;
@@ -78,7 +79,7 @@ public class Actions {
 		public void execute(String engWord) {
 			UIOutput.getInstance().showWaitCursor();
 			try {
-				SoundHelper.playEngWord(engWord, false);
+				SoundHelper.playEngWord(engWord);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
@@ -93,7 +94,7 @@ public class Actions {
 		public void execute(String engWord) {
 			UIOutput.getInstance().showWaitCursor();
 			try {
-				SoundHelper.playEngWord(engWord, true);
+				SoundHelper.playEngWord(engWord);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
@@ -108,7 +109,7 @@ public class Actions {
 		public void execute(Boolean b) {
 			UIOutput.getInstance().showWaitCursor();
 			try {
-				ClipboardObserver.getInstance().setPause(b);			
+				ClipboardObserver.getInstance().setPause(b);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
@@ -214,8 +215,8 @@ public class Actions {
 								@Override
 								public void execute(String s) {
 									UIOutput.getInstance().showWaitCursor();
-									try {										
-										SoundHelper.playEngWord(s, true);
+									try {
+										SoundHelper.playEngWord(s);
 									} finally {
 										UIOutput.getInstance().hideWaitCursor();
 									}
@@ -233,12 +234,12 @@ public class Actions {
 		}
 	}
 
-	public static class SetDictionaryPronunciationAction extends Action<String> {
+	public static class SetDictionaryPhoneticAction extends Action<PHONETICS> {
 		@Override
-		public void execute(String s) {
+		public void execute(PHONETICS ph) {
 			UIOutput.getInstance().showWaitCursor();
 			try {
-				AppProperties.getInstance().setDictionaryPronunciation(s);
+				AppProperties.getInstance().setDictionaryPhonetic(ph);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
@@ -275,7 +276,7 @@ public class Actions {
 			}
 		}
 	}
-	
+
 	public static class DictionarySynthesizerAction extends Action<Boolean> {
 		@Override
 		public void execute(Boolean b) {

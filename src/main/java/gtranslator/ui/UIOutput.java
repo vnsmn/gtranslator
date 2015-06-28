@@ -3,6 +3,7 @@ package gtranslator.ui;
 import gtranslator.Actions;
 import gtranslator.Actions.PauseTClipboardAction;
 import gtranslator.ClipboardObserver;
+import gtranslator.ui.Constants.PHONETICS;
 
 import java.awt.BorderLayout;
 import java.awt.Cursor;
@@ -241,9 +242,9 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 				null, i);
 	}
 
-	public void setDictionaryPronunciation(String s) {
+	public void setDictionaryPhonetic(PHONETICS ph) {
 		firePropertyChange(Constants.PROPERTY_CHANGE_DICTIONARY_PRONUNCIATION,
-				null, s);
+				null, ph);
 	}
 
 	public void setDictionaryPauseSeconds(Integer i) {

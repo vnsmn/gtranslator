@@ -1,7 +1,8 @@
 package gtranslator;
 
 import gtranslator.exception.GTranslatorException;
-import gtranslator.sound.SoundReceiver;
+import gtranslator.ui.Constants;
+import gtranslator.ui.Constants.PHONETICS;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -56,12 +57,6 @@ public class AppProperties {
 				throw new GTranslatorException(format, type, s);
 			}
 			break;
-		case DICTIONARY_PRONUNCIATION:
-			if (!s.equalsIgnoreCase(SoundReceiver.AM)
-					&& !s.equalsIgnoreCase(SoundReceiver.BR)) {
-				throw new GTranslatorException(format, type, s);
-			}
-			break;
 		}
 	}
 
@@ -73,8 +68,8 @@ public class AppProperties {
 	}
 
 	public String getClipboardMode() {
-		String s = properties.getProperty(CLIPBOARD_MODE, "copy").replaceAll(
-				"\n", "").toUpperCase();
+		String s = properties.getProperty(CLIPBOARD_MODE, "copy")
+				.replaceAll("\n", "").toUpperCase();
 		check(s, CLIPBOARD_MODE);
 		return s;
 	}
@@ -111,11 +106,12 @@ public class AppProperties {
 		return StringUtils.isBlank(s) ? 1 : Integer.parseInt(s);
 	}
 
-	public String getDictionaryPronunciation() {
-		String pronunciation = properties.getProperty(DICTIONARY_PRONUNCIATION,
-				SoundReceiver.BR).replaceAll("\n", "");
-		check(pronunciation, DICTIONARY_PRONUNCIATION);
-		return pronunciation;
+	public PHONETICS getDictionaryPhonetic() {
+		String pronunciation = properties
+				.getProperty(DICTIONARY_PRONUNCIATION,
+						Constants.PHONETICS.BR.name()).replaceAll("\n", "")
+				.trim();
+		return PHONETICS.valueOf(pronunciation.toUpperCase());
 	}
 
 	public String getDictionaryResultDir() {
@@ -205,9 +201,8 @@ public class AppProperties {
 		properties.setProperty(DICTIONARY_PAUSE_SECONDS, Integer.toString(i));
 	}
 
-	public void setDictionaryPronunciation(String s) {
-		check(s, DICTIONARY_PRONUNCIATION);
-		properties.setProperty(DICTIONARY_PRONUNCIATION, s);
+	public void setDictionaryPhonetic(PHONETICS phon) {
+		properties.setProperty(DICTIONARY_PRONUNCIATION, phon.name());
 	}
 
 	public void setDictionaryResultDirPath(String s) {
@@ -217,11 +212,11 @@ public class AppProperties {
 	public void setHistory(boolean b) {
 		properties.put(HISTORY, Boolean.toString(b));
 	}
-	
+
 	public void setDictionarySynthesizer(boolean b) {
 		properties.put(DICTIONARY_SYNTHESIZER, Boolean.toString(b));
 	}
-	
+
 	public boolean isDictionarySynthesizer() {
 		String s = properties.getProperty(DICTIONARY_SYNTHESIZER, "true")
 				.replaceAll("\n", "");

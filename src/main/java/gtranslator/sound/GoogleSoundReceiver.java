@@ -1,6 +1,9 @@
 package gtranslator.sound;
 
+import gtranslator.AppProperties;
 import gtranslator.exception.SoundReceiverException;
+import gtranslator.ui.Constants;
+import gtranslator.ui.Constants.LANG;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -15,7 +18,7 @@ import java.nio.file.StandardCopyOption;
 
 import org.apache.log4j.Logger;
 
-public class GoogleSoundReceiver implements SoundReceiver {
+public class GoogleSoundReceiver {
 	static final Logger logger = Logger.getLogger(GoogleSoundReceiver.class);
 	public static final GoogleSoundReceiver INSTANCE = new GoogleSoundReceiver();
 	private final static String RUS_REQUEST = "http://translate.google.com/translate_tts?tl=ru&q=%s";
@@ -24,10 +27,13 @@ public class GoogleSoundReceiver implements SoundReceiver {
 	private GoogleSoundReceiver() {
 	}
 
-	public boolean createSoundFile(File dicDir, String phrase, LANG lang)
+	public File getSound(String phrase, LANG lang)
 			throws SoundReceiverException {
-		File soundDir = new File(dicDir, LANG.RUS == lang ? RU_SOUND_DIR
-				: EN_SOUND_DIR);
+		File dicDir = new File(AppProperties.getInstance()
+				.getDictionaryDirPath());
+		File soundDir = new File(dicDir,
+				LANG.RUS == lang ? Constants.RU_SOUND_DIR
+						: Constants.EN_SOUND_DIR);
 		if (!soundDir.exists()) {
 			soundDir.mkdirs();
 		}
@@ -40,31 +46,7 @@ public class GoogleSoundReceiver implements SoundReceiver {
 				logger.error(ex.getMessage(), ex);
 				throw new SoundReceiverException(ex.getMessage(), ex);
 			}
-		return isloaded;
-	}
-
-	@Override
-	public boolean createSoundFile(File dicDir, String phrase)
-			throws SoundReceiverException {
-		File soundDir = new File(dicDir, RU_SOUND_DIR);
-		if (!soundDir.exists()) {
-			soundDir.mkdirs();
-		}
-		File fw = new File(soundDir, phrase + ".mp3");
-		boolean isloaded = fw.exists();
-		if (!isloaded)
-			try {
-				isloaded = writeSound(fw, phrase, LANG.RUS);
-			} catch (IOException ex) {
-				logger.error(ex.getMessage(), ex);
-				throw new SoundReceiverException(ex.getMessage(), ex);
-			}
-		return isloaded;
-	}
-
-	public String getFilePath(String dir, String word, LANG lang) {
-		return Paths.get(dir, LANG.RUS == lang ? RU_SOUND_DIR : EN_SOUND_DIR,
-				word.concat(".mp3")).toString();
+		return isloaded ? fw : null;
 	}
 
 	private boolean writeSound(File file, String phrase, LANG lang)
@@ -96,7 +78,6 @@ public class GoogleSoundReceiver implements SoundReceiver {
 	}
 
 	public static void main(String... args) throws Exception {
-		new GoogleSoundReceiver().createSoundFile(new File("/tmp"),
-				"тестирование");
+		new GoogleSoundReceiver().getSound("тестирование", LANG.RUS);
 	}
 }
