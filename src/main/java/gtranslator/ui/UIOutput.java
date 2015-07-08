@@ -180,7 +180,7 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 		if (!fixedLocationOfFrame) {
 			frame.setLocation(MouseInfo.getPointerInfo().getLocation());
 		}
-		if (!frame.isAlwaysOnTop() && (!frame.isActive())) {
+		if (!frame.isAlwaysOnTop() && !frame.isActive()) {
 			frame.setVisible(false);
 			frame.setVisible(true);
 			frame.toFront();

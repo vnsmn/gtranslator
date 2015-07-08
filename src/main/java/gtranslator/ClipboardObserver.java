@@ -165,6 +165,8 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 	}
 
 	private static class NativeMouseListenerExt implements NativeMouseListener {
+		String seltext = "";
+
 		@Override
 		public void nativeMouseClicked(NativeMouseEvent e) {
 		}
@@ -176,7 +178,9 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 		@Override
 		public void nativeMouseReleased(NativeMouseEvent e) {
 			try {
-				if (e.getButton() == 1 && e.getClickCount() <= 1) {
+				System.out.println(e.getClickCount() + " "
+						+ System.currentTimeMillis());
+				if (e.getButton() == 1 && e.getClickCount() <= 2) {
 					if (ClipboardObserver.getInstance().mode.get() == MODE.TEXT
 							&& !ClipboardObserver.getInstance().isPause.get()
 							&& ClipboardObserver.getInstance().isStart.get()) {
@@ -190,6 +194,11 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 							if (StringUtils.isBlank("" + text)) {
 								return;
 							}
+							if (e.getClickCount() == 2 && seltext != null
+									&& seltext.equals(text.toString())) {
+								return;
+							}
+							seltext = text.toString();
 							UIOutput.getInstance().setSourceText(
 									text.toString());
 							String translate = TranslationReceiver.INSTANCE
@@ -204,6 +213,7 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 								}
 							}
 							UIOutput.getInstance().restore();
+							Thread.sleep(1000);
 						}
 					}
 				}
