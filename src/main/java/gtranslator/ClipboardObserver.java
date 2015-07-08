@@ -13,7 +13,12 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.jnativehook.GlobalScreen;
+import org.jnativehook.NativeHookException;
+import org.jnativehook.mouse.NativeMouseEvent;
+import org.jnativehook.mouse.NativeMouseListener;
 
 /*
  * grant { permission java.awt.AWTPermission "accessClipboard" };
@@ -42,6 +47,14 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 
 	public static ClipboardObserver getInstance() {
 		if (instance == null) {
+			try {
+				GlobalScreen.registerNativeHook();
+			} catch (NativeHookException ex) {
+				logger.error(ex.getMessage(), ex);
+				System.exit(1);
+			}
+			GlobalScreen.getInstance().addNativeMouseListener(
+					new NativeMouseListenerExt());
 			instance = new ClipboardObserver();
 		}
 		return instance;
@@ -63,11 +76,12 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 		Object clipText = null;
 		while (!Thread.interrupted()) {
 			try {
-				if ((isLostData || mode.get() == MODE.TEXT) && !isPause.get()
+				// if ((isLostData || mode.get() == MODE.TEXT) && !isPause.get()
+				// && isStart.get()) {
+				if ((isLostData && mode.get() != MODE.TEXT) && !isPause.get()
 						&& isStart.get()) {
 					synchronized (this) {
-						Clipboard clipboard = mode.get() == MODE.SELECT
-								|| mode.get() == MODE.TEXT ? selClipboard
+						Clipboard clipboard = mode.get() == MODE.SELECT ? selClipboard
 								: copyClipboard;
 						Transferable clipData = clipboard.getContents(null);
 						if (clipData
@@ -89,18 +103,20 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 									logger.error(ex.getMessage());
 								}
 							}
-							if (mode.get() == MODE.TEXT) {
-								if (!text.equals(clipText)) {
-									clipText = text;
-									UIOutput.getInstance().restore(true);
-								}
-							} else {
-								StringSelection st = new StringSelection(
-										text.toString());
-								clipboard.setContents(st, this);
-								isLostData = false;
-								UIOutput.getInstance().restore(false);
-							}							
+							StringSelection st = new StringSelection(
+									text.toString());
+							clipboard.setContents(st, this);
+							isLostData = false;
+							UIOutput.getInstance().restore();
+							/*
+							 * if (mode.get() == MODE.TEXT) { if
+							 * (!text.equals(clipText)) { clipText = text;
+							 * UIOutput.getInstance().restore(true); } } else {
+							 * StringSelection st = new StringSelection(
+							 * text.toString()); clipboard.setContents(st,
+							 * this); isLostData = false;
+							 * UIOutput.getInstance().restore(); }
+							 */
 						}
 					}
 				}
@@ -146,5 +162,54 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 
 	public synchronized boolean isSupportSoundWord() {
 		return actionListener != null;
+	}
+
+	private static class NativeMouseListenerExt implements NativeMouseListener {
+		@Override
+		public void nativeMouseClicked(NativeMouseEvent e) {
+		}
+
+		@Override
+		public void nativeMousePressed(NativeMouseEvent e) {
+		}
+
+		@Override
+		public void nativeMouseReleased(NativeMouseEvent e) {
+			try {
+				if (e.getButton() == 1 && e.getClickCount() <= 1) {
+					if (ClipboardObserver.getInstance().mode.get() == MODE.TEXT
+							&& !ClipboardObserver.getInstance().isPause.get()
+							&& ClipboardObserver.getInstance().isStart.get()) {
+						Clipboard clipboard = Toolkit.getDefaultToolkit()
+								.getSystemSelection();
+						Transferable clipData = clipboard.getContents(null);
+						if (clipData
+								.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+							Object text = clipData
+									.getTransferData(DataFlavor.stringFlavor);
+							if (StringUtils.isBlank("" + text)) {
+								return;
+							}
+							UIOutput.getInstance().setSourceText(
+									text.toString());
+							String translate = TranslationReceiver.INSTANCE
+									.translateAndFormat(text.toString(), false);
+							UIOutput.getInstance().setTargetText(translate);
+							if (ClipboardObserver.getInstance().actionListener != null) {
+								try {
+									ClipboardObserver.getInstance().actionListener
+											.execute(text.toString());
+								} catch (Exception ex) {
+									logger.error(ex.getMessage());
+								}
+							}
+							UIOutput.getInstance().restore();
+						}
+					}
+				}
+			} catch (Exception ex) {
+				logger.error(ex.getMessage(), ex);
+			}
+		}
 	}
 }

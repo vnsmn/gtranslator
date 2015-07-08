@@ -13,6 +13,7 @@ import java.awt.Image;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 import java.awt.MouseInfo;
+import java.awt.datatransfer.FlavorListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -40,6 +41,7 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 	private JPanel glass;
 	private int cnt = 0;
 	private boolean fixedLocationOfFrame = true;
+	FlavorListener l;
 
 	private UIOutput(int weigth, int height) {
 		frame = new JFrame();
@@ -59,6 +61,7 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 				return false;
 			}
 		});
+
 		tabbedPane = new JTabbedPane();
 		Font font = new Font("Serif", Font.ITALIC, 10);
 		tabbedPane.setFont(font);
@@ -173,11 +176,11 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 		}
 	}
 
-	public void restore(boolean isForse) {
+	public void restore() {
 		if (!fixedLocationOfFrame) {
 			frame.setLocation(MouseInfo.getPointerInfo().getLocation());
 		}
-		if (!frame.isAlwaysOnTop() && (!frame.isActive() || isForse)) {
+		if (!frame.isAlwaysOnTop() && (!frame.isActive())) {
 			frame.setVisible(false);
 			frame.setVisible(true);
 			frame.toFront();

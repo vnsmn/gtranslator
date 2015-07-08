@@ -144,5 +144,12 @@
 			<artifactId>commons-io</artifactId>
 			<version>2.4</version>
 		</dependency>
+		<dependency>
+			<groupId>JNativeHook</groupId>
+			<artifactId>JNativeHook</artifactId>
+			<version>1.1.4</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/JNativeHook.jar</systemPath>
+		</dependency>
 	</dependencies>
 </project>
