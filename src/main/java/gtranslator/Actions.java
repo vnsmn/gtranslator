@@ -200,6 +200,7 @@ public class Actions {
 				logger.error(ex.getMessage());
 			} finally {
 				UIOutput.getInstance().hideWaitCursor();
+				System.exit(0);
 			}
 		}
 	}
