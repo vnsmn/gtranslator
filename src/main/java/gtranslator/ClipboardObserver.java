@@ -92,15 +92,15 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 							if (mode.get() == MODE.TEXT) {
 								if (!text.equals(clipText)) {
 									clipText = text;
-									Thread.sleep(1000);
+									UIOutput.getInstance().restore(true);
 								}
 							} else {
 								StringSelection st = new StringSelection(
 										text.toString());
 								clipboard.setContents(st, this);
 								isLostData = false;
-							}
-							UIOutput.getInstance().restore();
+								UIOutput.getInstance().restore(false);
+							}							
 						}
 					}
 				}

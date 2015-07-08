@@ -20,6 +20,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
@@ -158,6 +159,11 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 				Actions.findAction(ModeTClipboardAction.class).execute(mode);
 				firePropertyChange(Constants.PROPERTY_CHANGE_MODE_CLIPBOARD,
 						null, mode);
+				for (Map<MODE, JRadioButtonMenuItem> map : modeWidgets) {
+					for (Entry<MODE, JRadioButtonMenuItem> ent : map.entrySet()) {
+						ent.getValue().setSelected(ent.getKey() == mode);
+					}
+				}
 			}
 		};
 
@@ -167,7 +173,7 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 		menu.setMnemonic(KeyEvent.VK_O);
 
 		JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem(
-				"Select without lost focus");
+				"Select without lost focus");		
 		menuItem.setActionCommand(MODE.TEXT.name());
 		menuItem.addActionListener(actionListener);
 		group.add(menuItem);
@@ -204,11 +210,12 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 			}
 			break;
 		case Constants.PROPERTY_CHANGE_MODE_CLIPBOARD:
-			JRadioButtonMenuItem button = modeWidgets[0].get((MODE) evt
-					.getNewValue());
-			button.setSelected(true);
-			button = modeWidgets[1].get((MODE) evt.getNewValue());
-			button.setSelected(true);
+			MODE mode = (MODE) evt.getNewValue();
+			for (Map<MODE, JRadioButtonMenuItem> map : modeWidgets) {
+				for (Entry<MODE, JRadioButtonMenuItem> ent : map.entrySet()) {
+					ent.getValue().setSelected(ent.getKey() == mode);
+				}
+			}
 			break;
 		case Constants.PROPERTY_CHANGE_SOUND:
 			boolean sb = (boolean) evt.getNewValue();

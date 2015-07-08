@@ -10,7 +10,10 @@ import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.GridBagLayout;
 import java.awt.Image;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import java.awt.MouseInfo;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
@@ -44,6 +47,18 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 				.getResource("fish.png")).getImage());
 		frame.setTitle("gtranslator");
 		frame.addWindowListener(new WindowAdapterExt());
+		KeyboardFocusManager focusManager = KeyboardFocusManager
+				.getCurrentKeyboardFocusManager();
+		focusManager.addKeyEventDispatcher(new KeyEventDispatcher() {
+
+			@Override
+			public boolean dispatchKeyEvent(KeyEvent e) {
+				if (e.getKeyCode() == 27) {
+					UIOutput.this.hide();
+				}
+				return false;
+			}
+		});
 		tabbedPane = new JTabbedPane();
 		Font font = new Font("Serif", Font.ITALIC, 10);
 		tabbedPane.setFont(font);
@@ -153,14 +168,16 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 		if (frame.getState() != JFrame.NORMAL) {
 			frame.setState(JFrame.NORMAL);
 		}
+		if (!frame.isVisible()) {
+			frame.setVisible(true);
+		}
+	}
+
+	public void restore(boolean isForse) {
 		if (!fixedLocationOfFrame) {
 			frame.setLocation(MouseInfo.getPointerInfo().getLocation());
 		}
-		frame.setVisible(true);
-	}
-
-	public void restore() {
-		if (!frame.isAlwaysOnTop()) {
+		if (!frame.isAlwaysOnTop() && (!frame.isActive() || isForse)) {
 			frame.setVisible(false);
 			frame.setVisible(true);
 			frame.toFront();
@@ -193,7 +210,6 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 				INSTANCE = new UIOutput(200, 200);
 			}
 		}
-		INSTANCE.show();
 		return INSTANCE;
 	}
 
