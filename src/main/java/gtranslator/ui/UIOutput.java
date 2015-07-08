@@ -10,6 +10,7 @@ import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.GridBagLayout;
 import java.awt.Image;
+import java.awt.MouseInfo;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
@@ -35,6 +36,7 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 	private JTabbedPane tabbedPane;
 	private JPanel glass;
 	private int cnt = 0;
+	private boolean fixedLocationOfFrame = true;
 
 	private UIOutput(int weigth, int height) {
 		frame = new JFrame();
@@ -151,6 +153,9 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 		if (frame.getState() != JFrame.NORMAL) {
 			frame.setState(JFrame.NORMAL);
 		}
+		if (!fixedLocationOfFrame) {
+			frame.setLocation(MouseInfo.getPointerInfo().getLocation());
+		}
 		frame.setVisible(true);
 	}
 
@@ -264,6 +269,11 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
+		switch (evt.getPropertyName()) {
+		case Constants.PROPERTY_CHANGE_FIXED_LOCATION_FRAME:
+			fixedLocationOfFrame = (boolean) evt.getNewValue();
+			break;
+		}
 		redirectPropertyChange(evt);
 	}
 }

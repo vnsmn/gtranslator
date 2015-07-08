@@ -30,7 +30,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JTextArea;
-import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
@@ -39,6 +38,7 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 	private JCheckBoxMenuItem[] activityClipboardMenuItems = { null, null };
 	private JCheckBoxMenuItem[] soundMenuItems = { null, null };
 	private JCheckBoxMenuItem[] detailClipboardItems = { null, null };
+	private JCheckBoxMenuItem[] fixedLocationFrameItems = { null, null };
 	private JTextArea sourceArea;
 	private JTextArea targetArea;
 	private JFrame frame;
@@ -115,6 +115,23 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 					}
 				});
 		sourcePopupMenu.add(detailClipboardItems[index]);
+
+		fixedLocationFrameItems[index] = new JCheckBoxMenuItem(
+				"Fixed location frame");
+		fixedLocationFrameItems[index].setSelected(true);
+		fixedLocationFrameItems[index]
+				.addActionListener(new java.awt.event.ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						boolean b = ((JMenuItem) e.getSource()).isSelected();
+						fixedLocationFrameItems[0].setSelected(b);
+						fixedLocationFrameItems[1].setSelected(b);
+						firePropertyChange(
+								Constants.PROPERTY_CHANGE_FIXED_LOCATION_FRAME,
+								null, b);
+					}
+				});
+		sourcePopupMenu.add(fixedLocationFrameItems[index]);
 
 		activityClipboardMenuItems[index] = new JCheckBoxMenuItem("Start");
 		activityClipboardMenuItems[index]

@@ -10,12 +10,8 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-
-import javax.swing.JRadioButton;
 
 import org.apache.log4j.Logger;
 
@@ -26,7 +22,7 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 	private boolean isLostData = true;
 	private AtomicBoolean isPause = new AtomicBoolean(false);
 	private AtomicBoolean isStart = new AtomicBoolean(false);
-	private AtomicReference<MODE> mode = new AtomicReference<>(MODE.COPY);	
+	private AtomicReference<MODE> mode = new AtomicReference<>(MODE.COPY);
 	private static ClipboardObserver instance;
 
 	public enum MODE {
@@ -67,8 +63,8 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 		Object clipText = null;
 		while (!Thread.interrupted()) {
 			try {
-				if ((isLostData || mode.get() == MODE.TEXT)
-						&& !isPause.get() && isStart.get()) {
+				if ((isLostData || mode.get() == MODE.TEXT) && !isPause.get()
+						&& isStart.get()) {
 					synchronized (this) {
 						Clipboard clipboard = mode.get() == MODE.SELECT
 								|| mode.get() == MODE.TEXT ? selClipboard
@@ -77,7 +73,7 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 						if (clipData
 								.isDataFlavorSupported(DataFlavor.stringFlavor)) {
 							Object text = clipData
-									.getTransferData(DataFlavor.stringFlavor);							
+									.getTransferData(DataFlavor.stringFlavor);
 							UIOutput.getInstance().setSourceText(
 									text.toString());
 							String translate = TranslationReceiver.INSTANCE
@@ -85,7 +81,7 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 							UIOutput.getInstance().setTargetText(translate);
 							if (mode.get() == MODE.COPY) {
 								UIOutput.getInstance().selectTranslatePanel();
-							}							
+							}
 							if (actionListener != null) {
 								try {
 									actionListener.execute(text.toString());
@@ -96,8 +92,8 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 							if (mode.get() == MODE.TEXT) {
 								if (!text.equals(clipText)) {
 									clipText = text;
-								}								
-								Thread.sleep(1000);
+									Thread.sleep(1000);
+								}
 							} else {
 								StringSelection st = new StringSelection(
 										text.toString());
@@ -133,7 +129,7 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 		isPause.set(b);
 		isLostData = true;
 	}
-	
+
 	public synchronized void setStart(boolean b) {
 		isStart.set(b);
 		isLostData = true;
