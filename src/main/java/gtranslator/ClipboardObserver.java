@@ -178,8 +178,6 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 		@Override
 		public void nativeMouseReleased(NativeMouseEvent e) {
 			try {
-				System.out.println(e.getClickCount() + " "
-						+ System.currentTimeMillis());
 				if (e.getButton() == 1 && e.getClickCount() <= 2) {
 					if (ClipboardObserver.getInstance().mode.get() == MODE.TEXT
 							&& !ClipboardObserver.getInstance().isPause.get()
