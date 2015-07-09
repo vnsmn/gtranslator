@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -38,14 +39,26 @@ public class HistoryHelper {
 	}
 
 	public void load() throws FileNotFoundException, IOException {
-		if (rawHisFile.exists())
+		Map<String, String> dics = H2Helper.INSTANCE.getsDic();
+		rawHis.putAll(dics);
+		if (rawHisFile.exists()) {
 			try (FileInputStream in = new FileInputStream(rawHisFile)) {
 				rawHis.loadFromXML(in);
 			}
+		}
+		merge();
+	}
+
+	private void merge() {
+		for (Entry<Object, Object> ent : rawHis.entrySet()) {
+			H2Helper.INSTANCE.addDic(ent.getKey().toString(), ent.getValue()
+					.toString());
+		}
 	}
 
 	public void writeRaw(String key, String value) {
 		rawHis.put(toNormal(key), value);
+		H2Helper.INSTANCE.addDic(key, value);
 		if (statisticListener != null) {
 			statisticListener.execute(getStatistic());
 		}
@@ -58,6 +71,7 @@ public class HistoryHelper {
 	public void delete(String key) {
 		String n = toNormal(key);
 		rawHis.remove(n);
+		H2Helper.INSTANCE.deleteDic(key);
 		// wordHis.remove(n);
 	}
 
@@ -68,6 +82,7 @@ public class HistoryHelper {
 		try (FileOutputStream out = new FileOutputStream(rawHisFile)) {
 			rawHis.storeToXML(out, new Date().toString(), "UTF-8");
 		}
+		H2Helper.INSTANCE.close();
 	}
 
 	public String getStatistic() {
