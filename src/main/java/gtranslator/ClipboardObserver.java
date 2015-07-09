@@ -10,6 +10,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -17,6 +18,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
+import org.jnativehook.keyboard.NativeKeyEvent;
+import org.jnativehook.keyboard.NativeKeyListener;
 import org.jnativehook.mouse.NativeMouseEvent;
 import org.jnativehook.mouse.NativeMouseListener;
 
@@ -55,6 +58,8 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 			}
 			GlobalScreen.getInstance().addNativeMouseListener(
 					new NativeMouseListenerExt());
+			GlobalScreen.getInstance().addNativeKeyListener(
+					new NativeKeyListenerExt());
 			instance = new ClipboardObserver();
 		}
 		return instance;
@@ -164,6 +169,30 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 		return actionListener != null;
 	}
 
+	private static class NativeKeyListenerExt implements NativeKeyListener {
+
+		@Override
+		public void nativeKeyPressed(NativeKeyEvent e) {
+			if (e.getModifiers() == 2
+					&& e.getKeyCode() == NativeKeyEvent.VK_ESCAPE) {
+				UIOutput.getInstance().hide();
+				UIOutput.getInstance().selectSetupPanel();
+			} else if (e.getKeyCode() == NativeKeyEvent.VK_WINDOWS) {
+				UIOutput.getInstance().selectTranslatePanel();
+				UIOutput.getInstance().restore();
+			}
+		}
+
+		@Override
+		public void nativeKeyReleased(NativeKeyEvent e) {
+		}
+
+		@Override
+		public void nativeKeyTyped(NativeKeyEvent e) {
+		}
+
+	}
+
 	private static class NativeMouseListenerExt implements NativeMouseListener {
 		String seltext = "";
 
@@ -184,7 +213,13 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 							&& ClipboardObserver.getInstance().isStart.get()) {
 						Clipboard clipboard = Toolkit.getDefaultToolkit()
 								.getSystemSelection();
-						Transferable clipData = clipboard.getContents(null);
+						Transferable clipData = null;
+						try {
+							clipData = clipboard.getContents(null);
+						} catch (Exception ex) {
+							logger.error(ex.getMessage(), ex);
+							return;
+						}
 						if (clipData
 								.isDataFlavorSupported(DataFlavor.stringFlavor)) {
 							Object text = clipData
@@ -192,7 +227,7 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 							if (StringUtils.isBlank("" + text)) {
 								return;
 							}
-							if (e.getClickCount() == 2 && seltext != null
+							if (seltext != null
 									&& seltext.equals(text.toString())) {
 								return;
 							}

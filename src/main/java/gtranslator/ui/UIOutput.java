@@ -188,7 +188,7 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 	}
 
 	public void hide() {
-		frame.setVisible(false);
+		frame.toBack();
 	}
 
 	public void setSourceText(String s) {
@@ -205,6 +205,10 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 
 	public void selectTranslatePanel() {
 		tabbedPane.setSelectedIndex(0);
+	}
+
+	public void selectSetupPanel() {
+		tabbedPane.setSelectedIndex(1);
 	}
 
 	public static UIOutput getInstance() {
