@@ -2,7 +2,12 @@ package gtranslator.ui;
 
 import gtranslator.Actions;
 import gtranslator.Actions.PauseTClipboardAction;
+import gtranslator.AppProperties;
 import gtranslator.ClipboardObserver;
+import gtranslator.Configurable;
+import gtranslator.HistoryService;
+import gtranslator.Registry;
+import gtranslator.annotation.Singelton;
 import gtranslator.ui.Constants.PHONETICS;
 
 import java.awt.BorderLayout;
@@ -20,6 +25,7 @@ import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import javax.annotation.Resource;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -32,16 +38,25 @@ import javax.swing.JTextArea;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-public class UIOutput extends UIBuilder implements PropertyChangeListener {
+import org.apache.commons.lang3.StringUtils;
+
+public class UIOutput extends UIBuilder implements PropertyChangeListener,
+		Configurable {
 	private JFrame frame;
-	private static UIOutput INSTANCE;
 	private JTextArea sourceArea;
 	private JTextArea targetArea;
 	private JTabbedPane tabbedPane;
 	private JPanel glass;
 	private int cnt = 0;
 	private boolean fixedLocationOfFrame = true;
-	FlavorListener l;
+	private FlavorListener l;
+	@Resource
+	private HistoryService historyService;
+
+	@Singelton
+	public static void createSingelton() {
+		Registry.INSTANCE.add(new UIOutput(200, 200));
+	}
 
 	private UIOutput(int weigth, int height) {
 		frame = new JFrame();
@@ -211,20 +226,6 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 		tabbedPane.setSelectedIndex(1);
 	}
 
-	public static UIOutput getInstance() {
-		synchronized (UIOutput.class) {
-			if (INSTANCE == null) {
-				INSTANCE = new UIOutput(200, 200);
-			}
-		}
-		return INSTANCE;
-	}
-
-	public static void dispose() {
-		INSTANCE.frame.dispose();
-		INSTANCE = null;
-	}
-
 	private class WindowAdapterExt extends WindowAdapter {
 		public void windowClosing(WindowEvent e) {
 			Actions.findAction(Actions.DisposeAppAction.class).execute(null);
@@ -298,5 +299,37 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener {
 			break;
 		}
 		redirectPropertyChange(evt);
+	}
+
+	@Override
+	public void init(AppProperties props) {
+		String cookie = props.getCookie();
+		if (!StringUtils.isBlank(cookie)) {
+			setCookie(cookie);
+		}
+		setHistory(props.isHistory());
+		setDictionaryDir(props.getDictionaryDirPath());
+		setDictionaryBlockLimit(props.getDictionaryBlockLimit());
+		setDictionaryResultDir(props.getDictionaryResultDir());
+		setDictionaryPhonetic(props.getDictionaryPhonetic());
+		setDictionaryPauseSeconds(props.getDictionaryPauseSeconds());
+		setDictionaryDefisSeconds(props.getDictionaryDefisSeconds());
+		setDictionarySynthesizer(props.isDictionarySynthesizer());
+		setActivityClipboard(props.getClipboardActive());
+		setModeClipboard(ClipboardObserver.MODE.valueOf(props
+				.getClipboardMode()));
+		historyService
+				.setStatisticListener(new HistoryService.StatisticListener() {
+					@Override
+					public void execute(String message) {
+						UIOutput.this.setStatistic(historyService
+								.getStatistic());
+					}
+				});
+	}
+
+	@Override
+	public void close() {
+		frame.dispose();
 	}
 }

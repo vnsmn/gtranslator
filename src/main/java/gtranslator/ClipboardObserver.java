@@ -1,6 +1,7 @@
 package gtranslator;
 
-import gtranslator.translate.TranslationReceiver;
+import gtranslator.annotation.Singelton;
+import gtranslator.translate.TranslationService;
 import gtranslator.ui.UIOutput;
 
 import java.awt.Toolkit;
@@ -10,9 +11,10 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+
+import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -26,12 +28,16 @@ import org.jnativehook.mouse.NativeMouseListener;
 /*
  * grant { permission java.awt.AWTPermission "accessClipboard" };
  */
-public class ClipboardObserver implements Runnable, ClipboardOwner {
+public class ClipboardObserver implements Runnable, ClipboardOwner,
+		Configurable {
 	private boolean isLostData = true;
 	private AtomicBoolean isPause = new AtomicBoolean(false);
 	private AtomicBoolean isStart = new AtomicBoolean(false);
 	private AtomicReference<MODE> mode = new AtomicReference<>(MODE.COPY);
-	private static ClipboardObserver instance;
+	@Resource
+	private UIOutput uiOutput;
+	@Resource
+	private TranslationService translationReceiver;
 
 	public enum MODE {
 		SELECT, COPY, TEXT
@@ -45,24 +51,22 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 		void execute(String text);
 	}
 
-	private ClipboardObserver() {
+	@Singelton
+	public static void createSingelton() {
+		Registry.INSTANCE.add(new ClipboardObserver());
 	}
 
-	public static ClipboardObserver getInstance() {
-		if (instance == null) {
-			try {
-				GlobalScreen.registerNativeHook();
-			} catch (NativeHookException ex) {
-				logger.error(ex.getMessage(), ex);
-				System.exit(1);
-			}
-			GlobalScreen.getInstance().addNativeMouseListener(
-					new NativeMouseListenerExt());
-			GlobalScreen.getInstance().addNativeKeyListener(
-					new NativeKeyListenerExt());
-			instance = new ClipboardObserver();
+	private ClipboardObserver() {
+		try {
+			GlobalScreen.registerNativeHook();
+		} catch (NativeHookException ex) {
+			logger.error(ex.getMessage(), ex);
+			System.exit(1);
 		}
-		return instance;
+		GlobalScreen.getInstance().addNativeMouseListener(
+				new NativeMouseListenerExt());
+		GlobalScreen.getInstance().addNativeKeyListener(
+				new NativeKeyListenerExt());
 	}
 
 	@Override
@@ -78,7 +82,6 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 				.getSystemClipboard();
 		Clipboard selClipboard = Toolkit.getDefaultToolkit()
 				.getSystemSelection();
-		Object clipText = null;
 		while (!Thread.interrupted()) {
 			try {
 				// if ((isLostData || mode.get() == MODE.TEXT) && !isPause.get()
@@ -93,13 +96,12 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 								.isDataFlavorSupported(DataFlavor.stringFlavor)) {
 							Object text = clipData
 									.getTransferData(DataFlavor.stringFlavor);
-							UIOutput.getInstance().setSourceText(
-									text.toString());
-							String translate = TranslationReceiver.INSTANCE
+							uiOutput.setSourceText(text.toString());
+							String translate = translationReceiver
 									.translateAndFormat(text.toString(), false);
-							UIOutput.getInstance().setTargetText(translate);
+							uiOutput.setTargetText(translate);
 							if (mode.get() == MODE.COPY) {
-								UIOutput.getInstance().selectTranslatePanel();
+								uiOutput.selectTranslatePanel();
 							}
 							if (actionListener != null) {
 								try {
@@ -112,7 +114,7 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 									text.toString());
 							clipboard.setContents(st, this);
 							isLostData = false;
-							UIOutput.getInstance().restore();
+							uiOutput.restore();
 							/*
 							 * if (mode.get() == MODE.TEXT) { if
 							 * (!text.equals(clipText)) { clipText = text;
@@ -175,11 +177,11 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 		public void nativeKeyPressed(NativeKeyEvent e) {
 			if (e.getModifiers() == 2
 					&& e.getKeyCode() == NativeKeyEvent.VK_ESCAPE) {
-				UIOutput.getInstance().hide();
-				UIOutput.getInstance().selectSetupPanel();
+				App.getUIOutput().hide();
+				App.getUIOutput().selectSetupPanel();
 			} else if (e.getKeyCode() == NativeKeyEvent.VK_WINDOWS) {
-				UIOutput.getInstance().selectTranslatePanel();
-				UIOutput.getInstance().restore();
+				App.getUIOutput().selectTranslatePanel();
+				App.getUIOutput().restore();
 			}
 		}
 
@@ -208,9 +210,9 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 		public void nativeMouseReleased(NativeMouseEvent e) {
 			try {
 				if (e.getButton() == 1 && e.getClickCount() <= 2) {
-					if (ClipboardObserver.getInstance().mode.get() == MODE.TEXT
-							&& !ClipboardObserver.getInstance().isPause.get()
-							&& ClipboardObserver.getInstance().isStart.get()) {
+					if (App.getClipboardObserver().mode.get() == MODE.TEXT
+							&& !App.getClipboardObserver().isPause.get()
+							&& App.getClipboardObserver().isStart.get()) {
 						Clipboard clipboard = Toolkit.getDefaultToolkit()
 								.getSystemSelection();
 						Transferable clipData = null;
@@ -232,20 +234,19 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 								return;
 							}
 							seltext = text.toString();
-							UIOutput.getInstance().setSourceText(
-									text.toString());
-							String translate = TranslationReceiver.INSTANCE
+							App.getUIOutput().setSourceText(text.toString());
+							String translate = App.getTranslationService()
 									.translateAndFormat(text.toString(), false);
-							UIOutput.getInstance().setTargetText(translate);
-							if (ClipboardObserver.getInstance().actionListener != null) {
+							App.getUIOutput().setTargetText(translate);
+							if (App.getClipboardObserver().actionListener != null) {
 								try {
-									ClipboardObserver.getInstance().actionListener
+									App.getClipboardObserver().actionListener
 											.execute(text.toString());
 								} catch (Exception ex) {
 									logger.error(ex.getMessage());
 								}
 							}
-							UIOutput.getInstance().restore();
+							App.getUIOutput().restore();
 							Thread.sleep(1000);
 						}
 					}
@@ -254,5 +255,13 @@ public class ClipboardObserver implements Runnable, ClipboardOwner {
 				logger.error(ex.getMessage(), ex);
 			}
 		}
+	}
+
+	@Override
+	public void init(AppProperties appProperties) {
+	}
+
+	@Override
+	public void close() {
 	}
 }

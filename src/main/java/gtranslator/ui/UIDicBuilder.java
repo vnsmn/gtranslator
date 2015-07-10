@@ -4,8 +4,8 @@ import gtranslator.Actions;
 import gtranslator.AppProperties;
 import gtranslator.Actions.DictionarySynthesizerAction;
 import gtranslator.Actions.SetDictionaryPhoneticAction;
-import gtranslator.DictionaryHelper;
-import gtranslator.DictionaryHelper.DictionaryInput;
+import gtranslator.DictionaryService;
+import gtranslator.DictionaryService.DictionaryInput;
 import gtranslator.ui.Constants.PHONETICS;
 
 import java.awt.BorderLayout;
@@ -191,7 +191,7 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 							DictionaryInput dic = new DictionaryInput();
 							dic.path = wordsPath.getText();
 							dic.resultDir = resultDir.getText();
-							dic.sourceType = DictionaryHelper.SOURCE_TYPE
+							dic.sourceType = DictionaryService.SOURCE_TYPE
 									.valueOf(sourceTypeComboBox
 											.getSelectedItem().toString());
 							dic.phonetic = PHONETICS
@@ -244,9 +244,9 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 	}
 
 	private void createWidgetsOfSourceType() {
-		String[] types = { DictionaryHelper.SOURCE_TYPE.HISTORY.name(),
-				DictionaryHelper.SOURCE_TYPE.DICTIONARY.name(),
-				DictionaryHelper.SOURCE_TYPE.TEXT.name() };
+		String[] types = { DictionaryService.SOURCE_TYPE.HISTORY.name(),
+				DictionaryService.SOURCE_TYPE.DICTIONARY.name(),
+				DictionaryService.SOURCE_TYPE.TEXT.name() };
 		sourceTypeComboBox = new JComboBox(types);
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());

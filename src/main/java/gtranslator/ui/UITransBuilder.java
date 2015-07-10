@@ -8,6 +8,7 @@ import gtranslator.Actions.PlayEngWordWithLoadAction;
 import gtranslator.Actions.StartStopTClipboardAction;
 import gtranslator.Actions.TranslateWordAction;
 import gtranslator.Actions.WordPlayOfClipboardAction;
+import gtranslator.App;
 import gtranslator.ClipboardObserver.MODE;
 
 import java.awt.Color;
@@ -68,7 +69,7 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Actions.findAction(ClearHistoryAction.class).execute(
-						UIOutput.getInstance().getSourceText());
+						App.getUIOutput().getSourceText());
 			}
 		});
 		sourcePopupMenu.add(mit);

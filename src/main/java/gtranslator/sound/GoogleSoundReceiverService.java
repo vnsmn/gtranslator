@@ -1,6 +1,9 @@
 package gtranslator.sound;
 
 import gtranslator.AppProperties;
+import gtranslator.Configurable;
+import gtranslator.Registry;
+import gtranslator.annotation.Singelton;
 import gtranslator.exception.SoundReceiverException;
 import gtranslator.ui.Constants;
 import gtranslator.ui.Constants.LANG;
@@ -18,25 +21,25 @@ import java.nio.file.StandardCopyOption;
 
 import org.apache.log4j.Logger;
 
-public class GoogleSoundReceiver {
-	static final Logger logger = Logger.getLogger(GoogleSoundReceiver.class);
-	public static final GoogleSoundReceiver INSTANCE = new GoogleSoundReceiver();
+public class GoogleSoundReceiverService implements Configurable {
+	static final Logger logger = Logger
+			.getLogger(GoogleSoundReceiverService.class);
 	private final static String RUS_REQUEST = "http://translate.google.com/translate_tts?tl=ru&q=%s";
 	private final static String ENG_REQUEST = "http://translate.google.com/translate_tts?tl=en&q=%s";
+	private File soundEnDir;
+	private File soundRuDir;
 
-	private GoogleSoundReceiver() {
+	private GoogleSoundReceiverService() {
+	}
+
+	@Singelton
+	public static void createSingelton() {
+		Registry.INSTANCE.add(new GoogleSoundReceiverService());
 	}
 
 	public File getSound(String phrase, LANG lang)
 			throws SoundReceiverException {
-		File dicDir = new File(AppProperties.getInstance()
-				.getDictionaryDirPath());
-		File soundDir = new File(dicDir,
-				LANG.RUS == lang ? Constants.RU_SOUND_DIR
-						: Constants.EN_SOUND_DIR);
-		if (!soundDir.exists()) {
-			soundDir.mkdirs();
-		}
+		File soundDir = LANG.RUS == lang ? soundRuDir : soundEnDir;
 		File fw = new File(soundDir, phrase + ".mp3");
 		boolean isloaded = fw.exists();
 		if (!isloaded)
@@ -78,6 +81,23 @@ public class GoogleSoundReceiver {
 	}
 
 	public static void main(String... args) throws Exception {
-		new GoogleSoundReceiver().getSound("тестирование", LANG.RUS);
+		new GoogleSoundReceiverService().getSound("тестирование", LANG.RUS);
+	}
+
+	@Override
+	public void init(AppProperties appProperties) {
+		File dicDir = new File(appProperties.getDictionaryDirPath());
+		soundEnDir = new File(dicDir, Constants.EN_SOUND_DIR);
+		soundRuDir = new File(dicDir, Constants.RU_SOUND_DIR);
+		if (!soundEnDir.exists()) {
+			soundEnDir.mkdirs();
+		}
+		if (!soundRuDir.exists()) {
+			soundRuDir.mkdirs();
+		}
+	}
+
+	@Override
+	public void close() {
 	}
 }

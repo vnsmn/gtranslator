@@ -1,10 +1,8 @@
 package gtranslator;
 
-import gtranslator.DictionaryHelper.DictionaryInput;
+import gtranslator.DictionaryService.DictionaryInput;
 import gtranslator.sound.SoundHelper;
-import gtranslator.translate.TranslationReceiver;
 import gtranslator.ui.Constants.PHONETICS;
-import gtranslator.ui.UIOutput;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,20 +37,19 @@ public class Actions {
 	public static class DictionaryAction extends Action<DictionaryInput> {
 		@Override
 		public void execute(DictionaryInput dic) {
-			UIOutput.getInstance().showWaitCursor();
+			App.getUIOutput().showWaitCursor();
 			try {
-				HistoryHelper.INSTANCE.save();
-				if (dic.sourceType == DictionaryHelper.SOURCE_TYPE.HISTORY) {
-					DictionaryHelper.INSTANCE.createDictionaryFromHistory(dic);
-				} else if (dic.sourceType == DictionaryHelper.SOURCE_TYPE.DICTIONARY) {
-					DictionaryHelper.INSTANCE.createDictionaryFromDict(dic);
-				} else if (dic.sourceType == DictionaryHelper.SOURCE_TYPE.TEXT) {
-					DictionaryHelper.INSTANCE.createDictionaryFromText(dic);
+				if (dic.sourceType == DictionaryService.SOURCE_TYPE.HISTORY) {
+					App.getDictionaryService().createDictionaryFromHistory(dic);
+				} else if (dic.sourceType == DictionaryService.SOURCE_TYPE.DICTIONARY) {
+					App.getDictionaryService().createDictionaryFromDict(dic);
+				} else if (dic.sourceType == DictionaryService.SOURCE_TYPE.TEXT) {
+					App.getDictionaryService().createDictionaryFromText(dic);
 				}
 			} catch (Exception ex) {
 				logger.error(ex);
 			} finally {
-				UIOutput.getInstance().hideWaitCursor();
+				App.getUIOutput().hideWaitCursor();
 			}
 		}
 	}
@@ -61,14 +58,14 @@ public class Actions {
 
 		@Override
 		public void execute(String engWord) {
-			UIOutput.getInstance().showWaitCursor();
+			App.getUIOutput().showWaitCursor();
 			try {
-				HistoryHelper.INSTANCE.delete(TranslationReceiver.INSTANCE
-						.toNormal(engWord));
+				App.getHistoryService().delete(
+						App.getTranslationService().toNormal(engWord));
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
-				UIOutput.getInstance().hideWaitCursor();
+				App.getUIOutput().hideWaitCursor();
 			}
 		}
 	}
@@ -77,13 +74,13 @@ public class Actions {
 
 		@Override
 		public void execute(String engWord) {
-			UIOutput.getInstance().showWaitCursor();
+			App.getUIOutput().showWaitCursor();
 			try {
 				SoundHelper.playEngWord(engWord);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
-				UIOutput.getInstance().hideWaitCursor();
+				App.getUIOutput().hideWaitCursor();
 			}
 		}
 	}
@@ -92,13 +89,13 @@ public class Actions {
 
 		@Override
 		public void execute(String engWord) {
-			UIOutput.getInstance().showWaitCursor();
+			App.getUIOutput().showWaitCursor();
 			try {
 				SoundHelper.playEngWord(engWord);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
-				UIOutput.getInstance().hideWaitCursor();
+				App.getUIOutput().hideWaitCursor();
 			}
 		}
 	}
@@ -107,13 +104,13 @@ public class Actions {
 
 		@Override
 		public void execute(Boolean b) {
-			UIOutput.getInstance().showWaitCursor();
+			App.getUIOutput().showWaitCursor();
 			try {
-				ClipboardObserver.getInstance().setPause(b);
+				App.getClipboardObserver().setPause(b);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
-				UIOutput.getInstance().hideWaitCursor();
+				App.getUIOutput().hideWaitCursor();
 			}
 		}
 	}
@@ -121,13 +118,13 @@ public class Actions {
 	public static class StartStopTClipboardAction extends Action<Boolean> {
 		@Override
 		public void execute(Boolean b) {
-			UIOutput.getInstance().showWaitCursor();
+			App.getUIOutput().showWaitCursor();
 			try {
-				ClipboardObserver.getInstance().setStart(b);
+				App.getClipboardObserver().setStart(b);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
-				UIOutput.getInstance().hideWaitCursor();
+				App.getUIOutput().hideWaitCursor();
 			}
 		}
 	}
@@ -136,13 +133,13 @@ public class Actions {
 			Action<ClipboardObserver.MODE> {
 		@Override
 		public void execute(ClipboardObserver.MODE mode) {
-			UIOutput.getInstance().showWaitCursor();
+			App.getUIOutput().showWaitCursor();
 			try {
-				ClipboardObserver.getInstance().setMode(mode);
+				App.getClipboardObserver().setMode(mode);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
-				UIOutput.getInstance().hideWaitCursor();
+				App.getUIOutput().hideWaitCursor();
 			}
 		}
 	}
@@ -150,13 +147,13 @@ public class Actions {
 	public static class DetailTranslateAction extends Action<Boolean> {
 		@Override
 		public void execute(Boolean b) {
-			UIOutput.getInstance().showWaitCursor();
+			App.getUIOutput().showWaitCursor();
 			try {
-				TranslationReceiver.INSTANCE.setAddition(b);
+				App.getTranslationService().setAddition(b);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
-				UIOutput.getInstance().hideWaitCursor();
+				App.getUIOutput().hideWaitCursor();
 			}
 		}
 	}
@@ -164,13 +161,13 @@ public class Actions {
 	public static class RewriteHistoryAction extends Action<Boolean> {
 		@Override
 		public void execute(Boolean b) {
-			UIOutput.getInstance().showWaitCursor();
+			App.getUIOutput().showWaitCursor();
 			try {
-				TranslationReceiver.INSTANCE.setRewrite(b);
+				App.getTranslationService().setRewrite(b);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
-				UIOutput.getInstance().hideWaitCursor();
+				App.getUIOutput().hideWaitCursor();
 			}
 		}
 	}
@@ -178,13 +175,13 @@ public class Actions {
 	public static class UseHistoryAction extends Action<Boolean> {
 		@Override
 		public void execute(Boolean b) {
-			UIOutput.getInstance().showWaitCursor();
+			App.getUIOutput().showWaitCursor();
 			try {
-				TranslationReceiver.INSTANCE.setHistory(b);
+				App.getTranslationService().setHistory(b);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
-				UIOutput.getInstance().hideWaitCursor();
+				App.getUIOutput().hideWaitCursor();
 			}
 		}
 	}
@@ -192,14 +189,13 @@ public class Actions {
 	public static class DisposeAppAction extends Action<Boolean> {
 		@Override
 		public void execute(Boolean b) {
-			UIOutput.getInstance().showWaitCursor();
+			App.getUIOutput().showWaitCursor();
 			try {
-				App.stopClipboardThread();
-				HistoryHelper.INSTANCE.save();
+				App.close();
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
-				UIOutput.getInstance().hideWaitCursor();
+				App.getUIOutput().hideWaitCursor();
 				System.exit(0);
 			}
 		}
@@ -208,29 +204,28 @@ public class Actions {
 	public static class WordPlayOfClipboardAction extends Action<Boolean> {
 		@Override
 		public void execute(Boolean b) {
-			UIOutput.getInstance().showWaitCursor();
+			App.getUIOutput().showWaitCursor();
 			try {
 				if (b) {
-					ClipboardObserver.getInstance().setActionListener(
+					App.getClipboardObserver().setActionListener(
 							new ClipboardObserver.ActionListener() {
 								@Override
 								public void execute(String s) {
-									UIOutput.getInstance().showWaitCursor();
+									App.getUIOutput().showWaitCursor();
 									try {
 										SoundHelper.playEngWord(s);
 									} finally {
-										UIOutput.getInstance().hideWaitCursor();
+										App.getUIOutput().hideWaitCursor();
 									}
 								}
 							});
 				} else {
-					ClipboardObserver.getInstance().setActionListener(null);
+					App.getClipboardObserver().setActionListener(null);
 				}
-				HistoryHelper.INSTANCE.save();
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
-				UIOutput.getInstance().hideWaitCursor();
+				App.getUIOutput().hideWaitCursor();
 			}
 		}
 	}
@@ -238,13 +233,13 @@ public class Actions {
 	public static class SetDictionaryPhoneticAction extends Action<PHONETICS> {
 		@Override
 		public void execute(PHONETICS ph) {
-			UIOutput.getInstance().showWaitCursor();
+			App.getUIOutput().showWaitCursor();
 			try {
 				AppProperties.getInstance().setDictionaryPhonetic(ph);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
-				UIOutput.getInstance().hideWaitCursor();
+				App.getUIOutput().hideWaitCursor();
 			}
 		}
 	}
@@ -252,14 +247,14 @@ public class Actions {
 	public static class TranslateWordAction extends Action<String[]> {
 		@Override
 		public void execute(String[] ss) {
-			UIOutput.getInstance().showWaitCursor();
+			App.getUIOutput().showWaitCursor();
 			try {
-				ss[1] = TranslationReceiver.INSTANCE.translateAndFormat(ss[0],
+				ss[1] = App.getTranslationService().translateAndFormat(ss[0],
 						false);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
-				UIOutput.getInstance().hideWaitCursor();
+				App.getUIOutput().hideWaitCursor();
 			}
 		}
 	}
@@ -267,13 +262,13 @@ public class Actions {
 	public static class CookieAction extends Action<String> {
 		@Override
 		public void execute(String s) {
-			UIOutput.getInstance().showWaitCursor();
+			App.getUIOutput().showWaitCursor();
 			try {
-				TranslationReceiver.INSTANCE.setCookie(s);
+				App.getTranslationService().setCookie(s);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {
-				UIOutput.getInstance().hideWaitCursor();
+				App.getUIOutput().hideWaitCursor();
 			}
 		}
 	}

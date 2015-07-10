@@ -1,10 +1,9 @@
 package gtranslator.sound;
 
+import gtranslator.App;
 import gtranslator.AppProperties;
 import gtranslator.exception.GTranslatorException;
 import gtranslator.exception.SoundReceiverException;
-import gtranslator.sound.OxfordReceiver;
-import gtranslator.translate.TranslationReceiver;
 import gtranslator.ui.Constants;
 import gtranslator.ui.Constants.PHONETICS;
 
@@ -102,11 +101,11 @@ public class SoundHelper {
 	}
 
 	public static File getEngFile(String phrase, PHONETICS ph) {
-		File f = OxfordReceiver.INSTANCE.getSound(phrase, ph);
+		File f = App.getOxfordReceiverService().getSound(phrase, ph);
 		if (f == null) {
 			if (AppProperties.getInstance().isDictionarySynthesizer())
 				try {
-					f = GoogleSoundReceiver.INSTANCE.getSound(phrase,
+					f = App.getGoogleSoundReceiverService().getSound(phrase,
 							Constants.LANG.ENG);
 				} catch (SoundReceiverException ex) {
 					logger.error(ex);
@@ -117,7 +116,7 @@ public class SoundHelper {
 
 	public static File getRusFile(String phrase) {
 		try {
-			return GoogleSoundReceiver.INSTANCE.getSound(phrase,
+			return App.getGoogleSoundReceiverService().getSound(phrase,
 					Constants.LANG.RUS);
 		} catch (SoundReceiverException ex) {
 			logger.error(ex);
@@ -126,7 +125,7 @@ public class SoundHelper {
 	}
 
 	public static void playEngWord(String engWord) {
-		String normal = TranslationReceiver.INSTANCE.toNormal(engWord);
+		String normal = App.getTranslationService().toNormal(engWord);
 		if (normal.matches("[a-zA-Z]+")) {
 			File f = getEngFile(normal, AppProperties.getInstance()
 					.getDictionaryPhonetic());

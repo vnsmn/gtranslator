@@ -1,7 +1,11 @@
 package gtranslator.sound;
 
 import gtranslator.AppProperties;
-import gtranslator.DictionaryHelper;
+import gtranslator.Configurable;
+import gtranslator.DictionaryService;
+import gtranslator.H2Service;
+import gtranslator.Registry;
+import gtranslator.annotation.Singelton;
 import gtranslator.ui.Constants;
 import gtranslator.ui.Constants.PHONETICS;
 
@@ -21,7 +25,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Properties;
@@ -29,6 +32,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.Resource;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
@@ -48,22 +52,20 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-public class OxfordReceiver {
-	static final Logger logger = Logger.getLogger(DictionaryHelper.class);
-	public final static OxfordReceiver INSTANCE = new OxfordReceiver();
+public class OxfordReceiverService implements Configurable {
+	static final Logger logger = Logger.getLogger(DictionaryService.class);
 	private static final String REQUEST = "http://www.oxfordlearnersdictionaries.com/definition/english/%s_1?q=%s";
 	private File phonFile;
 	private Properties phonProperties = new Properties();
+	@Resource
+	private H2Service h2Service;
 
-	private OxfordReceiver() {
-		String dir = System.getProperty("user.home");
-		phonFile = new File(dir, "gtranslator-oxford.xml");
-		if (phonFile.exists())
-			try (FileInputStream in = new FileInputStream(phonFile)) {
-				phonProperties.loadFromXML(in);
-			} catch (Exception ex) {
-				logger.error(ex);
-			}
+	private OxfordReceiverService() {
+	}
+
+	@Singelton
+	public static void createSingelton() {
+		Registry.INSTANCE.add(new OxfordReceiverService());
 	}
 
 	public synchronized String getPhonetic(String word, PHONETICS phon) {
@@ -125,7 +127,9 @@ public class OxfordReceiver {
 							if (!captureWord.equals(word)) {
 								Phons ph = createPhons(word);
 								ph.get(phon.name()).add(nextPhon);
-								phonProperties.put(word, ph.toJson());
+								String jsn = ph.toJson();
+								phonProperties.put(word, jsn);
+								h2Service.addPhon(word, jsn);
 							}
 							setOfPhon.add(nextPhon);
 						}
@@ -134,7 +138,9 @@ public class OxfordReceiver {
 			}
 			Phons ph = createPhons(captureWord);
 			ph.get(phon.name()).addAll(setOfPhon);
-			phonProperties.put(captureWord, ph.toJson());
+			String jsn = ph.toJson(); 
+			phonProperties.put(captureWord, jsn);
+			h2Service.addPhon(captureWord, jsn);
 		}
 	}
 
@@ -191,6 +197,8 @@ public class OxfordReceiver {
 			save();
 		} catch (org.jsoup.HttpStatusException ex) {
 			phonProperties.put(word, ex.getStatusCode() == 404 ? "" : "error:"
+					+ ex.getStatusCode());
+			h2Service.addDic(word, ex.getStatusCode() == 404 ? "" : "error:"
 					+ ex.getStatusCode());
 			logger.error(ex);
 		} catch (Exception ex) {
@@ -292,9 +300,28 @@ public class OxfordReceiver {
 			URISyntaxException, ParseException {
 		AppProperties.getInstance().load(null);
 		String w = "";
-		//OxfordReceiver.INSTANCE.phonProperties.remove(w);
-		System.out
-				.println(OxfordReceiver.INSTANCE.getPhonetic(w, PHONETICS.AM));
+		OxfordReceiverService service = new OxfordReceiverService();
+		// service.phonProperties.remove(w);
+		System.out.println(service.getPhonetic(w, PHONETICS.AM));
 		System.out.println();
+	}
+
+	@Override
+	public void init(AppProperties appProperties) {
+		File dir = new File(appProperties.getDictionaryDirPath(), "db");
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
+		phonFile = new File(dir, "gtranslator-oxford.xml");
+		if (phonFile.exists())
+			try (FileInputStream in = new FileInputStream(phonFile)) {
+				phonProperties.loadFromXML(in);
+			} catch (Exception ex) {
+				logger.error(ex);
+			}
+	}
+
+	@Override
+	public void close() {
 	}
 }

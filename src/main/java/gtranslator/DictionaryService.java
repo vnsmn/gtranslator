@@ -1,10 +1,11 @@
 package gtranslator;
 
+import gtranslator.annotation.Singelton;
 import gtranslator.exception.SoundReceiverException;
+import gtranslator.sound.OxfordReceiverService;
 import gtranslator.sound.SoundHelper;
 import gtranslator.sound.SoundHelper.FileEntry;
-import gtranslator.sound.OxfordReceiver;
-import gtranslator.translate.TranslationReceiver;
+import gtranslator.translate.TranslationService;
 import gtranslator.ui.Constants.PHONETICS;
 import gtranslator.ui.ProgressMonitorDemo;
 
@@ -24,21 +25,32 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Resource;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
-public class DictionaryHelper {
-	final public static DictionaryHelper INSTANCE = new DictionaryHelper();
-	static final Logger logger = Logger.getLogger(DictionaryHelper.class);
+public class DictionaryService implements Configurable {
+	static final Logger logger = Logger.getLogger(DictionaryService.class);
+	@Resource
+	private TranslationService translationReceiver;
+	@Resource
+	private OxfordReceiverService oxfordReceiverService;
+	@Resource
+	private HistoryService historyService;
 
 	public enum SOURCE_TYPE {
 		HISTORY, DICTIONARY, TEXT
 	}
 
-	private DictionaryHelper() {
+	private DictionaryService() {
 	};
+
+	@Singelton
+	public static void createSingelton() {
+		Registry.INSTANCE.add(new DictionaryService());
+	}
 
 	public static class DictionaryInput {
 		public String path;
@@ -46,7 +58,7 @@ public class DictionaryHelper {
 		private String prefix;
 		private Integer pauseSeconds;
 		private Integer defisSeconds;
-		public DictionaryHelper.SOURCE_TYPE sourceType;
+		public DictionaryService.SOURCE_TYPE sourceType;
 		public PHONETICS phonetic;
 		public boolean isRusTransled;
 		public boolean isMultiRusTransled;
@@ -74,7 +86,7 @@ public class DictionaryHelper {
 
 	public synchronized void createDictionaryFromHistory(DictionaryInput input)
 			throws Exception {
-		Map<String, String> words = HistoryHelper.INSTANCE.getWords();
+		Map<String, String> words = historyService.getWords();
 		List<String> sortWords = new ArrayList<>();
 		sortWords.addAll(words.keySet());
 		if (input.isSort) {
@@ -181,10 +193,12 @@ public class DictionaryHelper {
 		Set<String> loadedEngSoundWords = loadSound(sortWords, dicDir);
 		String words = wordsToString(sortWords, dicMap, loadedEngSoundWords,
 				isRusTransled, true, phonetic, isPhonetics, isFirstEng);
-		writeTextToFile(words, new File(resultDir, prefix + "words-" + phonetic.name().toLowerCase() + ".txt"));
+		writeTextToFile(words, new File(resultDir, prefix + "words-"
+				+ phonetic.name().toLowerCase() + ".txt"));
 		words = wordsToString(sortWords, dicMap, loadedEngSoundWords,
 				isRusTransled, false, phonetic, isPhonetics, isFirstEng);
-		writeTextToFile(words, new File(resultDir, prefix + "words-sound-" + phonetic.name().toLowerCase() + ".txt"));
+		writeTextToFile(words, new File(resultDir, prefix + "words-sound-"
+				+ phonetic.name().toLowerCase() + ".txt"));
 
 		List<FileEntry> brFs = new ArrayList<>();
 		List<FileEntry> amFs = new ArrayList<>();
@@ -211,8 +225,8 @@ public class DictionaryHelper {
 					if (isRusTransled) {
 						String rus = dicMap.get(eng);
 						if (StringUtils.isBlank(rus)) {
-							rus = TranslationReceiver.INSTANCE
-									.translateAndSimpleFormat(eng, false);
+							rus = translationReceiver.translateAndSimpleFormat(
+									eng, false);
 							if (!isMultiRusTransled) {
 								rus = StringUtils.isBlank(rus) ? "" : rus
 										.split("[;]")[0];
@@ -283,13 +297,13 @@ public class DictionaryHelper {
 				if (isPhonetics) {
 					if (PHONETICS.AM == phonetic
 							&& !StringUtils
-									.isBlank(phon = OxfordReceiver.INSTANCE
+									.isBlank(phon = oxfordReceiverService
 											.getPhonetic(eng, PHONETICS.AM))) {
 						phon = "[" + phon + "]";
 					}
 					if (PHONETICS.BR == phonetic
 							&& !StringUtils
-									.isBlank(phon = OxfordReceiver.INSTANCE
+									.isBlank(phon = oxfordReceiverService
 											.getPhonetic(eng, PHONETICS.BR))) {
 						phon = "[" + phon + "]";
 					}
@@ -297,7 +311,7 @@ public class DictionaryHelper {
 				if (isRusTransled) {
 					rus = dicMap.containsKey(eng)
 							&& !StringUtils.isBlank(dicMap.get(eng)) ? dicMap
-							.get(eng) : TranslationReceiver.INSTANCE
+							.get(eng) : translationReceiver
 							.translateAndSimpleFormat(eng, false);
 				}
 				sb.append(isFirstEng ? eng + phon : StringUtils
@@ -338,5 +352,13 @@ public class DictionaryHelper {
 			progressMonitorDemo.close();
 		}
 		return loaded;
+	}
+
+	@Override
+	public void init(AppProperties appProperties) {
+	}
+
+	@Override
+	public void close() {
 	}
 }
