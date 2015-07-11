@@ -160,13 +160,15 @@ public class AppProperties {
 	}
 
 	private boolean parseBoolean(String s) throws java.text.ParseException {
-		if (!StringUtils.isBlank(s)
-				&& !s.toLowerCase().matches(
-						"([\n]|[ ])*(y|yes|true|on|n|no|false|off)([\n]|[ ])*")) {
-			throw new java.text.ParseException(s, 0);
+		String patternForY = "([\n]|[ ])*(y|yes|true|on|)([\n]|[ ])*";
+		String patternForN = "([\n]|[ ])*(n|no|false|off)([\n]|[ ])*";		
+		if (StringUtils.isBlank(s) || s.toLowerCase().matches(patternForN)) {
+			return false;
+		} else if (s.toLowerCase().matches(patternForY)) {
+			return true;
+		} else {
+			throw new java.text.ParseException("parseBoolean(\"" + s + "\")", 0);
 		}
-		return StringUtils.isBlank(s) ? false : s.toLowerCase().matches(
-				"(y|yes|true|on)");
 	}
 
 	public void save() {

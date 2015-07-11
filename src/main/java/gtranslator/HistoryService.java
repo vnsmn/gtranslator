@@ -12,9 +12,11 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.annotation.Resource;
 
@@ -34,6 +36,7 @@ public class HistoryService implements Configurable {
 	private Properties rawHis;
 	private StatisticListener statisticListener;
 	private int wordCount;
+	private Set<String> runtimeWords = new HashSet<>();;
 
 	@Singelton
 	public static void createSingelton() {
@@ -67,6 +70,13 @@ public class HistoryService implements Configurable {
 	}
 
 	public String readRaw(String key) {
+		String w = toNormal(key);
+		if (isWord(w)) {
+			runtimeWords.add(w);
+		}
+		if (statisticListener != null) {
+			statisticListener.execute(getStatistic());
+		}
 		return h2Service.getDic(toNormal(key));
 	}
 
@@ -77,6 +87,9 @@ public class HistoryService implements Configurable {
 			wordCount--;
 		}
 		rawHis.remove(w);
+		if (statisticListener != null) {
+			statisticListener.execute(getStatistic());
+		}
 	}
 
 	public String getStatistic() {
@@ -84,9 +97,10 @@ public class HistoryService implements Configurable {
 		if (wordCount == 0) {
 			wordCount = getWords().size();
 		}
-		return "word/phrase: " + wordCount + "/" + rawHis.size();
+		return String.format("%d/%d/%d - runtime/word/phrase",
+				runtimeWords.size(), wordCount, rawHis.size());
 	}
-	
+
 	private boolean isWord(String phrase) {
 		return toNormal(phrase).matches("[a-zA-Z]+");
 	}
