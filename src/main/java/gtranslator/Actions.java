@@ -283,4 +283,18 @@ public class Actions {
 			}
 		}
 	}
+
+	public static class RestoreHistoryAction extends Action<Void> {
+		@Override
+		public void execute(Void v) {
+			try {
+				App.getUIOutput().showWaitCursor();
+				App.getHistoryService().restore();
+			} catch (Exception ex) {
+				logger.error(ex.getMessage());
+			} finally {
+				App.getUIOutput().hideWaitCursor();
+			}
+		}
+	}
 }

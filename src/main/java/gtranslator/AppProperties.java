@@ -161,7 +161,8 @@ public class AppProperties {
 
 	private boolean parseBoolean(String s) throws java.text.ParseException {
 		if (!StringUtils.isBlank(s)
-				&& !s.toLowerCase().matches("(y|yes|true|on|n|no|false|off)")) {
+				&& !s.toLowerCase().matches(
+						"([\n]|[ ])*(y|yes|true|on|n|no|false|off)([\n]|[ ])*")) {
 			throw new java.text.ParseException(s, 0);
 		}
 		return StringUtils.isBlank(s) ? false : s.toLowerCase().matches(

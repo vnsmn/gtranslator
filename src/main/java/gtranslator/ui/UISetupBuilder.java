@@ -60,6 +60,39 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 		createWidgetsOfActivityClipboardTranslate();
 		createWidgetsOfModeClipboard();
 		createWidgetOfCookie();
+		createWidgetOfRestoreHistory();
+	}
+
+	private void createWidgetOfRestoreHistory() {
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		box.add(panel);
+		final JButton button = new JButton("restore");
+		button.addActionListener(new java.awt.event.ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Thread th = new Thread(new Runnable() {
+					@Override
+					public void run() {
+						button.setEnabled(false);
+						try {
+							Actions.findAction(
+									Actions.RestoreHistoryAction.class)
+									.execute(null);
+						} finally {
+							button.setEnabled(true);
+						}
+					}
+				});
+				th.setDaemon(true);
+				th.start();
+			}
+		});
+		panel.setLayout(new BorderLayout());
+		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
+				"Do restore history?"));
+		panel.add(button, BorderLayout.WEST);
+		box.add(panel);
 	}
 
 	private void createWidgetOfStatistic() {
@@ -74,16 +107,19 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 
 	private void createWidgetsOfDetailTranslate() {
 		detailClipboardCheckBox = new JCheckBox("No");
-		detailClipboardCheckBox.addActionListener(new java.awt.event.ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				final JCheckBox check = (JCheckBox) e.getSource();
-				check.setText(check.isSelected() ? "Yes" : "No");
-				Actions.findAction(DetailTranslateAction.class).execute(
-						check.isSelected());
-				firePropertyChange(Constants.PROPERTY_CHANGE_DETAIL_CLIPBOARD, null, check.isSelected());
-			}
-		});
+		detailClipboardCheckBox
+				.addActionListener(new java.awt.event.ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						final JCheckBox check = (JCheckBox) e.getSource();
+						check.setText(check.isSelected() ? "Yes" : "No");
+						Actions.findAction(DetailTranslateAction.class)
+								.execute(check.isSelected());
+						firePropertyChange(
+								Constants.PROPERTY_CHANGE_DETAIL_CLIPBOARD,
+								null, check.isSelected());
+					}
+				});
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
@@ -139,7 +175,8 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 				check.setText(check.isSelected() ? "Yes" : "No");
 				Actions.findAction(WordPlayOfClipboardAction.class).execute(
 						check.isSelected());
-				firePropertyChange(Constants.PROPERTY_CHANGE_SOUND, null, check.isSelected());
+				firePropertyChange(Constants.PROPERTY_CHANGE_SOUND, null,
+						check.isSelected());
 			}
 		});
 		JPanel panel = new JPanel();
@@ -215,8 +252,8 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 			public void actionPerformed(ActionEvent e) {
 				MODE mode = MODE.valueOf(e.getActionCommand());
 				Actions.findAction(ModeTClipboardAction.class).execute(mode);
-				UISetupBuilder.this.firePropertyChange(Constants.PROPERTY_CHANGE_MODE_CLIPBOARD,
-						null, mode);
+				UISetupBuilder.this.firePropertyChange(
+						Constants.PROPERTY_CHANGE_MODE_CLIPBOARD, null, mode);
 			}
 		};
 
@@ -224,15 +261,14 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 		textButton.setMnemonic(KeyEvent.VK_C);
 		textButton.setActionCommand(ClipboardObserver.MODE.TEXT.name());
 		textButton.addActionListener(actionListener);
-		modeWidgets.put(MODE.TEXT, textButton);		
-		
+		modeWidgets.put(MODE.TEXT, textButton);
+
 		JRadioButton selButton = new JRadioButton("Select with lost focus");
 		selButton.setMnemonic(KeyEvent.VK_B);
 		selButton.setActionCommand(ClipboardObserver.MODE.SELECT.name());
 		selButton.setSelected(true);
 		selButton.addActionListener(actionListener);
 		modeWidgets.put(MODE.SELECT, selButton);
-
 
 		JRadioButton copyButton = new JRadioButton("Copy");
 		copyButton.setMnemonic(KeyEvent.VK_D);
@@ -249,9 +285,9 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 		JPanel panel = new JPanel(new GridLayout(0, 1));
 		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
 				"Mode clipboard"));
-		
+
 		panel.add(textButton);
-		panel.add(selButton);		
+		panel.add(selButton);
 		panel.add(copyButton);
 		box.add(panel);
 	}
@@ -289,8 +325,9 @@ public class UISetupBuilder extends UIBuilder implements PropertyChangeListener 
 			break;
 		case Constants.PROPERTY_CHANGE_DETAIL_CLIPBOARD:
 			detailClipboardCheckBox.setSelected((Boolean) evt.getNewValue());
-			soundCheckBox.setText(detailClipboardCheckBox.isSelected() ? "Yes" : "No");
-			break;			
+			soundCheckBox.setText(detailClipboardCheckBox.isSelected() ? "Yes"
+					: "No");
+			break;
 		}
 	}
 }

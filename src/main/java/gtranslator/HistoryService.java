@@ -4,6 +4,7 @@ import gtranslator.annotation.Singelton;
 import gtranslator.translate.DefaultGoogleFormater;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -25,7 +26,7 @@ public class HistoryService implements Configurable {
 	private static File rawHisFile;
 	@Resource
 	private H2Service h2Service;
-	
+
 	public interface StatisticListener {
 		void execute(String message);
 	}
@@ -39,6 +40,10 @@ public class HistoryService implements Configurable {
 	}
 
 	private HistoryService() {
+	}
+
+	public void restore() throws FileNotFoundException, IOException {
+		toDb(rawHis);
 	}
 
 	public void toDb(Properties properties) {
@@ -121,11 +126,18 @@ public class HistoryService implements Configurable {
 			logger.error(ex);
 		}
 	}
-	
+
 	private void loadHis() {
 		if (rawHis == null) {
 			rawHis = new Properties();
 			rawHis.putAll(h2Service.getsDic());
-		}		
+		}
+		if (rawHisFile.exists()) {
+			try (FileInputStream in = new FileInputStream(rawHisFile)) {
+				rawHis.loadFromXML(in);
+			} catch (Exception ex) {
+				logger.error(ex);
+			}
+		}
 	}
 }
