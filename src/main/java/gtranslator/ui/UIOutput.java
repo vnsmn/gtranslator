@@ -55,7 +55,7 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener,
 
 	@Singelton
 	public static void createSingelton() {
-		Registry.INSTANCE.add(new UIOutput(200, 200));
+		Registry.INSTANCE.add(new UIOutput(300, 200));
 	}
 
 	private UIOutput(int weigth, int height) {
@@ -237,6 +237,7 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener,
 	}
 
 	public void setStatistic(String s) {
+		frame.setTitle("gtranslator  " + s);
 		firePropertyChange(Constants.PROPERTY_CHANGE_STATISTIC, null, s);
 	}
 
