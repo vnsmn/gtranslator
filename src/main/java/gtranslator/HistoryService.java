@@ -33,6 +33,7 @@ public class HistoryService implements Configurable {
 
 	private Properties rawHis;
 	private StatisticListener statisticListener;
+	private int wordCount;
 
 	@Singelton
 	public static void createSingelton() {
@@ -54,8 +55,12 @@ public class HistoryService implements Configurable {
 	}
 
 	public void writeRaw(String key, String value) {
-		h2Service.addDic(toNormal(key), value);
-		rawHis.put(toNormal(key), value);
+		String w = toNormal(key);
+		h2Service.addDic(w, value);
+		if (!rawHis.containsKey(w) && isWord(w)) {
+			wordCount++;
+		}
+		rawHis.put(w, value);
 		if (statisticListener != null) {
 			statisticListener.execute(getStatistic());
 		}
@@ -66,13 +71,24 @@ public class HistoryService implements Configurable {
 	}
 
 	public void delete(String key) {
-		h2Service.deleteDic(toNormal(key));
-		rawHis.remove(toNormal(key));
+		String w = toNormal(key);
+		h2Service.deleteDic(w);
+		if (rawHis.containsKey(w) && isWord(w)) {
+			wordCount--;
+		}
+		rawHis.remove(w);
 	}
 
 	public String getStatistic() {
 		loadHis();
-		return "word/phrase: " + getWords().size() + "/" + rawHis.size();
+		if (wordCount == 0) {
+			wordCount = getWords().size();
+		}
+		return "word/phrase: " + wordCount + "/" + rawHis.size();
+	}
+	
+	private boolean isWord(String phrase) {
+		return toNormal(phrase).matches("[a-zA-Z]+");
 	}
 
 	public Map<String, String> getWords() {
