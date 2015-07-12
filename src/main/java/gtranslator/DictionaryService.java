@@ -232,7 +232,9 @@ public class DictionaryService implements Configurable {
 										.split("[;]")[0];
 							}
 						}
-						rusFile = SoundHelper.getRusFile(rus);
+						if (!";".equals(rus.trim())) {
+							rusFile = SoundHelper.getRusFile(rus);
+						}						
 					}
 					File engFile = SoundHelper.getEngFile(eng, phonetic);
 					if (PHONETICS.BR == phonetic) {
