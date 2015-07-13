@@ -12,9 +12,14 @@ import javax.json.spi.JsonProvider;
 import javax.json.stream.JsonParser;
 import javax.json.stream.JsonParser.Event;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class DefaultGoogleFormater {
 
 	protected Tree parse(String s) {
+		if (StringUtils.isBlank(s)) {
+			return null;
+		}
 		while (s.indexOf(",,") != -1) {
 			s = s.replaceAll(",,", ",[],");
 		}
@@ -57,6 +62,9 @@ public class DefaultGoogleFormater {
 	protected String format(String jsonText, boolean isAddition,
 			List<List<String>> variantWords) {
 		Tree root = parse(jsonText);
+		if (root == null) {
+			return "";
+		}
 		StringBuilder sb = new StringBuilder();
 		Iterator<Tree> itHt = root.first(Tree.class).first(Tree.class)
 				.iterator(Tree.class);
