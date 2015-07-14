@@ -18,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,14 +35,14 @@ import org.apache.log4j.Logger;
 public class DictionaryService implements Configurable {
 	static final Logger logger = Logger.getLogger(DictionaryService.class);
 	@Resource
-	private TranslationService translationReceiver;
+	private TranslationService translationService;
 	@Resource
 	private OxfordReceiverService oxfordReceiverService;
 	@Resource
 	private HistoryService historyService;
 
 	public enum SOURCE_TYPE {
-		HISTORY, DICTIONARY, TEXT
+		HISTORY, DICTIONARY, TEXT, IRREGULAR_VERB, RUNTIME_WORDS
 	}
 
 	private DictionaryService() {
@@ -60,6 +61,7 @@ public class DictionaryService implements Configurable {
 		private Integer defisSeconds;
 		public DictionaryService.SOURCE_TYPE sourceType;
 		public PHONETICS phonetic;
+		public Collection<String> runtimeWords;
 		public boolean isRusTransled;
 		public boolean isMultiRusTransled;
 		public boolean isSort = true;
@@ -92,10 +94,7 @@ public class DictionaryService implements Configurable {
 		if (input.isSort) {
 			Collections.sort(sortWords);
 		}
-		createDictionary(sortWords, input.resultDir, input.phonetic,
-				input.isRusTransled, input.isMultiRusTransled, input.prefix,
-				input.pauseSeconds, input.defisSeconds, input.isPhonetics,
-				input.isFirstEng);
+		createDictionary(sortWords, Collections.emptyMap(), input);
 	}
 
 	public synchronized void createDictionaryFromText(DictionaryInput input)
@@ -114,10 +113,7 @@ public class DictionaryService implements Configurable {
 		if (input.isSort) {
 			Collections.sort(sortWords);
 		}
-		createDictionary(sortWords, input.resultDir, input.phonetic,
-				input.isRusTransled, input.isMultiRusTransled, input.prefix,
-				input.pauseSeconds, input.defisSeconds, input.isPhonetics,
-				input.isFirstEng);
+		createDictionary(sortWords, Collections.emptyMap(), input);
 	}
 
 	public synchronized void createDictionaryFromDict(DictionaryInput input)
@@ -138,10 +134,41 @@ public class DictionaryService implements Configurable {
 		if (input.isSort) {
 			Collections.sort(sortWords);
 		}
-		createDictionary(sortWords, input.resultDir, input.phonetic,
-				input.isRusTransled, input.isMultiRusTransled, dicMap,
-				input.prefix, input.pauseSeconds, input.defisSeconds,
-				input.isPhonetics, input.isFirstEng);
+		createDictionary(sortWords, dicMap, input);
+	}
+
+	public synchronized void createDictionaryFromIrregularVerb(
+			DictionaryInput input) throws Exception {
+		String text = readTextFromFile(input.path);
+		List<String> sortWords = new ArrayList<>();
+		Map<String, String> dicMap = new HashMap<>();
+		for (String st : text.split("[\n]")) {
+			String[] ss = st.split("[=]");
+			String[] keys = ss[0].trim().split("[,]");
+			String val = ss.length > 1 && !StringUtils.isBlank(ss[1].trim()) ? ss[1]
+					.trim() : null;
+			boolean b = true;
+			for (String key : keys) {
+				String w = translationService.toNormal(key);
+				if (!StringUtils.isBlank(w)) {
+					sortWords.add(w);
+					if (!dicMap.containsKey(w)) {
+						dicMap.put(w, b ? val : ";");
+					}
+					b = false;
+				}
+			}
+		}
+		createDictionary(sortWords, dicMap, input);
+	}
+
+	public synchronized void createDictionaryFromRuntimeWords(
+			DictionaryInput input) throws Exception {
+		List<String> sortWords = new ArrayList<>(input.runtimeWords);
+		if (input.isSort) {
+			Collections.sort(sortWords);
+		}
+		createDictionary(sortWords, Collections.emptyMap(), input);
 	}
 
 	private String readTextFromFile(String textFilePath) throws IOException {
@@ -165,22 +192,19 @@ public class DictionaryService implements Configurable {
 	}
 
 	private synchronized void createDictionary(List<String> sortWords,
-			String resultDirPath, PHONETICS phonetic, boolean isRusTransled,
-			boolean isMultiRusTransled, String prefix, int pauseSeconds,
-			int defisSeconds, boolean isPhonetics, boolean isFirstEng)
+			Map<String, String> dicMap, DictionaryInput input)
 			throws IOException, UnsupportedAudioFileException,
 			SoundReceiverException {
-		createDictionary(sortWords, resultDirPath, phonetic, isRusTransled,
-				isMultiRusTransled, Collections.emptyMap(), prefix,
-				pauseSeconds, defisSeconds, isPhonetics, isFirstEng);
-	}
+		String resultDirPath = input.resultDir;
+		PHONETICS phonetic = input.phonetic;
+		boolean isRusTransled = input.isRusTransled;
+		boolean isMultiRusTransled = input.isMultiRusTransled;
+		String prefix = input.prefix;
+		int pauseSeconds = input.pauseSeconds;
+		int defisSeconds = input.defisSeconds;
+		boolean isPhonetics = input.isPhonetics;
+		boolean isFirstEng = input.isFirstEng;
 
-	private synchronized void createDictionary(List<String> sortWords,
-			String resultDirPath, PHONETICS phonetic, boolean isRusTransled,
-			boolean isMultiRusTransled, Map<String, String> dicMap,
-			String prefix, int pauseSeconds, int defisSeconds,
-			boolean isPhonetics, boolean isFirstEng) throws IOException,
-			UnsupportedAudioFileException, SoundReceiverException {
 		File dicDir = new File(AppProperties.getInstance()
 				.getDictionaryDirPath());
 		if (!dicDir.exists()) {
@@ -225,7 +249,7 @@ public class DictionaryService implements Configurable {
 					if (isRusTransled) {
 						String rus = dicMap.get(eng);
 						if (StringUtils.isBlank(rus)) {
-							rus = translationReceiver.translateAndSimpleFormat(
+							rus = translationService.translateAndSimpleFormat(
 									eng, false);
 							if (!isMultiRusTransled) {
 								rus = StringUtils.isBlank(rus) ? "" : rus
@@ -234,7 +258,7 @@ public class DictionaryService implements Configurable {
 						}
 						if (!";".equals(rus.trim())) {
 							rusFile = SoundHelper.getRusFile(rus);
-						}						
+						}
 					}
 					File engFile = SoundHelper.getEngFile(eng, phonetic);
 					if (PHONETICS.BR == phonetic) {
@@ -313,7 +337,7 @@ public class DictionaryService implements Configurable {
 				if (isRusTransled) {
 					rus = dicMap.containsKey(eng)
 							&& !StringUtils.isBlank(dicMap.get(eng)) ? dicMap
-							.get(eng) : translationReceiver
+							.get(eng) : translationService
 							.translateAndSimpleFormat(eng, false);
 				}
 				sb.append(isFirstEng ? eng + phon : StringUtils

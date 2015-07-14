@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -36,7 +37,7 @@ public class HistoryService implements Configurable {
 	private Properties rawHis;
 	private StatisticListener statisticListener;
 	private int wordCount;
-	private Set<String> runtimeWords = new HashSet<>();;
+	private Set<String> runtimeWords = new HashSet<>();
 
 	@Singelton
 	public static void createSingelton() {
@@ -126,6 +127,10 @@ public class HistoryService implements Configurable {
 			}
 		}
 		return Collections.unmodifiableMap(words);
+	}
+
+	public Collection getRuntimeWords() {
+		return Collections.unmodifiableCollection(runtimeWords);
 	}
 
 	public void setStatisticListener(StatisticListener listener) {

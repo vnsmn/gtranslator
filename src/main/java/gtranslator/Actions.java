@@ -45,6 +45,12 @@ public class Actions {
 					App.getDictionaryService().createDictionaryFromDict(dic);
 				} else if (dic.sourceType == DictionaryService.SOURCE_TYPE.TEXT) {
 					App.getDictionaryService().createDictionaryFromText(dic);
+				} else if (dic.sourceType == DictionaryService.SOURCE_TYPE.IRREGULAR_VERB) {
+					App.getDictionaryService()
+							.createDictionaryFromIrregularVerb(dic);
+				} else if (dic.sourceType == DictionaryService.SOURCE_TYPE.RUNTIME_WORDS) {
+					App.getDictionaryService()
+							.createDictionaryFromRuntimeWords(dic);
 				}
 			} catch (Exception ex) {
 				logger.error(ex);

@@ -1,9 +1,9 @@
 package gtranslator.ui;
 
 import gtranslator.Actions;
-import gtranslator.AppProperties;
 import gtranslator.Actions.DictionarySynthesizerAction;
 import gtranslator.Actions.SetDictionaryPhoneticAction;
+import gtranslator.App;
 import gtranslator.DictionaryService;
 import gtranslator.DictionaryService.DictionaryInput;
 import gtranslator.ui.Constants.PHONETICS;
@@ -206,6 +206,8 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 							dic.setDefisSeconds(defisSecondsTextField.getText());
 							dic.isPhonetics = phonCheckBox.isSelected();
 							dic.isFirstEng = directCheckBox.isSelected();
+							dic.runtimeWords = App.getHistoryService()
+									.getRuntimeWords();
 							Actions.findAction(Actions.DictionaryAction.class)
 									.execute(dic);
 						} finally {
@@ -246,8 +248,22 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 	private void createWidgetsOfSourceType() {
 		String[] types = { DictionaryService.SOURCE_TYPE.HISTORY.name(),
 				DictionaryService.SOURCE_TYPE.DICTIONARY.name(),
-				DictionaryService.SOURCE_TYPE.TEXT.name() };
+				DictionaryService.SOURCE_TYPE.TEXT.name(),
+				DictionaryService.SOURCE_TYPE.IRREGULAR_VERB.name(),
+				DictionaryService.SOURCE_TYPE.RUNTIME_WORDS.name() };
 		sourceTypeComboBox = new JComboBox(types);
+		sourceTypeComboBox
+				.addActionListener(new java.awt.event.ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						JComboBox comboBox = (JComboBox) e.getSource();
+						sortCheckBox
+								.setEnabled(!DictionaryService.SOURCE_TYPE.IRREGULAR_VERB
+										.name().equals(
+												comboBox.getSelectedItem()
+														.toString()));
+					}
+				});
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 		panel.setBorder(BorderFactory.createTitledBorder(lineBorder,
