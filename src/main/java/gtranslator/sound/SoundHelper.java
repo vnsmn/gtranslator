@@ -41,7 +41,7 @@ public class SoundHelper {
 		boolean bigEndian = false;
 		boolean signed = true;
 		int bits = 16;
-		int channels = 2;
+		int channels = 1;
 		WAVE_FORMAT_44100 = new AudioFormat(sampleRate_44100, bits, channels,
 				signed, bigEndian);
 		WAVE_FORMAT_16000 = new AudioFormat(sampleRate_16000, bits, channels,

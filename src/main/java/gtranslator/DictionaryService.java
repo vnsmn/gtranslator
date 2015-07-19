@@ -215,14 +215,25 @@ public class DictionaryService implements Configurable {
 			resultDir.mkdirs();
 		}
 		Set<String> loadedEngSoundWords = loadSound(sortWords, dicDir);
+		String subPrefix = input.isRusTransled ? "dic-ru" : "dic";
+		if (StringUtils.isBlank(prefix)) {
+			prefix = subPrefix;
+		} else {
+			if (!prefix.endsWith("-")) {
+				prefix += "-";
+			}
+			prefix += subPrefix;
+		}
 		String words = wordsToString(sortWords, dicMap, loadedEngSoundWords,
 				isRusTransled, true, phonetic, isPhonetics, isFirstEng);
-		writeTextToFile(words, new File(resultDir, prefix + "words-"
+		writeTextToFile(words, new File(resultDir, prefix + "-"
 				+ phonetic.name().toLowerCase() + ".txt"));
 		words = wordsToString(sortWords, dicMap, loadedEngSoundWords,
 				isRusTransled, false, phonetic, isPhonetics, isFirstEng);
-		writeTextToFile(words, new File(resultDir, prefix + "words-sound-"
+		writeTextToFile(words, new File(resultDir, prefix + "-"
 				+ phonetic.name().toLowerCase() + ".txt"));
+		writeTextToFile(wordsToString(sortWords), new File(resultDir, prefix
+				+ "-blank.txt"));
 
 		List<FileEntry> brFs = new ArrayList<>();
 		List<FileEntry> amFs = new ArrayList<>();
@@ -282,13 +293,13 @@ public class DictionaryService implements Configurable {
 				}
 				if (PHONETICS.BR == phonetic) {
 					File outWaveFile = new File(resultDir, String.format(prefix
-							+ "word-sound-br-%d-%d.wave", fromIndex, toIndex));
+							+ "-br-%d-%d.wave", fromIndex, toIndex));
 					SoundHelper.concatFiles(pauseSeconds, defisSeconds,
 							outWaveFile, brFs);
 				}
 				if (PHONETICS.AM == phonetic) {
 					File outWaveFile = new File(resultDir, String.format(prefix
-							+ "word-sound-am-%d-%d.wave", fromIndex, toIndex));
+							+ "-am-%d-%d.wave", fromIndex, toIndex));
 					SoundHelper.concatFiles(pauseSeconds, defisSeconds,
 							outWaveFile, amFs);
 				}
@@ -300,6 +311,18 @@ public class DictionaryService implements Configurable {
 		} finally {
 			progressMonitorDemo.close();
 		}
+	}
+
+	public String wordsToString(List<String> sortEngWords) {
+		StringBuilder sb = new StringBuilder();
+		for (String eng : sortEngWords) {
+			if (sb.length() > 0) {
+				sb.append("\n");
+			}
+			sb.append(eng);
+			sb.append("=");
+		}
+		return sb.toString();
 	}
 
 	public String wordsToString(List<String> sortEngWords,
