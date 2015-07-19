@@ -230,7 +230,7 @@ public class DictionaryService implements Configurable {
 				+ phonetic.name().toLowerCase() + ".txt"));
 		words = wordsToString(sortWords, dicMap, loadedEngSoundWords,
 				isRusTransled, false, phonetic, isPhonetics, isFirstEng);
-		writeTextToFile(words, new File(resultDir, prefix + "-"
+		writeTextToFile(words, new File(resultDir, prefix + "-snd-"
 				+ phonetic.name().toLowerCase() + ".txt"));
 		writeTextToFile(wordsToString(sortWords), new File(resultDir, prefix
 				+ "-blank.txt"));
