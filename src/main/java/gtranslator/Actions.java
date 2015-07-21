@@ -1,6 +1,7 @@
 package gtranslator;
 
 import gtranslator.DictionaryService.DictionaryInput;
+import gtranslator.persistences.WordDao;
 import gtranslator.sound.SoundHelper;
 import gtranslator.ui.Constants.PHONETICS;
 
@@ -17,9 +18,9 @@ public class Actions {
 		public abstract void execute(T arg);
 	}
 
-	public static <T> Action<T> findAction(Class<? extends Action<T>> clazz) {
+	public static <N, T extends Action<N>> T findAction(Class<T> clazz) {
 		@SuppressWarnings("unchecked")
-		Action<T> act = (Action<T>) actions.get(clazz.getName());
+		T act = (T) actions.get(clazz.getName());
 		synchronized (Actions.class) {
 			if (act == null) {
 				try {
@@ -296,6 +297,29 @@ public class Actions {
 			try {
 				App.getUIOutput().showWaitCursor();
 				App.getHistoryService().restore();
+			} catch (Exception ex) {
+				logger.error(ex.getMessage());
+			} finally {
+				App.getUIOutput().hideWaitCursor();
+			}
+		}
+	}
+
+	public static class SnapshotAction extends Action<Object[]> {
+		@Override
+		public void execute(Object[] args) {
+			execute(args[0].toString(), args.length == 2 ? (Boolean) args[1]
+					: null);
+		}
+
+		public void execute(String eng, boolean isVisible) {
+			if (!App.getHistoryService().isWord(eng)) {
+				return;
+			}
+			try {
+				App.getUIOutput().showWaitCursor();
+				WordDao snapshotDao = new WordDao();
+				snapshotDao.save(eng, isVisible);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			} finally {

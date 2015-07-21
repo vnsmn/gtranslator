@@ -1,8 +1,10 @@
 package gtranslator;
 
 import gtranslator.annotation.Singelton;
+import gtranslator.persistences.WordEntity;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,6 +18,11 @@ import java.util.TreeMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.h2.jdbcx.JdbcConnectionPool;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+
+import com.mchange.v2.c3p0.impl.NewProxyDatabaseMetaData;
 
 //@Singelton
 public class H2Service implements Configurable {
@@ -45,6 +52,8 @@ public class H2Service implements Configurable {
 	private JdbcConnectionPool cp;
 
 	private String urlConnect;
+
+	private SessionFactory sessionFactory;
 
 	private H2Service() {
 	}
@@ -82,6 +91,7 @@ public class H2Service implements Configurable {
 	@Override
 	public void close() {
 		cp.dispose();
+		sessionFactory.close();
 	}
 
 	public boolean deleteDic(String key) {
@@ -169,9 +179,10 @@ public class H2Service implements Configurable {
 			} catch (ClassNotFoundException e) {
 				System.out.println(e.getMessage());
 			}
+			initHibernate(urlConnect);
 			cp = JdbcConnectionPool.create(urlConnect, "sa", "sa");
 			createDb();
-		} catch (SQLException ex) {
+		} catch (SQLException | IOException ex) {
 			System.exit(-1);
 		}
 	}
@@ -207,13 +218,13 @@ public class H2Service implements Configurable {
 		}
 		return result;
 	}
-	
+
 	public boolean addPhon(String word, String phon) {
 		PreparedStatement insertPreparedStatement = null;
 		boolean result = false;
 
 		String insertQuery = "INSERT INTO PHONETICS(word, phon) values(?,?)";
-		try (Connection connection = getConnection()) {			
+		try (Connection connection = getConnection()) {
 			if (getPhon(word) == null) {
 				connection.setAutoCommit(false);
 				insertPreparedStatement = connection
@@ -225,13 +236,13 @@ public class H2Service implements Configurable {
 				connection.commit();
 			} else {
 				updatePhon(word, phon);
-			}			
+			}
 		} catch (Exception e) {
 			logger.error(e);
 		}
 		return result;
 	}
-	
+
 	public boolean updatePhon(String word, String phon) {
 		PreparedStatement updatePreparedStatement = null;
 		boolean result = false;
@@ -239,7 +250,7 @@ public class H2Service implements Configurable {
 		String insertQuery = "UPDATE PHONETICS SET phon = ? WHERE word = ?";
 		try (Connection connection = getConnection()) {
 			connection.setAutoCommit(false);
-				updatePreparedStatement = connection.prepareStatement(insertQuery);
+			updatePreparedStatement = connection.prepareStatement(insertQuery);
 			updatePreparedStatement.setString(1, phon);
 			updatePreparedStatement.setString(2, word);
 			result = updatePreparedStatement.executeUpdate() > 0;
@@ -269,7 +280,7 @@ public class H2Service implements Configurable {
 		}
 		return result;
 	}
-	
+
 	private void createDb() throws SQLException {
 		Connection connection = getConnection();
 		PreparedStatement createPreparedStatement = null;
@@ -289,7 +300,7 @@ public class H2Service implements Configurable {
 					.prepareStatement(createIndexQuery);
 			createPreparedStatement.executeUpdate();
 			createPreparedStatement.close();
-			
+
 			createPreparedStatement = connection
 					.prepareStatement(createPhonTableQuery);
 			createPreparedStatement.executeUpdate();
@@ -303,5 +314,16 @@ public class H2Service implements Configurable {
 		} finally {
 			connection.close();
 		}
+	}
+
+	public Session openSession() {
+		return sessionFactory.openSession();
+	}
+
+	private void initHibernate(String urlConnect) throws IOException {
+		Configuration cfg = new Configuration();
+		cfg.setProperty("hibernate.connection.url", urlConnect);
+		cfg.addAnnotatedClass(WordEntity.class);
+		sessionFactory = cfg.buildSessionFactory();
 	}
 }

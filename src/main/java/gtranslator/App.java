@@ -186,4 +186,8 @@ public class App {
 	public static GoogleSoundReceiverService getGoogleSoundReceiverService() {
 		return Registry.INSTANCE.get(GoogleSoundReceiverService.class);
 	}
+	
+	public static H2Service getH2Service() {
+		return Registry.INSTANCE.get(H2Service.class);
+	}
 }

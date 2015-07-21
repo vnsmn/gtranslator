@@ -102,7 +102,7 @@ public class HistoryService implements Configurable {
 				runtimeWords.size(), wordCount, rawHis.size());
 	}
 
-	private boolean isWord(String phrase) {
+	public boolean isWord(String phrase) {
 		return toNormal(phrase).matches("[a-zA-Z]+");
 	}
 

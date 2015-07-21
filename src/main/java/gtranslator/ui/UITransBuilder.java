@@ -5,6 +5,7 @@ import gtranslator.Actions.ClearHistoryAction;
 import gtranslator.Actions.DetailTranslateAction;
 import gtranslator.Actions.ModeTClipboardAction;
 import gtranslator.Actions.PlayEngWordWithLoadAction;
+import gtranslator.Actions.SnapshotAction;
 import gtranslator.Actions.StartStopTClipboardAction;
 import gtranslator.Actions.TranslateWordAction;
 import gtranslator.Actions.WordPlayOfClipboardAction;
@@ -64,12 +65,22 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 
 	private void createPopupMenu(JTextArea sourceArea, JTextArea targetArea,
 			JPopupMenu sourcePopupMenu, int index) {
-		JMenuItem mit = new JMenuItem("Delete word from history");
+		JMenuItem mit = new JMenuItem("Snapshot word");
 		mit.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Actions.findAction(ClearHistoryAction.class).execute(
-						App.getUIOutput().getSourceText());
+				Actions.findAction(SnapshotAction.class).execute(
+						App.getUIOutput().getSourceText(), true);
+			}
+		});
+		sourcePopupMenu.add(mit);
+		
+		mit = new JMenuItem("Unsnapshot word");
+		mit.addActionListener(new java.awt.event.ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Actions.findAction(SnapshotAction.class).execute(
+						App.getUIOutput().getSourceText(), false);
 			}
 		});
 		sourcePopupMenu.add(mit);
@@ -80,6 +91,16 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 			public void actionPerformed(ActionEvent e) {
 				Actions.findAction(PlayEngWordWithLoadAction.class).execute(
 						sourceArea.getText());
+			}
+		});
+		sourcePopupMenu.add(mit);
+
+		mit = new JMenuItem("Delete word from history");
+		mit.addActionListener(new java.awt.event.ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Actions.findAction(ClearHistoryAction.class).execute(
+						App.getUIOutput().getSourceText());
 			}
 		});
 		sourcePopupMenu.add(mit);
@@ -174,7 +195,7 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 		menu.setMnemonic(KeyEvent.VK_O);
 
 		JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem(
-				"Select without lost focus");		
+				"Select without lost focus");
 		menuItem.setActionCommand(MODE.TEXT.name());
 		menuItem.addActionListener(actionListener);
 		group.add(menuItem);

@@ -1,6 +1,7 @@
 package gtranslator;
 
 import gtranslator.annotation.Singelton;
+import gtranslator.persistences.WordDao;
 import gtranslator.translate.TranslationService;
 import gtranslator.ui.UIOutput;
 
@@ -38,6 +39,8 @@ public class ClipboardObserver implements Runnable, ClipboardOwner,
 	private UIOutput uiOutput;
 	@Resource
 	private TranslationService translationReceiver;
+
+	private WordDao wordDao = new WordDao();
 
 	public enum MODE {
 		SELECT, COPY, TEXT
@@ -99,6 +102,7 @@ public class ClipboardObserver implements Runnable, ClipboardOwner,
 							uiOutput.setSourceText(text.toString());
 							String translate = translationReceiver
 									.translateAndFormat(text.toString(), false);
+							wordDao.save(translate);
 							uiOutput.setTargetText(translate);
 							if (mode.get() == MODE.COPY) {
 								uiOutput.selectTranslatePanel();
