@@ -38,7 +38,7 @@ public class WordEntity implements Serializable {
 	}
 
 	public void setEng(String eng) {
-		this.eng = eng;
+		this.eng = eng.trim().replaceAll("[ ]+", " ").toLowerCase();
 	}
 
 	public int getUseCounter() {

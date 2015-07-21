@@ -250,7 +250,11 @@ public class UIDicBuilder extends UIBuilder implements PropertyChangeListener {
 				DictionaryService.SOURCE_TYPE.DICTIONARY.name(),
 				DictionaryService.SOURCE_TYPE.TEXT.name(),
 				DictionaryService.SOURCE_TYPE.IRREGULAR_VERB.name(),
-				DictionaryService.SOURCE_TYPE.RUNTIME_WORDS.name() };
+				DictionaryService.SOURCE_TYPE.RUNTIME_WORDS.name(),
+				DictionaryService.SOURCE_TYPE.WORDS_IN.name(),
+				DictionaryService.SOURCE_TYPE.WORDS_OUT.name(),
+				DictionaryService.SOURCE_TYPE.WORDS_DIC.name(),
+				};
 		sourceTypeComboBox = new JComboBox(types);
 		sourceTypeComboBox
 				.addActionListener(new java.awt.event.ActionListener() {

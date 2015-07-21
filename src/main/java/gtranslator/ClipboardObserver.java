@@ -101,8 +101,7 @@ public class ClipboardObserver implements Runnable, ClipboardOwner,
 									.getTransferData(DataFlavor.stringFlavor);
 							uiOutput.setSourceText(text.toString());
 							String translate = translationReceiver
-									.translateAndFormat(text.toString(), false);
-							wordDao.save(translate);
+									.translateAndFormat(text.toString(), false);							
 							uiOutput.setTargetText(translate);
 							if (mode.get() == MODE.COPY) {
 								uiOutput.selectTranslatePanel();
@@ -119,6 +118,7 @@ public class ClipboardObserver implements Runnable, ClipboardOwner,
 							clipboard.setContents(st, this);
 							isLostData = false;
 							uiOutput.restore();
+							wordDao.save(text.toString());
 							/*
 							 * if (mode.get() == MODE.TEXT) { if
 							 * (!text.equals(clipText)) { clipText = text;
@@ -201,6 +201,7 @@ public class ClipboardObserver implements Runnable, ClipboardOwner,
 
 	private static class NativeMouseListenerExt implements NativeMouseListener {
 		String seltext = "";
+		WordDao wordDao = new WordDao();
 
 		@Override
 		public void nativeMouseClicked(NativeMouseEvent e) {
@@ -251,6 +252,7 @@ public class ClipboardObserver implements Runnable, ClipboardOwner,
 								}
 							}
 							App.getUIOutput().restore();
+							wordDao.save(text.toString());
 							Thread.sleep(1000);
 						}
 					}

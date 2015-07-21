@@ -65,27 +65,7 @@ public class UITransBuilder extends UIBuilder implements PropertyChangeListener 
 
 	private void createPopupMenu(JTextArea sourceArea, JTextArea targetArea,
 			JPopupMenu sourcePopupMenu, int index) {
-		JMenuItem mit = new JMenuItem("Snapshot word");
-		mit.addActionListener(new java.awt.event.ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Actions.findAction(SnapshotAction.class).execute(
-						App.getUIOutput().getSourceText(), true);
-			}
-		});
-		sourcePopupMenu.add(mit);
-		
-		mit = new JMenuItem("Unsnapshot word");
-		mit.addActionListener(new java.awt.event.ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Actions.findAction(SnapshotAction.class).execute(
-						App.getUIOutput().getSourceText(), false);
-			}
-		});
-		sourcePopupMenu.add(mit);
-
-		mit = new JMenuItem("Play word");
+		JMenuItem mit = new JMenuItem("Play word");
 		mit.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {

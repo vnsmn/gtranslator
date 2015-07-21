@@ -2,6 +2,8 @@ package gtranslator;
 
 import gtranslator.annotation.Singelton;
 import gtranslator.exception.SoundReceiverException;
+import gtranslator.persistences.WordDao;
+import gtranslator.persistences.WordEntity;
 import gtranslator.sound.OxfordReceiverService;
 import gtranslator.sound.SoundHelper;
 import gtranslator.sound.SoundHelper.FileEntry;
@@ -11,6 +13,7 @@ import gtranslator.ui.ProgressMonitorDemo;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -24,6 +27,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Set;
 
 import javax.annotation.Resource;
@@ -42,7 +47,7 @@ public class DictionaryService implements Configurable {
 	private HistoryService historyService;
 
 	public enum SOURCE_TYPE {
-		HISTORY, DICTIONARY, TEXT, IRREGULAR_VERB, RUNTIME_WORDS
+		HISTORY, DICTIONARY, TEXT, IRREGULAR_VERB, RUNTIME_WORDS, WORDS_IN, WORDS_OUT, WORDS_DIC
 	}
 
 	private DictionaryService() {
@@ -169,6 +174,47 @@ public class DictionaryService implements Configurable {
 			Collections.sort(sortWords);
 		}
 		createDictionary(sortWords, Collections.emptyMap(), input);
+	}
+
+	public synchronized void createDictionaryFromWords(DictionaryInput input)
+			throws Exception {
+		WordDao wordDao = new WordDao();
+		if (input.sourceType == DictionaryService.SOURCE_TYPE.WORDS_IN) {
+			Properties properties = new Properties();
+			properties.load(new FileInputStream(input.path));
+			for (Entry<Object, Object> ent : properties.entrySet()) {
+				boolean isVisible = "1".equals(ent.getValue());
+				String eng = ent.getKey().toString();
+				if ("-".equals(ent.getValue())) {
+					wordDao.delete(eng);
+				} else {
+					wordDao.save(eng, isVisible);
+				}
+			}
+		} else if (input.sourceType == DictionaryService.SOURCE_TYPE.WORDS_OUT) {
+			List<WordEntity> l = wordDao.list(null);
+			StringBuilder sb = new StringBuilder();
+			for (WordEntity w : l) {
+				if (sb.length() > 0) {
+					sb.append("\n");
+				}
+				sb.append(w.getEng());
+				sb.append("=");
+				sb.append(w.isVisible() ? "1" : "");
+			}
+			writeTextToFile(sb.toString(), new File(input.path));
+		} else if (input.sourceType == DictionaryService.SOURCE_TYPE.WORDS_DIC) {
+			List<WordEntity> l = wordDao.list(true);
+			StringBuilder sb = new StringBuilder();
+			for (WordEntity w : l) {
+				if (sb.length() > 0) {
+					sb.append("\n");
+				}
+				sb.append(w.getEng());
+				sb.append("=");
+			}
+			writeTextToFile(sb.toString(), new File(input.path));
+		}
 	}
 
 	private String readTextFromFile(String textFilePath) throws IOException {

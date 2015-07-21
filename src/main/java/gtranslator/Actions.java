@@ -52,7 +52,12 @@ public class Actions {
 				} else if (dic.sourceType == DictionaryService.SOURCE_TYPE.RUNTIME_WORDS) {
 					App.getDictionaryService()
 							.createDictionaryFromRuntimeWords(dic);
-				}
+				} else if (dic.sourceType == DictionaryService.SOURCE_TYPE.WORDS_DIC 
+						|| dic.sourceType == DictionaryService.SOURCE_TYPE.WORDS_IN
+						|| dic.sourceType == DictionaryService.SOURCE_TYPE.WORDS_OUT) {
+					App.getDictionaryService()
+					.createDictionaryFromWords(dic);
+		}
 			} catch (Exception ex) {
 				logger.error(ex);
 			} finally {
