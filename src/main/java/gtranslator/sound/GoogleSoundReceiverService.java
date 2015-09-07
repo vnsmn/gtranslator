@@ -18,7 +18,9 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 public class GoogleSoundReceiverService implements Configurable {
@@ -28,6 +30,7 @@ public class GoogleSoundReceiverService implements Configurable {
 	private final static String ENG_REQUEST = "http://translate.google.com/translate_tts?tl=en&q=%s";
 	private File soundEnDir;
 	private File soundRuDir;
+	private AtomicReference<String> cookie = new AtomicReference<String>("");
 
 	private GoogleSoundReceiverService() {
 	}
@@ -70,6 +73,7 @@ public class GoogleSoundReceiverService implements Configurable {
 		conn.setRequestProperty(
 				"User-Agent",
 				"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.152 Safari/537.36");
+		conn.setRequestProperty("Cookie", cookie.get());
 		long size = 0;
 		try (InputStream in = conn.getInputStream()) {
 			size = Files.copy(in, Paths.get(file.toURI()),
@@ -94,6 +98,9 @@ public class GoogleSoundReceiverService implements Configurable {
 		}
 		if (!soundRuDir.exists()) {
 			soundRuDir.mkdirs();
+		}
+		if (!StringUtils.isBlank(appProperties.getCookie())) {
+			cookie.set(appProperties.getCookie());
 		}
 	}
 
