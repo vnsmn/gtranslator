@@ -3,23 +3,16 @@ package gtranslator;
 import gtranslator.annotation.Singelton;
 import gtranslator.sound.SoundHelper;
 import gtranslator.translate.DefaultGoogleFormater;
+import org.apache.log4j.Logger;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import javax.annotation.Resource;
+import java.io.*;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.annotation.Resource;
-
-import gtranslator.ui.Constants;
-import org.apache.log4j.Logger;
 
 public class HistoryService implements Configurable {
     static final Logger logger = Logger.getLogger(HistoryService.class);
@@ -197,7 +190,11 @@ public class HistoryService implements Configurable {
                     while (matcher.find()) {
                         String word = matcher.group();
                         if (word.length() > 2) {
-                            SoundHelper.captureEngWord(matcher.group());
+                            try {
+                                SoundHelper.captureEngWord(matcher.group());
+                            } catch (Throwable ex) {
+                                logger.error(ex);
+                            }
                             Thread.sleep(2000);
                         }
                     }
