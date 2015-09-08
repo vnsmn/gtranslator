@@ -55,7 +55,9 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener,
 
 	@Singelton
 	public static void createSingelton() {
-		Registry.INSTANCE.add(new UIOutput(300, 200));
+		UIOutput ui = new UIOutput(300, 200);
+		Registry.INSTANCE.add(ui);
+		ui.showWaitCursor();
 	}
 
 	private UIOutput(int weigth, int height) {
@@ -168,11 +170,13 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener,
 		cnt++;
 		glass.setVisible(true);
 		frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		frame.setEnabled(false);
 	}
 
 	public void hideWaitCursor() {
 		if (--cnt <= 0) {
 			closeWaitCursor();
+			frame.setEnabled(true);
 		}
 	}
 
@@ -180,6 +184,7 @@ public class UIOutput extends UIBuilder implements PropertyChangeListener,
 		cnt = 0;
 		glass.setVisible(false);
 		frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+		frame.setEnabled(true);
 	}
 
 	public void show() {

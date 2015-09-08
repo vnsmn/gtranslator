@@ -100,8 +100,10 @@ public class ClipboardObserver implements Runnable, ClipboardOwner,
 							Object text = clipData
 									.getTransferData(DataFlavor.stringFlavor);
 							uiOutput.setSourceText(text.toString());
+							System.out.println("ClipboardObserver.run translateAndFormat 1: " + Thread.currentThread().getId());
 							String translate = translationReceiver
-									.translateAndFormat(text.toString(), false);							
+									.translateAndFormat(text.toString(), false);
+							System.out.println("ClipboardObserver.run translateAndFormat 2: " + Thread.currentThread().getId());
 							uiOutput.setTargetText(translate);
 							if (mode.get() == MODE.COPY) {
 								uiOutput.selectTranslatePanel();
@@ -240,8 +242,10 @@ public class ClipboardObserver implements Runnable, ClipboardOwner,
 							}
 							seltext = text.toString();
 							App.getUIOutput().setSourceText(text.toString());
+							System.out.println("nativeMouseReleased translateAndFormat 1: " + Thread.currentThread().getId());
 							String translate = App.getTranslationService()
 									.translateAndFormat(text.toString(), false);
+							System.out.println("nativeMouseReleased translateAndFormat 2: " + Thread.currentThread().getId());
 							App.getUIOutput().setTargetText(translate);
 							if (App.getClipboardObserver().actionListener != null) {
 								try {

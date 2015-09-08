@@ -63,6 +63,10 @@ public class App {
 		} catch (IOException | ParseException ex) {
 			logger.error(ex.getMessage(), ex);
 			System.exit(-1);
+		} finally {
+			if (App.getUIOutput() != null) {
+				App.getUIOutput().closeWaitCursor();
+			}
 		}
 
 		clipboardThread = new Thread(App.getClipboardObserver());

@@ -101,9 +101,13 @@ public class SoundHelper {
 	}
 
 	public static File getEngFile(String phrase, PHONETICS ph) {
+		return getEngFile(phrase, ph, AppProperties.getInstance().isDictionarySynthesizer());
+	}
+
+	public static File getEngFile(String phrase, PHONETICS ph, boolean isDictionarySynthesizer) {
 		File f = App.getOxfordReceiverService().getSound(phrase, ph);
 		if (f == null) {
-			if (AppProperties.getInstance().isDictionarySynthesizer())
+			if (isDictionarySynthesizer)
 				try {
 					f = App.getGoogleSoundReceiverService().getSound(phrase,
 							Constants.LANG.ENG);
@@ -132,6 +136,14 @@ public class SoundHelper {
 			if (f != null && f.exists()) {
 				SoundHelper.playFile(f);
 			}
+		}
+	}
+
+	public static void captureEngWord(String engWord) {
+		String normal = App.getTranslationService().toNormal(engWord);
+		if (normal.matches("[a-zA-Z]+")) {
+			getEngFile(normal, PHONETICS.AM, false);
+			getEngFile(normal, PHONETICS.BR, false);
 		}
 	}
 

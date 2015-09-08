@@ -223,12 +223,7 @@ public class Actions {
 							new ClipboardObserver.ActionListener() {
 								@Override
 								public void execute(String s) {
-									App.getUIOutput().showWaitCursor();
-									try {
-										SoundHelper.playEngWord(s);
-									} finally {
-										App.getUIOutput().hideWaitCursor();
-									}
+									Actions.findAction(PlayEngWordWithLoadAction.class).execute(s);
 								}
 							});
 				} else {
