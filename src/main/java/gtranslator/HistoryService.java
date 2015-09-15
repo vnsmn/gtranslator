@@ -103,7 +103,7 @@ public class HistoryService implements Configurable {
     }
 
     public boolean isWord(String phrase) {
-        return toNormal(phrase).matches("[a-zA-Z]+");
+        return toNormal(phrase).matches("[a-zA-Z'’]+");
     }
 
     public Map<String, String> getWords() {
