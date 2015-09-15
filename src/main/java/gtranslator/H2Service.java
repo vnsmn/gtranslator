@@ -62,23 +62,29 @@ public class H2Service implements Configurable {
     }
 
     public boolean addDic(String key, String value) {
+        String valDb = getDic(key);
+        if (StringUtils.isBlank(valDb) && !StringUtils.isBlank(value)) {
+            return updateDic(key, value);
+        }
+
+        if (valDb != null) {
+            return true;
+        }
+
         PreparedStatement insertPreparedStatement = null;
         boolean result = false;
 
         String insertQuery = "INSERT INTO DICTIONARY(phrase_key, phrase_value) values(?,?)";
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
+            insertPreparedStatement = connection
+                    .prepareStatement(insertQuery);
             String phrase_key = StringUtils.defaultIfBlank(key, "").trim()
                     .toLowerCase();
-
-            if (!existsDic(phrase_key)) {
-                insertPreparedStatement = connection
-                        .prepareStatement(insertQuery);
-                insertPreparedStatement.setString(1, phrase_key);
-                insertPreparedStatement.setString(2, value);
-                result = insertPreparedStatement.executeUpdate() > 0;
-                insertPreparedStatement.close();
-            }
+            insertPreparedStatement.setString(1, phrase_key);
+            insertPreparedStatement.setString(2, value);
+            result = insertPreparedStatement.executeUpdate() > 0;
+            insertPreparedStatement.close();
             connection.commit();
         } catch (Exception e) {
             logger.error(e);

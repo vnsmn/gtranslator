@@ -1,6 +1,7 @@
 package gtranslator.sound;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,20 +10,30 @@ import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
+import org.apache.commons.lang3.StringUtils;
 
 public class LameSoundHelper {
 	public final static LameSoundHelper INSTANCE = new LameSoundHelper();
+
+	public enum PROP {
+		QUALITY
+	}
 	
 	private LameSoundHelper() {		
 	}
+
+	public void convert(String waveFile, String mp3File) throws IOException {
+		convert(waveFile, mp3File, Collections.emptyMap());
+	}
 	
-	public void convert(String waveFile, String mp3File) throws ExecuteException, IOException {
+	public void convert(String waveFile, String mp3File, Map<PROP, String> settings) throws IOException {
+		String quality = StringUtils.defaultIfBlank(settings.get(PROP.QUALITY), "128");
 		Map<String, String> map = new HashMap<String, String>();
 		map.put("in_file", waveFile);
 		map.put("out_file", mp3File);
 		CommandLine cmdLine = new CommandLine("lame");
 		cmdLine.addArgument("-b");
-		cmdLine.addArgument("128");
+		cmdLine.addArgument(quality);
 		cmdLine.addArgument("-h");
 		cmdLine.addArgument("${in_file}", false);
 		cmdLine.addArgument("${out_file}", false);

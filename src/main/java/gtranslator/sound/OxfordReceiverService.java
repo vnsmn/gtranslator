@@ -184,6 +184,7 @@ public class OxfordReceiverService implements Configurable {
             if (ex.getStatusCode() == 404) {
                 oxfordDao.save(word, true, true, PHONETIC.AM.name());
                 oxfordDao.save(word, true, true, PHONETIC.BR.name());
+                logger.error("error: the word [" + word + "] not found in oxford.");
             }
             h2Service.addDic(word, ex.getStatusCode() == 404 ? "" : "error:"
                     + ex.getStatusCode());

@@ -23,9 +23,9 @@ public class OxfordDao {
     }
 
     public void save(String eng, Boolean isMissingSound, Boolean isMissingPhon, String label) {
-        if (!App.getHistoryService().isWord(eng)) {
-            return;
-        }
+//        if (!App.getHistoryService().isWord(eng)) {
+//            return;
+//        }
         OxfordEntity ent = get(eng, label);
         try (Session ses = App.getH2Service().openSession()) {
             ses.getTransaction().begin();

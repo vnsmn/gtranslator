@@ -208,6 +208,10 @@ public class TranslationService implements Configurable {
 				break;
 			}
 		}
+		if (j < i) {
+			logger.error("toNormal i > j: " + i + ">" + j + " : " + s);
+			return "";
+		}
 		try {
 			return s1.substring(i, j + 1).replaceAll("[ ]+", " ").toLowerCase();
 		} catch (StringIndexOutOfBoundsException ex) {
