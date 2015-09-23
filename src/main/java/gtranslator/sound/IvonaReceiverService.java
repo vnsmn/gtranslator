@@ -20,6 +20,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
+/**
+ * http://developer.ivona.com/en/speechcloud/java-client.html
+ */
 public class IvonaReceiverService implements Configurable {
     static final Logger logger = Logger.getLogger(IvonaReceiverService.class);
     private IvonaSpeechCloudClient speechCloud;
