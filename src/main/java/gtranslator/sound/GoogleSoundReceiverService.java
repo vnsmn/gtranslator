@@ -89,7 +89,9 @@ public class GoogleSoundReceiverService implements Configurable {
             if (code == 503) {
                 if (ex.getMessage().startsWith("Server returned HTTP response code: 503 for URL: ")) {
                     String captchaUrl = ex.getMessage().replace("Server returned HTTP response code: 503 for URL: ", "");
-                    resolve503(captchaUrl);
+                    if (resolve503(captchaUrl)) {
+                        return writeSound(file, phrase, lang);
+                    }
                     return false;
                 }
             }
@@ -129,7 +131,7 @@ public class GoogleSoundReceiverService implements Configurable {
     boolean isClosedResolve503 = false;
     String captchaText = "";
 
-    public void resolve503(String request) throws IOException, InterruptedException {
+    public boolean resolve503(String request) throws IOException, InterruptedException {
         CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
         HttpURLConnection indConn = connect(new URL(request));
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -172,8 +174,10 @@ public class GoogleSoundReceiverService implements Configurable {
                     resolve503(request);
                 }
                 cookie.set(scookie);
+                return true;
             }
         }
+        return false;
     }
 
     private JFrame createFrame(InputStream imageStream) throws IOException {
