@@ -200,5 +200,10 @@
 			<artifactId>c3p0</artifactId>
 			<version>0.9.1.2</version>
 		</dependency>
+		<dependency>
+			<groupId>com.ivona</groupId>
+			<artifactId>ivona-speechcloud-sdk-java</artifactId>
+			<version>1.0.0</version>
+		</dependency>
 	</dependencies>
 </project>

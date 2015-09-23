@@ -27,6 +27,7 @@ public class AppProperties {
 	private static final String DICTIONARY_RESULT_DIR = "dictionary.result.dir";
 	private static final String DICTIONARY_TARGET_DIR = "dictionary.target.dir";
 	private static final String DICTIONARY_SYNTHESIZER = "dictionary.synthesizer";
+	private static final String IVONA_CREDENTIALS_PATH = "ivona.credentials.path";
 	private static final String HISTORY = "history";
 
 	private static AppProperties instance;
@@ -123,6 +124,11 @@ public class AppProperties {
 			setDictionaryResultDirPath(dirPath);
 		}
 		return dirPath;
+	}
+
+	public String getIvonaCredentialsPath() {
+		return properties.getProperty(IVONA_CREDENTIALS_PATH)
+				.replaceAll("\n", "");
 	}
 
 	public boolean isHistory() {
@@ -229,5 +235,9 @@ public class AppProperties {
 			logger.error(ex);
 			return true;
 		}
+	}
+
+	public void setIvonaCredentialsPath(String path) {
+		properties.setProperty(IVONA_CREDENTIALS_PATH, path);
 	}
 }
